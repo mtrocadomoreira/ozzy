@@ -71,16 +71,15 @@ def how_many_units(path_pattern):
 
 
 
-def find_path
-
-
-
 def open_osiris(path, runs=None, quants=None, agg_along='sims'):
     """Opens OSIRIS data in HDF5 format
 
     Args:
         file (string): location of file to be opened
     """
+
+    currpath = os.getcwd()
+    datasets = []
 
     # Sort out the input
 
@@ -103,6 +102,7 @@ def open_osiris(path, runs=None, quants=None, agg_along='sims'):
             subdirs = [path]
 
         quants_info, ndumps = how_many_quants(subdirs, quants)
+        nquants = len(list(quants_info.keys()))
 
         is_agg = True
 
@@ -110,27 +110,40 @@ def open_osiris(path, runs=None, quants=None, agg_along='sims'):
 
     if is_agg:
 
-        # loop along quant -> store into dict
-            # loop along time -> store in +1 dimension of array
-                # loop along runs -> store in +1 dimension of array
+        if nruns > 0:
+
+            for run in dirs_runs:
+
+                run_name = os.path.basename(run)
+
+                allquants = []
+                for quant, files in quants_info.items():
+                    for file in files:
+                        loc = sorted(glob.glob(file, recursive=True, root_dir=run))
+                        allquants.append(os.path.join(path,run,loc))
+
+                
+                ds = open_many_osiris(allquants)
+                ds.attrs['run'] = run_name
+                datasets.append(ds)
+
+                # merge files for different quantities in single dataset
+                # include name of run in file attributes
+
+        else:
+
+            # missing
 
     else:
 
+        for file in dirs_units:
 
+            ds = open_many_osiris(file)
+            datasets.append(ds)
 
-
-
-
-    try:
-        for p in path:
-
-    except TypeError:
-
-
-    f = h5py.File(file, 'r')
 
     # Rea
 
 
 
-    return 
+    return datasets
