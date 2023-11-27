@@ -5,6 +5,7 @@ import xarray as xr
 import h5py
 import os
 import glob
+import dask
 
 def how_many_runs(path, runs_pattern):
 
@@ -37,12 +38,12 @@ def how_many_quants(parent_paths, quants_pattern):
         quants = []
         for quant in quants_pattern:
 
-            query = sorted(glob.glob(quant, recursive=True, root_dir=dir))
+            query = sorted(glob.glob('**/'+quant, recursive=True, root_dir=dir))
             filessplit = [os.path.split(item) for item in query]
             head, tail = zip(*filessplit)
             tail_unique = list(set(tail))
-            quants = quants + [q for q in tail_unique if '.h5' not in q]
-            
+            quants = quants + [os.path.commonprefix(tail_unique).replace('.h5','')]
+
             for q in quants:
                 qfiles = sorted([it for it in tail_unique \
                                 if (q in it and '.h5' in it)])
@@ -70,6 +71,12 @@ def how_many_units(path_pattern):
 
     return(units, nunits)
 
+def tex_format(str):
+    if str == '':
+        newstr = str
+    else:
+        newstr = '$' + str + '$'
+    return newstr
 
 def ds_config_osiris(ds):
 
@@ -83,8 +90,6 @@ def ds_config_osiris(ds):
     with h5py.File(fname, 'r') as f:
         move_c = f['/SIMULATION'].attrs['MOVE C']
         ndims = f['/SIMULATION'].attrs['NDIMS']
-        xmax = f['/SIMULATION'].attrs['XMAX']
-        xmin = f['/SIMULATION'].attrs['XMIN']
         nx = f['/SIMULATION'].attrs['NX']
         axgroups = list(f['AXIS'])
         for subgrp in axgroups:
@@ -96,6 +101,7 @@ def ds_config_osiris(ds):
             xmin.append(f[loc][0])
     xmax = np.array(xmax)
     xmin = np.array(xmin)
+    length_x1 = round((xmax[0]-xmin[0])*1e3)*1e-3
 
     # Rename dimensions
     match ndims:
@@ -106,29 +112,41 @@ def ds_config_osiris(ds):
         case 3:
             ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x3', 'phony_dim_2': 'x1'})
 
-    # Save axis values and metadata (for x2 and x3)
+    # Save axis values and metadata
+
     dx = (xmax-xmin) / nx
+    dx[0] = length_x1 / nx[0]
+
+    ax = np.arange(dx[0], length_x1+dx[0], dx[0]) - 0.5*dx[0]
+    ds = ds.assign_coords({'x1': ax})
+
     for i in np.arange(1,ndims):
         coord = 'x' + str(i+1)
         ax = np.arange(xmin[i]+dx[i], xmax[i]+dx[i], dx[i]) - 0.5*dx[i]
         ds = ds.assign_coords({coord: ax})
-    for i in np.arange(1,ndims):
+
+    for i in np.arange(0,ndims):
         coord = 'x' + str(i+1)
-        ds.coords[coord].attrs['long_name'] = ax_labels[i].decode('UTF-8')
-        ds.coords[coord].attrs['units'] = ax_units[i].decode('UTF-8')
+        ds.coords[coord].attrs['long_name'] = tex_format(ax_labels[i].decode('UTF-8'))
+        ds.coords[coord].attrs['units'] = tex_format(ax_units[i].decode('UTF-8'))
         ds.coords[coord].attrs['TYPE'] = ax_type[i].decode('UTF-8')
 
     # Save data label and units
     varname = list(ds.keys())[0]
     var = ds[varname]
-    var = var.assign_attrs(long_name = ds.attrs['LABEL'], units = ds.attrs['UNITS'])
+    var = var.assign_attrs(
+        long_name = tex_format(ds.attrs['LABEL']), 
+        units = tex_format(ds.attrs['UNITS'])
+        )
     del ds.attrs['LABEL'], ds.attrs['UNITS']
 
     # Save other metadata
-    ds = ds.assign_coords({'time': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0]})
-    ds.time.attrs['units'] = ds.attrs['TIME UNITS']
+    run_name = get_run_name(fname)
+
+    ds = ds.assign_coords({'time': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0], 'run': run_name})
+    ds.time.attrs['units'] = tex_format(ds.attrs['TIME UNITS'])
     ds.time.attrs['long_name'] = 'Time'
-    ds.attrs['length_x1'] = xmax[0]-xmin[0]
+    ds.attrs['length_x1'] = length_x1
     ds.attrs['dx'] = dx
     ds.attrs['nx'] = nx
     ds.attrs['source'] = fname
@@ -138,6 +156,7 @@ def ds_config_osiris(ds):
 def get_run_name(path):
 
     pathloop = path
+    tail = ''
     while tail != 'MS':
         head, tail = os.path.split(pathloop)
         pathloop = head
@@ -146,26 +165,25 @@ def get_run_name(path):
     return runname
 
 
-def open_many_osiris(files):
+def open_many_osiris(files, concat_along=None):
 
-    ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='nested', concat_dim='time')
 
-    ax = np.arange(ds.attrs['dx'][0], ds.attrs['length_x1']+ds.attrs['dx'][0], ds.attrs['dx'][0]) - 0.5*ds.attrs['dx'][0]
-    ds = ds.assign_coords({'x1': ax})
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='nested', concat_dim=concat_along, combine_attrs='drop_conflicts')
+
+    flat = [item for row in files for item in row]
+    ds.attrs['source'] = os.path.commonprefix(flat)
 
     return ds
 
 
 
-def open_osiris(path, runs=None, quants=None, agg_along='sims'):
+def open_osiris(path, runs=None, quants=None):
     """Opens OSIRIS data in HDF5 format
 
     Args:
         file (string): location of file to be opened
     """
-
-    currpath = os.getcwd()
-    datasets = []
 
     # Sort out the input
 
@@ -182,13 +200,18 @@ def open_osiris(path, runs=None, quants=None, agg_along='sims'):
 
         if runs is not None:
             dirs_runs, nruns = how_many_runs(path, runs)
-            subdirs = dirs_runs
+            subdirs = [os.path.join(path, fldr) for fldr in dirs_runs]
+            print('Found ' + str(nruns) + ' run(s):')
+            [print('    ' + item) for item in dirs_runs]
         else: 
             nruns = 0
             subdirs = [path]
 
         quants_info, ndumps = how_many_quants(subdirs, quants)
         nquants = len(list(quants_info.keys()))
+
+        print('Found ' + str(nquants) + ' quantities with ' + str(ndumps) + ' dumps at most:')
+        [print('    ' + item) for item in list(quants_info.keys())]
 
         is_agg = True
 
@@ -198,46 +221,43 @@ def open_osiris(path, runs=None, quants=None, agg_along='sims'):
 
         if nruns > 0:
 
+            allquants = []
             for run in dirs_runs:
-
-                run_name = os.path.basename(run)
-
-                allquants = []
+                filepaths = []
                 for quant, files in quants_info.items():
                     for file in files:
-                        print('Reading ' + file + '...')
-                        loc = sorted(glob.glob(file, recursive=True, root_dir=run))
-                        allquants.append(os.path.join(path,run,loc))
+                        # print('Reading ' + file + '...')
+                        loc = sorted(glob.glob('**/'+file, recursive=True, root_dir=os.path.join(path,run)))
+                        fullloc = [os.path.join(path,run,lc) for lc in loc]
+                        filepaths = filepaths + fullloc
 
-                
-                ds = open_many_osiris(allquants)
-                ds.attrs['run'] = run_name
-                datasets.append(ds)
+                allquants.append(filepaths)
 
-                # merge files for different quantities in single dataset
+            if ndumps > 1:
+                ds = open_many_osiris(allquants, concat_along=['run', 'time'])
+            else:
+                ds = open_many_osiris(allquants, concat_along=['run', None])
+            
 
         else:
 
             allquants = []
             for quant, files in quants_info.items():
                 for file in files:
-                    print('Reading ' + file + '...')
+                    # print('Reading ' + file + '...')
                     loc = sorted(glob.glob(file, recursive=True, root_dir=path))
-                    allquants.append(os.path.join(path,loc))
+                    fullloc = [os.path.join(path,lc) for lc in loc]
+                    allquants = allquants + fullloc
 
-            ds = open_many_osiris(allquants)
-            datasets.append(ds)
+            ds = open_many_osiris(allquants, concat_along='time')
 
     else:
 
-        for file in dirs_units:
+        print('Reading the following files:')
+        [print('    ' + item) for item in dirs_units]
 
-            print('Reading ' + file + '...')
-
-            ds = open_many_osiris(file)
-            ds.attrs['run'] = get_run_name(file)
-            datasets.append(ds)
+        ds = open_many_osiris(dirs_units, concat_along='run')
 
     print('Done!')
 
-    return datasets
+    return ds
