@@ -144,6 +144,7 @@ def ds_config_osiris(ds):
     run_name = get_run_name(fname)
 
     ds = ds.assign_coords({'time': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0], 'run': run_name})
+    ds = ds.expand_dims(dim={'time':1}, axis=ndims[0]).expand_dims(dim={'run':1}, axis=ndims[0]+1)
     ds.time.attrs['units'] = tex_format(ds.attrs['TIME UNITS'])
     ds.time.attrs['long_name'] = 'Time'
     ds.attrs['length_x1'] = length_x1
@@ -165,14 +166,13 @@ def get_run_name(path):
     return runname
 
 
-def open_many_osiris(files, concat_along=None):
-
+def open_many_osiris(files):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
-        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='nested', concat_dim=concat_along, combine_attrs='drop_conflicts')
 
-    flat = [item for row in files for item in row]
-    ds.attrs['source'] = os.path.commonprefix(flat)
+        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='by_coords')
+
+    ds.attrs['source'] = os.path.commonprefix(files)
 
     return ds
 
@@ -204,6 +204,7 @@ def open_osiris(path, runs=None, quants=None):
             print('Found ' + str(nruns) + ' run(s):')
             [print('    ' + item) for item in dirs_runs]
         else: 
+            dirs_runs = ['']
             nruns = 0
             subdirs = [path]
 
@@ -219,45 +220,36 @@ def open_osiris(path, runs=None, quants=None):
 
     if is_agg:
 
-        if nruns > 0:
+        allquants = []
 
-            allquants = []
+        for quant, files in quants_info.items():
+
+            filepaths = []
+
             for run in dirs_runs:
-                filepaths = []
-                for quant, files in quants_info.items():
-                    for file in files:
-                        # print('Reading ' + file + '...')
-                        loc = sorted(glob.glob('**/'+file, recursive=True, root_dir=os.path.join(path,run)))
-                        fullloc = [os.path.join(path,run,lc) for lc in loc]
-                        filepaths = filepaths + fullloc
-
-                allquants.append(filepaths)
-
-            if ndumps > 1:
-                ds = open_many_osiris(allquants, concat_along=['run', 'time'])
-            else:
-                ds = open_many_osiris(allquants, concat_along=['run', None])
-            
-
-        else:
-
-            allquants = []
-            for quant, files in quants_info.items():
                 for file in files:
                     # print('Reading ' + file + '...')
-                    loc = sorted(glob.glob(file, recursive=True, root_dir=path))
-                    fullloc = [os.path.join(path,lc) for lc in loc]
-                    allquants = allquants + fullloc
+                    loc = sorted(glob.glob('**/'+file, recursive=True, root_dir=os.path.join(path,run)))
+                    fullloc = [os.path.join(path,run,lc) for lc in loc]
+                    filepaths = filepaths + fullloc
 
-            ds = open_many_osiris(allquants, concat_along='time')
+            ds = open_many_osiris(filepaths)
+            allquants.append(ds)
+        
+        dataset = allquants[0]
+        for i in np.arange(1,len(allquants)):
+            dataset = dataset.assign(allquants[i].data_vars)
 
     else:
 
+        dataset = []
         print('Reading the following files:')
-        [print('    ' + item) for item in dirs_units]
 
-        ds = open_many_osiris(dirs_units, concat_along='run')
+        for item in dirs_units:
+            print('    ' + item)
+            ds = open_many_osiris(item)
+            dataset.append(ds)
 
     print('Done!')
 
-    return ds
+    return dataset
