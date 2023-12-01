@@ -133,8 +133,7 @@ def ds_config_osiris(ds):
 
     # Save data label and units
     varname = list(ds.keys())[0]
-    var = ds[varname]
-    var = var.assign_attrs(
+    ds[varname] = ds[varname].assign_attrs(
         long_name = tex_format(ds.attrs['LABEL']), 
         units = tex_format(ds.attrs['UNITS'])
         )
