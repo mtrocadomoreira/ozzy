@@ -4,8 +4,40 @@ import pandas as pd
 import xarray as xr
 import h5py
 import os
+from pathlib import PurePath
 import glob
 import dask
+import seaborn as sns
+
+# Plot styling
+
+import matplotlib.font_manager as fm
+font_dirs = ['/Users/Mariana/Documents/Work-local/i-do-sciens/mymods/ozzy/fonts']
+font_files = fm.findSystemFonts(fontpaths=font_dirs)
+for font_file in font_files:
+    fm.fontManager.addfont(font_file)
+
+ozparams = {
+    'mathtext.fontset': 'cm',
+    'font.serif': ['Noto Serif', 'serif'],
+    'font.sans-serif': ['Arial', 'Helvetica', 'sans'],
+    'text.usetex': False,
+    'axes.grid': True,
+    'grid.color': '.9',
+    'axes.linewidth': '0.75',
+    'xtick.major.width': '0.75',
+    'ytick.major.width': '0.75',
+    'lines.linewidth': '0.5',
+    'figure.figsize': ('8.0','4.8'),
+    'figure.dpi': '300',
+    'image.cmap': 'magma',
+    'savefig.format': 'pdf',
+    'savefig.transparent': True,
+}
+
+sns.set_theme(style='ticks', palette='husl', font='serif', font_scale=1.1, rc=ozparams)
+
+# Data processing
 
 def how_many_runs(path, runs_pattern):
 
@@ -55,6 +87,7 @@ def how_many_quants(parent_paths, quants_pattern):
                         quant_info[q] = qfiles
                 else:
                     quant_info[q] = qfiles
+                    itermax = niters
 
     return (quant_info, itermax)
 
@@ -78,6 +111,37 @@ def tex_format(str):
         newstr = '$' + str + '$'
     return newstr
 
+def unpack_str(attr):
+    if isinstance(attr, np.ndarray):
+        result = attr[0]
+    else:
+        result = attr
+    return result
+
+def get_run_name(path):
+    
+    if 'MS' in path:
+        pathloop = path
+        tail = ''
+        while tail != 'MS':
+            head, tail = os.path.split(pathloop)
+            pathloop = head
+        runname = os.path.basename(head)
+    else:
+        try: 
+            if len(filestoberead) == 1:
+                absfolder = PurePath(path).parent
+                runname = absfolder.parts[-1]
+            else:
+                commonpath = PurePath(os.path.commonpath(filestoberead))
+                abspath = PurePath(path)
+                relpath = abspath.relative_to(commonpath)
+                runname = relpath.parts[0]
+        except ValueError:
+            runname = path
+
+    return runname
+
 def ds_config_osiris(ds):
 
     # Read some properties with HDF5 interface
@@ -89,12 +153,12 @@ def ds_config_osiris(ds):
     fname = ds.encoding['source']
     with h5py.File(fname, 'r') as f:
         move_c = f['/SIMULATION'].attrs['MOVE C']
-        ndims = f['/SIMULATION'].attrs['NDIMS']
-        nx = f['/SIMULATION'].attrs['NX']
+        # ndims = f['/SIMULATION'].attrs['NDIMS']
+        # nx = f['/SIMULATION'].attrs['NX']
         axgroups = list(f['AXIS'])
         for subgrp in axgroups:
             loc = '/AXIS/' + subgrp
-            ax_labels.append(f[loc].attrs['LONG_NAME'][0])
+            ax_labels.append(unpack_str(f[loc].attrs['LONG_NAME']))
             ax_units.append(f[loc].attrs['UNITS'][0])
             ax_type.append(f[loc].attrs['TYPE'][0])
             xmax.append(f[loc][1])
@@ -102,6 +166,19 @@ def ds_config_osiris(ds):
     xmax = np.array(xmax)
     xmin = np.array(xmin)
     length_x1 = round((xmax[0]-xmin[0])*1e3)*1e-3
+
+    # Save data label, units and dimension info
+    varname = list(ds.keys())[0]
+    ds[varname] = ds[varname].assign_attrs(
+        long_name = tex_format(ds.attrs['LABEL']), 
+        units = tex_format(ds.attrs['UNITS'])
+        )
+    del ds.attrs['LABEL'], ds.attrs['UNITS']
+
+    nx = np.array(ds[varname].shape)
+    ndims = len(nx)
+    if ndims >= 2:
+        nx[1], nx[0] = nx[0], nx[1]
 
     # Rename dimensions
     match ndims:
@@ -111,9 +188,8 @@ def ds_config_osiris(ds):
             ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x1'})
         case 3:
             ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x3', 'phony_dim_2': 'x1'})
-
+            
     # Save axis values and metadata
-
     dx = (xmax-xmin) / nx
     dx[0] = length_x1 / nx[0]
 
@@ -131,19 +207,12 @@ def ds_config_osiris(ds):
         ds.coords[coord].attrs['units'] = tex_format(ax_units[i].decode('UTF-8'))
         ds.coords[coord].attrs['TYPE'] = ax_type[i].decode('UTF-8')
 
-    # Save data label and units
-    varname = list(ds.keys())[0]
-    ds[varname] = ds[varname].assign_attrs(
-        long_name = tex_format(ds.attrs['LABEL']), 
-        units = tex_format(ds.attrs['UNITS'])
-        )
-    del ds.attrs['LABEL'], ds.attrs['UNITS']
 
     # Save other metadata
     run_name = get_run_name(fname)
 
     ds = ds.assign_coords({'time': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0], 'run': run_name})
-    ds = ds.expand_dims(dim={'time':1}, axis=ndims[0]).expand_dims(dim={'run':1}, axis=ndims[0]+1)
+    ds = ds.expand_dims(dim={'time':1}, axis=ndims).expand_dims(dim={'run':1}, axis=ndims+1)
     ds.time.attrs['units'] = tex_format(ds.attrs['TIME UNITS'])
     ds.time.attrs['long_name'] = 'Time'
     ds.attrs['length_x1'] = length_x1
@@ -151,27 +220,19 @@ def ds_config_osiris(ds):
     ds.attrs['nx'] = nx
     ds.attrs['source'] = fname
 
+    ds = ds.fillna(0.0)
+
     return ds    
-
-def get_run_name(path):
-
-    pathloop = path
-    tail = ''
-    while tail != 'MS':
-        head, tail = os.path.split(pathloop)
-        pathloop = head
-
-    runname = os.path.basename(head)
-    return runname
 
 
 def open_many_osiris(files):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
 
-        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='by_coords')
+        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=ds_config_osiris, combine='by_coords',
+        join='exact')
 
-    ds.attrs['source'] = os.path.commonprefix(files)
+    ds.attrs['source'] = os.path.commonpath(files)
 
     return ds
 
@@ -216,6 +277,8 @@ def open_osiris(path, runs=None, quants=None):
         is_agg = True
 
     # Read files
+    global filestoberead
+    filestoberead = []
 
     if is_agg:
 
@@ -232,6 +295,7 @@ def open_osiris(path, runs=None, quants=None):
                     fullloc = [os.path.join(path,run,lc) for lc in loc]
                     filepaths = filepaths + fullloc
 
+            filestoberead = filestoberead + filepaths
             ds = open_many_osiris(filepaths)
             allquants.append(ds)
         
@@ -239,15 +303,26 @@ def open_osiris(path, runs=None, quants=None):
         for i in np.arange(1,len(allquants)):
             dataset = dataset.assign(allquants[i].data_vars)
 
+        # Check whether any data was silently dropped
+
+        if len(dataset['run']) < nruns:
+            print('\n--- WARNING ---\nDataset(s) of one or more runs may have been silently dropped\n')
+        if len(dataset['time']) < ndumps:
+            print('\n--- WARNING ---\nDataset(s) for one or more dumps may have been silently dropped\n')
+        if len(dataset.data_vars.keys()) < nquants:
+            print('\n--- WARNING ---\nOne or more quantity(-ies) may have been silently dropped\n')
+
     else:
 
         dataset = []
         print('Reading the following files:')
+        filestoberead = dirs_units
 
-        for item in dirs_units:
+        for item in filestoberead:
             print('    ' + item)
             ds = open_many_osiris(item)
             dataset.append(ds)
+
 
     print('Done!')
 
