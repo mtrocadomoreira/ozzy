@@ -29,7 +29,7 @@ def find_runs(path, runs_pattern):
 
         for run in runs_pattern:
             filesindir = sorted(glob.glob(run, root_dir=path))
-            dirs = dirs + [folder for folder in filesindir if os.path.isdir(folder)]
+            dirs = dirs + [folder for folder in filesindir if os.path.isdir(os.path.join(path,folder))]
         
     run_names = dirs    
     nruns = len(dirs)
@@ -56,19 +56,21 @@ def find_runs(path, runs_pattern):
     return (dirs_dict, nruns)
 
 
-def find_quants(dirs_runs, quants, file_format):
+def find_quants(path, dirs_runs, quants, file_format):
 
     filenames = []
 
     for run, dir in dirs_runs.items():
 
+        searchdir = os.path.join(path, dir)
+
         if quants == None:
-            query = sorted(glob.glob('**/*.'+file_format, recursive=True, root_dir=dir))
+            query = sorted(glob.glob('**/*.'+file_format, recursive=True, root_dir=searchdir))
         else:
             if isinstance(quants, str):
                 quants = [quants]
             for q in quants:
-                query = sorted(glob.glob('**/'+q+'*', recursive=True, root_dir=dir))
+                query = sorted(glob.glob('**/'+q+'*', recursive=True, root_dir=searchdir))
                 filenames = filenames + [os.path.basename(f) for f in query]
 
     # Look for clusters of files matching pattern
@@ -108,6 +110,8 @@ def find_quants(dirs_runs, quants, file_format):
 
 def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
 
+    # os.chdir(path)
+
     # Get run information
 
     dirs_runs, nruns = find_runs(path, runs)
@@ -121,7 +125,7 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
         print('Error: invalid input for "file_type" keyword')
         raise 
 
-    files_quants, nquants, ndumps = find_quants(dirs_runs, quants, file_format)
+    files_quants, nquants, ndumps = find_quants(path, dirs_runs, quants, file_format)
 
     # Print info found so far
 
@@ -140,6 +144,7 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
 
     # Loop along runs and along quants
 
+    currpath = os.getcwd()
     os.chdir(path)
     for run, run_dir in dirs_runs.items():
         for quant, quant_files in files_quants.items():
@@ -153,5 +158,6 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
             dataset = backends.read(filepaths_to_read, file_type)
             dataset.attrs['run'] = run
             df.at[run,quant] = dataset
+    os.chdir(currpath)
 
     return df
