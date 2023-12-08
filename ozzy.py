@@ -22,6 +22,47 @@ def validate_file_type(file_type):
 
 # Data processing
 
+def coord_to_physical_distance(ds, coord, n0, units='m'):
+
+    if not any([units==opt for opt in ['m', 'cm']]):
+        raise Exception('Error: "units" keyword must be either "m" or "cm"')
+    
+    # assumes n0 is in cm^(-3), returns skin depth in meters
+    skdepth = 3e8/5.64e4/np.sqrt(n0)
+    if units == 'cm':
+        skdepth = skdepth * 100.0
+
+    if coord not in ds.coords:
+        print('\nError: Could not find time coordinate to calculate the propagation distance coordinate.\nReturning the dataset unchanged.')
+        newds = ds
+    else:
+        newcoord = coord + '_' + units
+        newds = ds.assign_coords({newcoord: skdepth*ds.coords[coord] })
+
+    return newds
+    
+
+def coords_from_extent(ds, mapping):
+
+    newds = ds
+    for k, v in mapping.items():
+
+        # Check format of value 
+        try:
+            assert isinstance(v, tuple) and len(v)==2
+        except AssertionError:
+            raise Exception('Extent for each dimension should be given as a two-element tuple: (min, max)')
+
+        # Construct axis array
+        nx = ds.dims[k]
+        dx = (v[1]-v[0]) / nx
+        ax = np.arange(v[0]+dx, v[1]+dx, dx) - 0.5*dx
+
+        newds = newds.assign_coords({k: ax})
+    
+    return newds
+
+
 def find_runs(path, runs_pattern):
 
     dirs = []
@@ -89,7 +130,6 @@ def find_quants(path, dirs_runs, quants, file_type):
     # Look for clusters of files matching pattern
 
     tail_pattern = backends.get_regex_tail(file_type)
-    # tail_pattern = r"0\d+.*\." + file_format
     pattern = r".*" + tail_pattern
 
     matched = [f for f in filenames if re.match(pattern,f)]
@@ -160,7 +200,7 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
                 fullloc = [os.path.join(run_dir,loc) for loc in fileloc]
                 filepaths_to_read = filepaths_to_read + fullloc
 
-            dataset = backends.read(filepaths_to_read, file_type)
+            dataset = backends.read(filepaths_to_read, file_type, quant)
             dataset.attrs['run'] = run
             df.at[run,quant] = dataset
     os.chdir(currpath)
