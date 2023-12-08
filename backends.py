@@ -3,7 +3,9 @@ import pandas as pd
 import xarray as xr
 import h5py
 import dask
+import dask.dataframe as dd
 import os
+import re
 
 # --- Helper functions ---
 
@@ -16,6 +18,8 @@ def get_regex_tail(file_type):
             expr = r"0\d+.*\." + file_format
         case 'lcode.swp':
             expr = r"\d+.*\." + file_format
+        case _:
+            raise Exception('Error: invalid input for "file_type" keyword')
 
     return expr
 
@@ -117,6 +121,51 @@ def config_osiris(ds):
 
 # --- Main functions ---
 
+def read_lcode(files, quant):
+
+    if quant is None:
+        quant = 'quant'
+
+    ds_t = []
+
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        for file in files:
+
+            thisiter = int(re.search(r'\d+', os.path.basename(file)).group(0))
+
+            ddf = dd.read_table(file, sep='\s+', header=None)\
+                .to_dask_array(lengths=True)
+
+            ndims = ddf.ndim
+            match ndims:
+                case 1:
+                    dims = ['xi']
+                    ddf = np.flip(ddf, axis=0)
+                case 2:
+                    dims = ['r', 'xi']
+                    ddf = ddf.transpose()
+                    ddf = np.flip(ddf, axis=1)
+                case _:
+                    raise Exception('Invalid number of dimensions in file ' + file)
+
+            xds = xr.Dataset(data_vars={quant: (dims, ddf)})\
+                .expand_dims(dim={'t':1}, axis=ndims)\
+                .assign_coords({'iter': thisiter})
+            xds = xds.assign_coords({'iter': thisiter})
+
+            xds[quant].attrs['long_name'] = quant
+            xds.attrs['ndims'] = ndims
+
+            ds_t.append(xds)
+
+    ds = xr.concat(ds_t, 't')
+
+    ds.attrs['source'] = os.path.commonpath(files)
+    ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+
+    return ds
+
+
 def read_osiris(files):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
@@ -128,11 +177,13 @@ def read_osiris(files):
 
     return ds
 
-def read(filepaths, file_type):
+def read(filepaths, file_type, quant=None):
 
     match file_type:
         case 'osiris.h5':
             ds = read_osiris(filepaths)
+        case 'lcode.swp':
+            ds = read_lcode(filepaths, quant)
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 
