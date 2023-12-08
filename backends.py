@@ -7,6 +7,18 @@ import os
 
 # --- Helper functions ---
 
+def get_regex_tail(file_type):
+
+    file_format = file_type.split('.')[-1]
+
+    match file_type:
+        case 'osiris.h5':
+            expr = r"0\d+.*\." + file_format
+        case 'lcode.swp':
+            expr = r"\d+.*\." + file_format
+
+    return expr
+
 def tex_format(str):
     if str == '':
         newstr = str

@@ -10,6 +10,16 @@ import collections
 from . import backends
 from . import plotting
 
+# Helper functions
+
+def validate_file_type(file_type):
+    try:
+        assert len(file_type.split('.')) == 2
+    except AssertionError:
+        print('Error: invalid input for "file_type" keyword')
+        raise 
+    return
+
 # Data processing
 
 def find_runs(path, runs_pattern):
@@ -56,7 +66,10 @@ def find_runs(path, runs_pattern):
     return (dirs_dict, nruns)
 
 
-def find_quants(path, dirs_runs, quants, file_format):
+def find_quants(path, dirs_runs, quants, file_type):
+
+    validate_file_type(file_type)
+    file_format = file_type.split('.')[-1]
 
     filenames = []
 
@@ -75,7 +88,8 @@ def find_quants(path, dirs_runs, quants, file_format):
 
     # Look for clusters of files matching pattern
 
-    tail_pattern = r"0\d+.*\." + file_format
+    tail_pattern = backends.get_regex_tail(file_type)
+    # tail_pattern = r"0\d+.*\." + file_format
     pattern = r".*" + tail_pattern
 
     matched = [f for f in filenames if re.match(pattern,f)]
@@ -110,22 +124,13 @@ def find_quants(path, dirs_runs, quants, file_format):
 
 def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
 
-    # os.chdir(path)
-
     # Get run information
 
     dirs_runs, nruns = find_runs(path, runs)
 
     # Get quantity information
 
-    file_format = file_type.split('.')[-1]
-    try:
-        assert len(file_type.split('.')) == 2
-    except AssertionError:
-        print('Error: invalid input for "file_type" keyword')
-        raise 
-
-    files_quants, nquants, ndumps = find_quants(path, dirs_runs, quants, file_format)
+    files_quants, nquants, ndumps = find_quants(path, dirs_runs, quants, file_type)
 
     # Print info found so far
 
