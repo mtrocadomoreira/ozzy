@@ -4,6 +4,7 @@ import xarray as xr
 import h5py
 import dask
 import dask.dataframe as dd
+import dask.array as da
 import os
 import re
 
@@ -38,6 +39,55 @@ def unpack_str(attr):
     return result
 
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
+
+def config_lcode_raw(file):
+
+    cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'idx']
+    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'tag']
+    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '$1$', '$\\Delta \\xi m_e c^2 / (2 e)$']
+
+    arr = np.fromfile(file).reshape(-1,8)
+    dda = da.from_array(arr[0:-1,:])
+
+    data_vars = {}
+    for i, var in enumerate(cols[0:-1]):
+        data_vars[var] = ('idx', dda[:,i], {
+            'long_name': label[i],
+            'units': units[i]
+        })  
+
+    xds = xr.Dataset(data_vars).expand_dims(dim={'t':1}, axis=1)\
+        .assign_coords({'idx': dda[:,-1]})
+    xds.coords['idx'].attrs['long_name'] = label[-1]
+    xds.coords['idx'].attrs['units'] = units[-1]
+
+    return xds
+
+def config_lcode_grid(file, quant):
+
+    ddf = dd.read_table(file, sep='\s+', header=None)\
+        .to_dask_array(lengths=True)
+
+    ndims = ddf.ndim
+    match ndims:
+        case 1:
+            dims = ['xi']
+            ddf = np.flip(ddf, axis=0)
+        case 2:
+            dims = ['r', 'xi']
+            ddf = ddf.transpose()
+            ddf = np.flip(ddf, axis=1)
+        case _:
+            raise Exception('Invalid number of dimensions in file ' + file)
+
+    xds = xr.Dataset(data_vars={quant: (dims, ddf)})\
+        .expand_dims(dim={'t':1}, axis=ndims)
+
+    xds[quant].attrs['long_name'] = quant
+    xds.attrs['ndims'] = ndims
+
+    return xds
+
 
 def config_osiris(ds):
 
@@ -131,30 +181,15 @@ def read_lcode(files, quant):
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         for file in files:
 
+            print('Reading file '+ file)
+
+            if quant == 'tb':
+                xds = config_lcode_raw(file)
+            else:
+                xds = config_lcode_grid(file, quant)
+
             thisiter = int(re.search(r'\d+', os.path.basename(file)).group(0))
-
-            ddf = dd.read_table(file, sep='\s+', header=None)\
-                .to_dask_array(lengths=True)
-
-            ndims = ddf.ndim
-            match ndims:
-                case 1:
-                    dims = ['xi']
-                    ddf = np.flip(ddf, axis=0)
-                case 2:
-                    dims = ['r', 'xi']
-                    ddf = ddf.transpose()
-                    ddf = np.flip(ddf, axis=1)
-                case _:
-                    raise Exception('Invalid number of dimensions in file ' + file)
-
-            xds = xr.Dataset(data_vars={quant: (dims, ddf)})\
-                .expand_dims(dim={'t':1}, axis=ndims)\
-                .assign_coords({'iter': thisiter})
             xds = xds.assign_coords({'iter': thisiter})
-
-            xds[quant].attrs['long_name'] = quant
-            xds.attrs['ndims'] = ndims
 
             ds_t.append(xds)
 

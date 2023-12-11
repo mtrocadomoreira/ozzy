@@ -205,4 +205,6 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
             df.at[run,quant] = dataset
     os.chdir(currpath)
 
+    print('\nDone!')
+
     return df
