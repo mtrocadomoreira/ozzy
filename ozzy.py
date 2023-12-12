@@ -189,6 +189,8 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
 
     # Loop along runs and along quants
 
+    print('\nFile reading backend: ' + file_type)
+
     currpath = os.getcwd()
     os.chdir(path)
     for run, run_dir in dirs_runs.items():

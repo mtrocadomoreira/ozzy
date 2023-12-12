@@ -7,6 +7,7 @@ import dask.dataframe as dd
 import dask.array as da
 import os
 import re
+import time
 
 # --- Helper functions ---
 
@@ -173,6 +174,8 @@ def config_osiris(ds):
 
 def read_lcode(files, quant):
 
+    print('\nFiles are being read one by one:\n')
+
     if quant is None:
         quant = 'quant'
 
@@ -181,20 +184,25 @@ def read_lcode(files, quant):
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         for file in files:
 
-            print('Reading file '+ file)
+            print('  - '+ file)
 
             if quant == 'tb':
                 xds = config_lcode_raw(file)
             else:
                 xds = config_lcode_grid(file, quant)
 
-            thisiter = int(re.search(r'\d+', os.path.basename(file)).group(0))
-            xds = xds.assign_coords({'iter': thisiter})
+            thistime = float(re.search(r'\d+', os.path.basename(file)).group(0))
+            xds = xds.assign_coords({'t': [thistime]})
 
             ds_t.append(xds)
 
-    ds = xr.concat(ds_t, 't')
+    print('\nConcatenating along time... (this may take a while for raw files)')
+    t0 = time.process_time()
+    ds = xr.concat(ds_t, 't', fill_value={'q': 0.0})
+    print(' -> Took ' + str(time.process_time()-t0) + ' s'  )
 
+    ds.coords['t'].attrs['long_name'] = '$t$'
+    ds.coords['t'].attrs['units'] = '$\omega_p^{-1}$'
     ds.attrs['source'] = os.path.commonpath(files)
     ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
 
@@ -203,12 +211,19 @@ def read_lcode(files, quant):
 
 def read_osiris(files):
 
+    print('\nChunk of files being read and concatenated in a single xarray operation (xarray.open_mfdataset):')
+    for f in files:
+        print('  - ' + f)
+
+    t0 = time.process_time()
     with dask.config.set({"array.slicing.split_large_chunks": True}):
 
         ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=config_osiris, combine='by_coords', join='exact')
 
     ds.attrs['source'] = os.path.commonpath(files)
     ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+
+    print(' -> Took ' + str(time.process_time()-t0) + ' s'  )
 
     return ds
 
