@@ -43,24 +43,24 @@ def unpack_str(attr):
 
 def config_lcode_raw(file):
 
-    cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'idx']
-    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'tag']
-    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '$1$', '$\\Delta \\xi m_e c^2 / (2 e)$']
+    cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'pid']
+    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'pid']
+    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$\\Delta \\xi m_e c^2 / (2 e)$']
 
     arr = np.fromfile(file).reshape(-1,8)
     dda = da.from_array(arr[0:-1,:])
 
     data_vars = {}
     for i, var in enumerate(cols[0:-1]):
-        data_vars[var] = ('idx', dda[:,i], {
+        data_vars[var] = ('pid', dda[:,i], {
             'long_name': label[i],
             'units': units[i]
         })  
 
     xds = xr.Dataset(data_vars).expand_dims(dim={'t':1}, axis=1)\
-        .assign_coords({'idx': dda[:,-1]})
-    xds.coords['idx'].attrs['long_name'] = label[-1]
-    xds.coords['idx'].attrs['units'] = units[-1]
+        .assign_coords({'pid': dda[:,-1]})
+    xds.coords['pid'].attrs['long_name'] = label[-1]
+    xds.coords['pid'].attrs['units'] = units[-1]
 
     return xds
 
@@ -205,6 +205,7 @@ def read_lcode(files, quant):
 
     ds.coords['t'].attrs['long_name'] = '$t$'
     ds.coords['t'].attrs['units'] = '$\omega_p^{-1}$'
+    ds = ds.sortby('t')
     ds.attrs['source'] = os.path.commonpath(files)
     ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
 
