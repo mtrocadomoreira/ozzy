@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import xarray as xr
 from flox.xarray import xarray_reduce
 
 # --- Helper functions ---
@@ -20,7 +21,7 @@ def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
     # name of file: 'quant_rms_grid.pkl' or keyword
     return
 
-def mean_rms_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expand_time=True, axisym=False):
+def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expand_time=True, axisym=False):
 
     print('\nPreparing...')
 
@@ -35,9 +36,13 @@ def mean_rms_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
         print('Error: dimension "' + dim + '" not found in dataset.')
         raise Exception('Could not find dimension to perform operation along.')
     
-    # Check if dimension(s) in output "target_xda" = xarray.DataArray exist in input dataset "xds" = xarray.Dataset
+    # Check if dimension(s) in output "binned_axis" = xarray.DataArray exist in input dataset "xds" = xarray.Dataset
+
+    if isinstance(binned_axis, xr.DataArray):
+        binned_axis = binned_axis.to_dataset()
+
     problem = 0
-    for out_dim in target_xda.dims:
+    for out_dim in binned_axis.data_vars:
         if out_dim not in xds.data_vars:
             print('Error: output dimension "' + out_dim + '" could not be found in input dataset.')
             problem = problem + 1
@@ -49,23 +54,21 @@ def mean_rms_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     bin_arr = []
     bin_vars = []
     bin_axes = []
-    if isinstance(binned_axis, xr.DataArray):
-        axis = np.array(binned_axis)
-        bin_axes.append(axis)
-        bin_arr.append(bins_from_axis(axis))
-        bin_var.append(binned_axis.name)
-    elif isinstance(binned_axis, xr.Dataset):
+    problem = 0
+
+    try:
         for var in binned_axis.data_vars:
             axis = np.array(binned_axis[var])
             bin_axes.append(axis)
             bin_arr.append(bins_from_axis(axis))
-            bin_var.append(var)
-    else:
-       raise Exception('Error: Was expecting the keyword "binned_axis" to be either an xarray.DataArray or an xarray.Dataset.')
+            bin_vars.append(var)
+    except AttributeError:
+        print('Error: Was expecting the keyword "binned_axis" to be either an xarray.DataArray or an xarray.Dataset.')
+        raise
 
     # Prepare dataset for calculation
-    
-    ds = xds[bin_var + [dim, 'q']]
+
+    ds = xds[bin_vars + [dim, 'q']]
     ds[dim+'_sqw'] = (ds[dim]**2) * ds['q']
     if axisym == False:
         ds[dim+'_w'] = ds[dim]*ds['q']
@@ -73,45 +76,52 @@ def mean_rms_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
 
     # Determine bin index for each particle (and for each binning variable)
 
-    for i, bvar in enumerate(bin_var):
+    for i, bvar in enumerate(bin_vars):
         group_id = np.digitize(ds[bvar].isel(t=0),bin_arr[i])
         group_labels = [bin_axes[i][j] for j in group_id]
         ds = ds.assign_coords({ bvar+'_bin': ('pid',group_labels) })
 
     # Perform mean along the dataset and get final variables
 
-    print('\nCalculating mean and rms...')
+    print('\nCalculating mean and standard deviation...')
 
     by_dims = [ds[key] for key in ds.coords if '_bin' in key]
 
-    result = xarray_reduce(ds, by_dims, func='mean', sort=True, dim='pid', keep_attrs=True, fill_value=np.nan)
+    result = ds
+    for dim_da in by_dims:
+        try: 
+            result = xarray_reduce(result, dim_da, func='mean', sort=True, dim='pid', keep_attrs=True, fill_value=np.nan)
+        except:
+            print('This is probably a problem with the multiple binning axes. Have to look over this.')
+            raise
 
     if axisym == False:
-        result[dim+'_rms'] = np.sqrt(result[dim+'_sqw'] - result[dim+'_w']**2)
-        result = result.rename({dim+'_w': dim+'_mean'}).drop_vars(dim+'_sqw')
-        result[dim+'_mean'].attrs['long_name'] = 'mean(' + result[dim+'_mean'].attrs['long_name'] + ')'
-    else:
-        result[dim+'_rms'] = np.sqrt(result[dim+'_sqw'])
-        result = result.drop_vars(dim+'_sqw')
+        result[dim+'_std'] = np.sqrt(result[dim+'_sqw'] - result[dim+'_w']**2)
+        result = result.rename({dim+'_w': dim+'_mean'})
 
-    result[dim+'_std'].attrs['long_name'] = 'std(' + result[dim+'_std'].attrs['long_name'] + ')'
+        result[dim+'_mean'].attrs['long_name'] = 'mean(' + xds[dim].attrs['long_name'] + ')'
+        result[dim+'_mean'].attrs['units'] = xds[dim].attrs['units']
+    else:
+        result[dim+'_std'] = np.sqrt(result[dim+'_sqw'])
+
+    result[dim+'_std'].attrs['long_name'] = 'std(' + xds[dim].attrs['long_name'] + ')'
+    result[dim+'_std'].attrs['units'] = xds[dim].attrs['units']
+    result = result.drop_vars(dim+'_sqw')
 
     # Save data
 
     if outfile is None:
-        outfile = dim + '_mean_rms_raw.nc'
+        outfile = dim + '_mean_std_raw.nc'
 
     filepath = os.path.join(savepath,outfile)
     print('\nSaving file ' + filepath)
 
-    result.to_netcdf(filepath, engine-'h5netcdf', compute=True, invalid_netcdf=True)
+    result.to_netcdf(filepath, engine='h5netcdf', compute=True, invalid_netcdf=True, mode='w')
 
     print('\nDone!')
 
     return
     
-
-    # name of file: 'quant_rms_grid.pkl' or keyword
 
     
     
