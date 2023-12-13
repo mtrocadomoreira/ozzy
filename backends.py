@@ -72,10 +72,10 @@ def config_lcode_grid(file, quant):
     ndims = ddf.ndim
     match ndims:
         case 1:
-            dims = ['xi']
+            dims = ['x1']
             ddf = np.flip(ddf, axis=0)
         case 2:
-            dims = ['r', 'xi']
+            dims = ['x2', 'x1']
             ddf = ddf.transpose()
             ddf = np.flip(ddf, axis=1)
         case _:
@@ -86,6 +86,8 @@ def config_lcode_grid(file, quant):
 
     xds[quant].attrs['long_name'] = quant
     xds.attrs['ndims'] = ndims
+
+    # add units and label to coordinates
 
     return xds
 
