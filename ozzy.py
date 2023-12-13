@@ -38,6 +38,7 @@ def coord_to_physical_distance(ds, coord, n0, units='m'):
     else:
         newcoord = coord + '_' + units
         newds = ds.assign_coords({newcoord: skdepth*ds.coords[coord] })
+        newds[newcoord].attrs['units'] = '$\mathrm{' + units + '}$'
 
     return newds
 
@@ -67,13 +68,15 @@ def coords_from_extent(ds, mapping):
 
 
 def sample_particles(ds, n):
-    nparts = ds.coords['pid']
+    surviving = ds.isel(t=-1).coords['pid'].notnull()
+    pool = ds.coords['pid'][surviving]
+    nparts = len(pool)
     if n > nparts:
         print('Warning: number of particles to be sampled is larger than total particles. Proceeding without any sampling.')
     else:
         rng = np.random.default_rng()
-        downsamp = rng.choice(ds.coords['pid'], size=n, replace=False, shuffle=False)
-        ds = ds.sel(pid=downsamp)
+        downsamp = rng.choice(pool['pid'], size=n, replace=False, shuffle=False)
+        ds = ds.sel(pid=np.sort(downsamp))
     return ds
 
 
