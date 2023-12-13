@@ -40,28 +40,44 @@ def coord_to_physical_distance(ds, coord, n0, units='m'):
         newds = ds.assign_coords({newcoord: skdepth*ds.coords[coord] })
 
     return newds
+
+def axis_from_extent(nx, lims):
+    # Check format of value 
+    try:
+        assert isinstance(lims, tuple) and len(lims)==2
+    except AssertionError:
+        raise Exception('Extent "lims" should be given as a two-element tuple: (min, max)')
+    
+    dx = (lims[1]-lims[0]) / nx
+    ax = np.arange(lims[0]+dx, lims[1]+dx, dx) - 0.5*dx
+
+    return ax
     
 
 def coords_from_extent(ds, mapping):
-
     newds = ds
     for k, v in mapping.items():
-
-        # Check format of value 
-        try:
-            assert isinstance(v, tuple) and len(v)==2
-        except AssertionError:
-            raise Exception('Extent for each dimension should be given as a two-element tuple: (min, max)')
-
         # Construct axis array
         nx = ds.dims[k]
-        dx = (v[1]-v[0]) / nx
-        ax = np.arange(v[0]+dx, v[1]+dx, dx) - 0.5*dx
+        ax = axis_from_extent(nx, v)
 
         newds = newds.assign_coords({k: ax})
     
     return newds
 
+
+def sample_particles(ds, n):
+    nparts = ds.coords['pid']
+    if n > nparts:
+        print('Warning: number of particles to be sampled is larger than total particles. Proceeding without any sampling.')
+    else:
+        rng = np.random.default_rng()
+        downsamp = rng.choice(ds.coords['pid'], size=n, replace=False, shuffle=False)
+        ds = ds.sel(pid=downsamp)
+    return ds
+
+
+# Reading files
 
 def find_runs(path, runs_pattern):
 
