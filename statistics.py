@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import xarray as xr
+import mymods.ozzy.ozzy as oz
 from flox.xarray import xarray_reduce
 
 # --- Helper functions ---
@@ -116,7 +117,7 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     filepath = os.path.join(savepath,outfile)
     print('\nSaving file ' + filepath)
 
-    result.to_netcdf(filepath, engine='h5netcdf', compute=True, invalid_netcdf=True, mode='w')
+    oz.save(result, filepath)
 
     print('\nDone!')
 
