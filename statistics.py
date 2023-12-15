@@ -3,6 +3,7 @@ import numpy as np
 import xarray as xr
 import mymods.ozzy.ozzy as oz
 from flox.xarray import xarray_reduce
+import time
 
 # --- Helper functions ---
 
@@ -22,6 +23,42 @@ def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
     # name of file: 'quant_rms_grid.pkl' or keyword
     return
 
+def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q'):
+
+    spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
+
+    bin_edges = []
+    for axis in spatial_dims:
+        axis_arr = np.array(axes_ds[axis])
+        bin_edges.append(bins_from_axis(axis_arr))
+
+    q_binned = []
+
+    for i in np.arange(0, len(raw_ds[time_dim])):
+
+        ds_i = raw_ds.isel({time_dim: i})
+
+        part_coords = [dst[var] for var in spatial_dims]
+        dist, edges = np.histogramdd(
+            part_coords, 
+            bins = bin_edges, 
+            weights = ds_i[weight_var]
+        )
+
+        newcoords = {var: axes_ds[var] for var in spatial_dims}
+        newcoords[time_dim] = ds_i[time_dim]
+        qds_i = xr.Dataset(
+            data_vars={
+                weight_var: (spatial_dims, dist)
+            }, 
+            coords=newcoords
+        )
+        q_binned.append(qds_i)
+
+    parts = xr.concat(q_binned, time_dim)
+
+    return parts
+
 def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expand_time=True, axisym=False):
 
     print('\nPreparing...')
@@ -37,7 +74,7 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
         print('Error: dimension "' + dim + '" not found in dataset.')
         raise Exception('Could not find dimension to perform operation along.')
     
-    # Check if dimension(s) in output "binned_axis" = xarray.DataArray exist in input dataset "xds" = xarray.Dataset
+    # Check if dimension(s) in input "binned_axis" = xarray.DataArray exist in input dataset "xds" = xarray.Dataset
 
     if isinstance(binned_axis, xr.DataArray):
         binned_axis = binned_axis.to_dataset()
@@ -124,7 +161,90 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     return
     
 
+def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile=None, weight_var = 'q'):
+
+    t0 = time.process_time()
+
+    fields = fields_ds.data_vars
+    axes_ds = xr.Dataset(fields_ds.coords)
+
+    # Bin particles
+
+    print('\nBinning particles into a grid...')
+    t0_1 = time.process_time()
+
+    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var)
+
+    print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+
+    # Select subsets of the fields
+
+    print('\nMatching particle distribution with sign of fields:')
     
+    summed = []
+
+    for f in fields:
+
+        print('     - ' + f)
+        t0_1 = time.process_time()
+
+        f_pos = fields_ds[f].where((fields_ds[f]>=0.0).compute(), drop=True)
+        f_neg = fields_ds[f].where((fields_ds[f]<0.0).compute(), drop=True)
+
+        f_pos = f_pos * parts['q']
+        f_neg = abs(f_neg * parts['q'])
+
+        q_pos = f_pos.sum(dim=spatial_dims, skipna=True)
+        q_neg = f_neg.sum(dim=spatial_dims, skipna=True)
+
+        # Set metadata
+
+        q_pos.name = 'q_' + f + '_pos'
+        q_neg.name = 'q_' + f + '_neg'
+
+        if 'long_name' in fields_ds[f].attrs:
+            flabel = fields_ds[f].attrs['long_name'].strip('$') 
+        else:
+            flabel = f.capitalize()
+
+        q_pos.attrs['long_name'] = '$Q(' + f + ' \\geq 0)$'
+        q_neg.attrs['long_name'] = '$Q(' + f + ' < 0)$'
+
+        if 'units' in raw_ds['q'].attrs:
+            unt = raw_ds['q'].attrs['units']
+        else:
+            unt = ''
+        q_pos.attrs['units'] = unt
+        q_pos.attrs['units'] = unt
+
+        # Add to list
+
+        summed = summed + [q_pos, q_neg]
+
+        print('      -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+        
+    charge_ds = xr.Dataset(summed)
+
+    # Save data
+
+    print('\nSaving data...')
+
+    t0_1 = time.process_time()
+
+    if outfile is None:
+        outfile = 'charge_in_fields.nc'
+
+    filepath = os.path.join(savepath,outfile)
+    print('\nSaving file ' + filepath)
+
+    oz.save(result, filepath)
+
+    print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+
+    print('\nDone!')
+    print('...in ' + str(time.process_time()-t0) + ' s'  )
+
+    return
     
 
 
