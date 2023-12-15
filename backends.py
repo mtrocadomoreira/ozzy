@@ -20,6 +20,8 @@ def get_regex_tail(file_type):
             expr = r"0\d+.*\." + file_format
         case 'lcode.swp':
             expr = r"\d+.*\." + file_format
+        case 'ozzy.h5' | 'ozzy.nc':
+            expr = r".*\." + file_format
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 
@@ -174,6 +176,13 @@ def config_osiris(ds):
 
 # --- Main functions ---
 
+def read_ozzy(files):
+
+    ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+
+    return ds
+
+
 def read_lcode(files, quant):
 
     print('\nFiles are being read one by one:\n')
@@ -237,6 +246,8 @@ def read(filepaths, file_type, quant=None):
             ds = read_osiris(filepaths)
         case 'lcode.swp':
             ds = read_lcode(filepaths, quant)
+        case 'ozzy.h5' | 'ozzy.nc':
+            ds = read_ozzy(filepaths)
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 
