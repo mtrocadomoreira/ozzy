@@ -80,7 +80,7 @@ def sample_particles(ds, n):
     return ds
 
 
-# Reading files
+# Reading/writing files
 
 def find_runs(path, runs_pattern):
 
@@ -229,3 +229,18 @@ def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
     print('\nDone!')
 
     return df
+
+def save(obj, path):
+
+    try:
+        obj.to_netcdf(path, engine='h5netcdf', compute=True, invalid_netcdf=True)
+    except AttributeError:
+        if isinstance(obj, pd.DataFrame):
+            if path[-3:] == '.nc':
+                print('Warning: User specified the netCDF file format (".nc"), but file must be saved as HDF5 (".h5") since object is a pandas.DataFrame.')
+            obj.to_hdf(path, 'dataframe')
+        else:
+            print('Error: Object to save does not seem to be an xarray.DataArray, xarray.Dataset or pandas.DataFrame. Aborting')
+            raise
+
+    print('[ saved file "' + path +'" ]')
