@@ -224,7 +224,8 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
 
         print('      -> Took ' + str(time.process_time()-t0_1) + ' s'  )
         
-    charge_ds = xr.Dataset(summed)
+    data_vars = { da.name: da for da in summed }
+    charge_ds = xr.Dataset(data_vars)
 
     # Save data
 
