@@ -38,7 +38,7 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q'):
 
         ds_i = raw_ds.isel({time_dim: i})
 
-        part_coords = [dst[var] for var in spatial_dims]
+        part_coords = [ds_i[var] for var in spatial_dims]
         dist, edges = np.histogramdd(
             part_coords, 
             bins = bin_edges, 
@@ -180,7 +180,8 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
     # Select subsets of the fields
 
     print('\nMatching particle distribution with sign of fields:')
-    
+
+    spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
     summed = []
 
     for f in fields:
