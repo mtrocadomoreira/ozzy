@@ -239,7 +239,7 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
     filepath = os.path.join(savepath,outfile)
     print('\nSaving file ' + filepath)
 
-    oz.save(result, filepath)
+    oz.save(charge_ds, filepath)
 
     print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
 
