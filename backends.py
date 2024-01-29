@@ -20,6 +20,10 @@ def get_regex_tail(file_type):
             expr = r"0\d+.*\." + file_format
         case 'lcode.swp':
             expr = r"\d+.*\." + file_format
+        case 'lcode.dat':
+            expr = r"\." + file_format
+        # case 'lcode.*':
+        #     expr = r".*\.(swp|dat|det|pls)"
         case 'ozzy.h5' | 'ozzy.nc':
             expr = r".*\." + file_format
         case _:
@@ -174,16 +178,33 @@ def config_osiris(ds):
     return ds
 
 
-# --- Main functions ---
+def read_lcode_1Dtime(files, quant):
 
-def read_ozzy(files):
+    assert len(files) == 1
 
-    ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+    ddf = dd.read_table(files[0], sep='\s+', header=None)\
+        .to_dask_array(lengths=True)
+    ddf = ddf.transpose()
 
-    return ds
+    xds = xr.Dataset(
+        data_vars={
+            quant: ('t', ddf[1]),
+            quant.replace('max','min'): ('t', ddf[3]),
+            'ximax': ('t', ddf[2]),
+            'ximin': ('t', ddf[4])
+        }
+    )
+
+    xds = xds.assign_coords({'t': ddf[0]})
+    xds.coords['t'].attrs['long_name'] = '$t$'
+    xds.coords['t'].attrs['units'] = '$\omega_p^{-1}$'
+    xds.attrs['source'] = os.path.commonpath(files)
+    xds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] ) 
+
+    return xds
 
 
-def read_lcode(files, quant):
+def read_lcode_dumps(files, quant):
 
     print('\nFiles are being read one by one:\n')
 
@@ -221,6 +242,35 @@ def read_lcode(files, quant):
     return ds
 
 
+# --- Main functions ---
+
+def read_ozzy(files):
+
+    ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+
+    return ds
+
+
+def read_lcode(files, quant):
+
+    match files[0][-4:]:
+        case '.swp':
+            ds = read_lcode_dumps(files, quant)
+        case '.dat':
+            if files[0][-5] == 'f':
+                ds = read_lcode_1Dtime(files, quant)
+            else:
+                print('\nERROR: backend for these files not implemented yet. Ignoring.\n')
+                ds = None
+        case '.det' | '.pls':
+            print('\nERROR: backend for these files not implemented yet. Ignoring.\n')
+            ds = None
+        case _:
+            raise Exception('Error: LCODE file format not recognized.')
+
+    return ds
+
+
 def read_osiris(files):
 
     print('\nChunk of files being read and concatenated in a single xarray operation (xarray.open_mfdataset):')
@@ -244,7 +294,7 @@ def read(filepaths, file_type, quant=None):
     match file_type:
         case 'osiris.h5':
             ds = read_osiris(filepaths)
-        case 'lcode.swp':
+        case 'lcode.swp' | 'lcode.dat' | 'lcode.*':
             ds = read_lcode(filepaths, quant)
         case 'ozzy.h5' | 'ozzy.nc':
             ds = read_ozzy(filepaths)
