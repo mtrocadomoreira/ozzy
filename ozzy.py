@@ -59,7 +59,7 @@ def coords_from_extent(ds, mapping):
     newds = ds
     for k, v in mapping.items():
         # Construct axis array
-        nx = ds.dims[k]
+        nx = ds.sizes[k]
         ax = axis_from_extent(nx, v)
 
         newds = newds.assign_coords({k: ax})

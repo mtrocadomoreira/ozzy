@@ -45,13 +45,22 @@ def unpack_str(attr):
         result = attr
     return result
 
+def lcode_get_rqm(ds):
+
+    ds['q_sign'] = xr.apply_ufunc(np.sign, ds['q'], dask='allowed')
+    ds['rqm'] = ds['q_sign'] * ds['abs_rqm']
+    ds = ds.drop_vars('q_sign')
+
+    return ds
+
+
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
 
 def config_lcode_raw(file):
 
     cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'pid']
     label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'pid']
-    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$\\Delta \\xi m_e c^2 / (2 e)$']
+    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$\\Delta \\xi m_e c^2 / (2 e)$', '']
 
     arr = np.fromfile(file).reshape(-1,8)
     dda = da.from_array(arr[0:-1,:])
