@@ -49,6 +49,7 @@ def lcode_get_rqm(ds):
 
     ds['q_sign'] = xr.apply_ufunc(np.sign, ds['q'], dask='allowed')
     ds['rqm'] = ds['q_sign'] * ds['abs_rqm']
+    ds['rqm'] = 1.0/ds['rqm']
     ds = ds.drop_vars('q_sign')
 
     return ds
