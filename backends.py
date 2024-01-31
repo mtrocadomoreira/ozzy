@@ -117,8 +117,13 @@ def config_osiris(ds):
     xmax = []
     xmin = []    
     fname = ds.encoding['source']
-    with h5py.File(fname, 'r') as f:
+
+    f = h5py.File(fname, 'r')
+    try:
         move_c = f['/SIMULATION'].attrs['MOVE C']
+    except KeyError:
+        raise
+    else:
         axgroups = list(f['AXIS'])
         for subgrp in axgroups:
             loc = '/AXIS/' + subgrp
@@ -127,6 +132,9 @@ def config_osiris(ds):
             ax_type.append(f[loc].attrs['TYPE'][0])
             xmax.append(f[loc][1])
             xmin.append(f[loc][0])
+    finally:
+        f.close()
+
     xmax = np.array(xmax)
     xmin = np.array(xmin)
     length_x1 = round((xmax[0]-xmin[0])*1e3)*1e-3
@@ -144,6 +152,8 @@ def config_osiris(ds):
     ndims = len(nx)
     if ndims >= 2:
         nx[1], nx[0] = nx[0], nx[1]
+    if ndims == 3:
+        nx = np.roll(nx,1)
 
     # Rename dimensions
 
@@ -153,7 +163,7 @@ def config_osiris(ds):
         case 2:
             ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x1'})
         case 3:
-            ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x3', 'phony_dim_2': 'x1'})
+            ds = ds.rename_dims({'phony_dim_0':'x3', 'phony_dim_1': 'x2', 'phony_dim_2': 'x1'})
             
     # Save axis values and metadata
 
@@ -287,12 +297,19 @@ def read_osiris(files):
         print('  - ' + f)
 
     t0 = time.process_time()
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
 
-        ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=config_osiris, combine='by_coords', join='exact')
+    try:
 
-    ds.attrs['source'] = os.path.commonpath(files)
-    ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+        with dask.config.set({"array.slicing.split_large_chunks": True}):
+
+            ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=config_osiris, combine='by_coords', join='exact')
+
+        ds.attrs['source'] = os.path.commonpath(files)
+        ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+
+    except OSError:
+
+        ds = xr.Dataset()
 
     print(' -> Took ' + str(time.process_time()-t0) + ' s'  )
 
