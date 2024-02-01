@@ -23,7 +23,7 @@ def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
     # name of file: 'quant_rms_grid.pkl' or keyword
     return
 
-def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q'):
+def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None):
 
     spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
 
@@ -34,6 +34,16 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q'):
 
     q_binned = []
 
+    # Multiply weight by radius, if r_var is specified
+
+    if r_var == None:
+        wvar = weight_var
+    else:
+        raw_ds['w'] = raw_ds[weight_var] / raw_ds[r_var]
+        wvar = 'w'
+
+    # Loop along time
+
     for i in np.arange(0, len(raw_ds[time_dim])):
 
         ds_i = raw_ds.isel({time_dim: i})
@@ -42,14 +52,14 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q'):
         dist, edges = np.histogramdd(
             part_coords, 
             bins = bin_edges, 
-            weights = ds_i[weight_var]
+            weights = ds_i[wvar]
         )
 
         newcoords = {var: axes_ds[var] for var in spatial_dims}
         newcoords[time_dim] = ds_i[time_dim]
         qds_i = xr.Dataset(
             data_vars={
-                weight_var: (spatial_dims, dist)
+                'nb': (spatial_dims, dist)
             }, 
             coords=newcoords
         )
@@ -161,7 +171,7 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     return
     
 
-def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile=None, weight_var = 'q'):
+def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile=None, weight_var = 'q', r_var = None):
 
     t0 = time.process_time()
 
@@ -173,7 +183,7 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
     print('\nBinning particles into a grid...')
     t0_1 = time.process_time()
 
-    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var)
+    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var)
 
     print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
 
@@ -192,8 +202,8 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
         f_pos = fields_ds[f].where((fields_ds[f]>=0.0).compute(), drop=True)
         f_neg = fields_ds[f].where((fields_ds[f]<0.0).compute(), drop=True)
 
-        f_pos = f_pos * parts['q']
-        f_neg = abs(f_neg * parts['q'])
+        f_pos = abs(f_pos * parts['nb'])
+        f_neg = abs(f_neg * parts['nb'])
 
         q_pos = f_pos.sum(dim=spatial_dims, skipna=True)
         q_neg = f_neg.sum(dim=spatial_dims, skipna=True)
