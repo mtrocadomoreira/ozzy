@@ -10,10 +10,19 @@ font_files = fm.findSystemFonts(fontpaths=font_dirs)
 for font_file in font_files:
     fm.fontManager.addfont(font_file)
 
-plt.cm.register_cmap('rainbow_PuRd', tc.tol_cmap('rainbow_PuRd'))
-plt.cm.register_cmap('iridescent', tc.tol_cmap('iridescent'))
-plt.cm.register_cmap('sunset', tc.tol_cmap('sunset'))
-plt.cm.register_cmap('nightfall', tc.tol_cmap('nightfall'))
+def cmap_exists(name):
+    try:
+         plt.cm.get_cmap(name)
+         return True
+    except ValueError:
+         pass
+    return False
+
+tc_cmaps = ['rainbow_PuRd', 'iridescent', 'sunset', 'nightfall']
+
+for col in tc_cmaps:
+    if not cmap_exists(col):
+        plt.cm.register_cmap(col, tc.tol_cmap(col))
 
 ozparams = {
     'mathtext.fontset': 'cm',
@@ -38,3 +47,16 @@ ozparams = {
 sns.set_theme(style='ticks', font='serif', font_scale=1.1, rc=ozparams) # palette=sns.husl_palette(l=.4)
 
 # plt.rc('axes', prop_cycle=plt.cycler('color', list(tc.tol_cset('bright'))))
+
+def densplot(ds, ax=None, **kwargs):
+
+    if ax == None:
+        f, ax = plt.subplots()
+    else:
+        f = None
+
+    im = ds.plot.imshow(ax=ax, **kwargs)
+    ax.grid(None)
+    plt.gcf().set_size_inches(8, 4.8)
+
+    return im, ax, f
