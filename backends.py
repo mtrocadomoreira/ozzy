@@ -25,7 +25,7 @@ def get_regex_tail(file_type):
         # case 'lcode.*':
         #     expr = r".*\.(swp|dat|det|pls)"
         case 'ozzy.h5' | 'ozzy.nc':
-            expr = r".*\." + file_format
+            expr = r"\." + file_format
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 
