@@ -181,7 +181,7 @@ def find_quants(path, dirs_runs, quants, file_type):
     return (quants_dict, nquants, max_ndumps) 
 
 
-def open(path=os.getcwd(), runs=None, quants=None, file_type='osiris.h5'):
+def open(path=os.getcwd(), runs='*', quants='*', file_type='osiris.h5'):
 
     # Get run information
 
