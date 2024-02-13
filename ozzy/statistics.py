@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import xarray as xr
-import mymods.ozzy.ozzy as oz
+from . import ozzy as oz
 from flox.xarray import xarray_reduce
 import time
 
