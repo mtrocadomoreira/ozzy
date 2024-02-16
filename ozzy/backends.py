@@ -54,6 +54,16 @@ def lcode_get_rqm(ds):
 
     return ds
 
+def lcode_identify_data_type():
+
+    # types:
+    # - grid
+    # - lineout (look for xi)
+    # - particles (if beamfile.bin, look for beamfile.bit)
+    # - 
+
+    return
+
 
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
 
@@ -264,14 +274,19 @@ def read_lcode_dumps(files, quant):
 
 # --- Main functions ---
 
-def read_ozzy(files):
+def read_ozzy(files, as_series):
 
     ds = xr.open_mfdataset(files, engine='h5netcdf').load()
 
     return ds
 
 
-def read_lcode(files, quant):
+def read_lcode(files, as_series):
+
+    # function to identify type of file
+    # assuming files is already sorted into a single type of data (no different kinds of files)
+
+    data_type = lcode_identify_data_type(files[0])
 
     match files[0][-4:]:
         case '.swp':
@@ -291,7 +306,7 @@ def read_lcode(files, quant):
     return ds
 
 
-def read_osiris(files):
+def read_osiris(files, as_series):
 
     print('\nChunk of files being read and concatenated in a single xarray operation (xarray.open_mfdataset):')
     for f in files:
@@ -316,15 +331,15 @@ def read_osiris(files):
 
     return ds
 
-def read(filepaths, file_type, quant=None):
+def read(filepaths, file_type, as_series=True):
 
     match file_type:
-        case 'osiris.h5':
-            ds = read_osiris(filepaths)
-        case 'lcode.swp' | 'lcode.dat' | 'lcode.*':
-            ds = read_lcode(filepaths, quant)
-        case 'ozzy.h5' | 'ozzy.nc':
-            ds = read_ozzy(filepaths)
+        case 'osiris':
+            ds = read_osiris(filepaths, as_series)
+        case 'lcode':
+            ds = read_lcode(filepaths, as_series)
+        case 'ozzy':
+            ds = read_ozzy(filepaths, as_series)
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 

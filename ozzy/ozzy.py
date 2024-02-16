@@ -181,7 +181,15 @@ def find_quants(path, dirs_runs, quants, file_type):
     return (quants_dict, nquants, max_ndumps) 
 
 
-def open(path=os.getcwd(), runs='*', quants='*', file_type='osiris.h5'):
+def open(path, file_type):
+
+    assert isinstance(path, str)
+    ds = backends.read([path], file_type, as_series=False)
+
+    return ds
+
+
+def open_many(path=os.getcwd(), runs='*', quants='*', file_type='osiris.h5'):
 
     # Get run information
 
