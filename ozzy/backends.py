@@ -199,6 +199,7 @@ def lcode_parse_parts(file, pattern_info):
 
     return ds
 
+
 def lcode_parse_grid(file, pattern_info, match):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
@@ -238,6 +239,7 @@ def lcode_parse_grid(file, pattern_info, match):
                 dims = ['x1']
                 ddf = np.flip(ddf, axis=0)
                 # look for xi axis file and add it
+                # check whether on axis or off axis
             case 2:
                 dims = ['x2', 'x1']
                 ddf = ddf.transpose()
@@ -267,6 +269,7 @@ def lcode_concat_time(ds, files):
 
     return ds
 
+
 def read_lcode_parts(files, as_series, pattern_info):
 
     print('Reading files...')
@@ -278,10 +281,27 @@ def read_lcode_parts(files, as_series, pattern_info):
         ds_tmp = lcode_parse_parts(file, pattern_info)
 
         if pattern_info.subcat == 'beamfile':
+            bfbit_path = os.path.join(os.path.dirname(file),'beamfile.bit')
+            if os.path.exists(bfbit_path):
+                with open(bfbit_path,'r') as f:
+                    thistime = float(f.read())
+                ds_tmp = ds_tmp.assign_coords({'t': [thistime]})
 
         elif pattern_info.subcat != 'lost':
+            ds_tmp = lcode_append_time(ds_tmp, file)
 
-    return
+        ds_t.append(ds_tmp)
+
+    if (pattern_info.subcat == 'parts') & (as_series == True):
+        print('\nConcatenating along time... (this may take a while for particle data)')
+        t0 = time.process_time()
+        ds = lcode_concat_time(ds_t, files)
+        print(' -> Took ' + str(time.process_time()-t0) + ' s')
+    else:
+        assert len(ds_t) == 1
+        ds = ds_t[0]
+
+    return ds
 
 
 def read_lcode_grid(files, as_series, pattern_info, match):
@@ -344,31 +364,16 @@ def read_lcode(files, as_series):
     return ds
 
 
-    match files[0][-4:]:
-        case '.swp':
-            ds = read_lcode_dumps(files, quant)
-        case '.dat':
-            if files[0][-5] == 'f':
-                ds = read_lcode_1Dtime(files, quant)
-            else:
-                print('\nERROR: backend for these files not implemented yet. Ignoring.\n')
-                ds = None
-        case '.det' | '.pls':
-            print('\nERROR: backend for these files not implemented yet. Ignoring.\n')
-            ds = None
-        case _:
-            raise Exception('Error: LCODE file format not recognized.')
-
-    return ds
-
-
 def read_osiris(files, as_series):
 
-    print('\nChunk of files being read and concatenated in a single xarray operation (xarray.open_mfdataset):')
+    print('\nReading and concatenating the following files:')
     for f in files:
         print('  - ' + f)
 
     t0 = time.process_time()
+
+    if as_series == False:
+        assert len(files) == 1
 
     try:
 

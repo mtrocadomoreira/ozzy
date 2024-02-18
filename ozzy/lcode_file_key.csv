@@ -10,7 +10,7 @@ d([rzmaRZMA])\d{5}\.swp;uncat;single;;
 s?\d{5}\.pls;uncat;single;;
 ([a-z][a-z])\d{5}\.det;uncat;single;;xi\d{5}\.det
 (u|v)\d{5}\.det;uncat;single;;
-tb\d{5}\.swp;parts;single;;
+tb\d{5}\.swp;parts;single;parts;
 pl\d{5}\.swp;uncat;single;;
 fl\d{5}\.swp;uncat;single;;
 plasma\.bin;uncat;single;;beamfile\.bit

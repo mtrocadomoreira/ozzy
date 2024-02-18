@@ -188,8 +188,18 @@ def open(path, file_type):
 
     return ds
 
+def open_series(files, file_type):
 
-def open_many(path=os.getcwd(), runs='*', quants='*', file_type='osiris.h5'):
+    if isinstance(files, str):
+        filelist = sorted(glob.glob(files))
+    else:
+        filelist = files
+
+    ds = backends.read(filelist, file_type, as_series=True)
+
+    return ds
+
+def open_compare(file_type, path=os.getcwd(), runs='*', quants='*'):
 
     # Get run information
 
@@ -237,6 +247,7 @@ def open_many(path=os.getcwd(), runs='*', quants='*', file_type='osiris.h5'):
     print('\nDone!')
 
     return df
+
 
 def save(obj, path):
 
