@@ -11,7 +11,9 @@ import time
 
 # --- Load backend info ---
 
-lcode_regex = pd.read_csv('lcode_file_key.csv', sep=';',header=0).sort_values(by='regex')
+from importlib.resources import files
+lcode_data_file = files('ozzy').joinpath('lcode_file_key.csv')
+lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0).sort_values(by='regex')
 
 # --- Helper functions ---
 
