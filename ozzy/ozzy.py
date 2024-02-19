@@ -68,7 +68,7 @@ def coords_from_extent(ds, mapping):
 
 
 def sample_particles(ds, n):
-    surviving = ds.isel(t=-1).coords['pid'].notnull()
+    surviving = ds['x1'].isel(t=-1).notnull().compute()
     pool = ds.coords['pid'][surviving]
     nparts = len(pool)
     if n > nparts:
@@ -83,6 +83,7 @@ def sample_particles(ds, n):
 # Reading/writing files
 
 def find_runs(path, runs_pattern):
+# ADD os.path.expanduser()!!
 
     dirs = []
     run_names = []
@@ -127,6 +128,7 @@ def find_runs(path, runs_pattern):
 
 
 def find_quants(path, dirs_runs, quants, file_type):
+# ADD os.path.expanduser()!!
 
     validate_file_type(file_type)
     file_format = file_type.split('.')[-1]
@@ -184,6 +186,7 @@ def find_quants(path, dirs_runs, quants, file_type):
 def open(path, file_type):
 
     assert isinstance(path, str)
+    path = os.path.expanduser(path)
     ds = backends.read([path], file_type, as_series=False)
 
     return ds
@@ -191,9 +194,9 @@ def open(path, file_type):
 def open_series(files, file_type):
 
     if isinstance(files, str):
-        filelist = sorted(glob.glob(files))
+        filelist = sorted(glob.glob(os.path.expanduser(files)))
     else:
-        filelist = files
+        filelist = [os.path.expanduser(f) for f in files]
 
     ds = backends.read(filelist, file_type, as_series=True)
 
