@@ -13,7 +13,7 @@ import time
 
 from importlib.resources import files
 lcode_data_file = files('ozzy').joinpath('lcode_file_key.csv')
-lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0).sort_values(by='regex')
+lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0)
 
 # --- Helper functions ---
 
@@ -65,7 +65,7 @@ def lcode_identify_data_type(file_string):
     for row in lcode_regex.itertuples(index=False):
 
         pattern = row.regex
-        match = re.fullmatch(pattern,file_string)
+        match = re.fullmatch(pattern,os.path.basename(file_string))
         if match != None:
             break
 
@@ -294,7 +294,12 @@ def read_lcode_parts(files, as_series, pattern_info):
 
         ds_t.append(ds_tmp)
 
-    if (pattern_info.subcat == 'parts') & (as_series == True):
+    # Get file type of all files so as to allow mix between beamfile and tb*.swp
+    subcat_all = [lcode_identify_data_type(f)[0].subcat for f in files]
+
+    print(subcat_all)
+
+    if any([sc == 'parts' for sc in subcat_all]) & (as_series == True):
         print('\nConcatenating along time... (this may take a while for particle data)')
         t0 = time.process_time()
         ds = lcode_concat_time(ds_t, files)
@@ -346,6 +351,9 @@ def read_lcode(files, as_series):
     # assuming files is already sorted into a single type of data (no different kinds of files)
 
     pattern_info, match = lcode_identify_data_type(files[0])
+
+    if match == None:
+        raise Exception('Error: could not identify the type of LCODE data file.')
 
     match pattern_info.cat:
 
