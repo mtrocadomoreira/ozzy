@@ -17,26 +17,6 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0)
 
 # --- Helper functions ---
 
-def get_regex_tail(file_type):
-
-    file_format = file_type.split('.')[-1]
-
-    match file_type:
-        case 'osiris.h5':
-            expr = r"0\d+.*\." + file_format
-        case 'lcode.swp':
-            expr = r"\d+.*\." + file_format
-        case 'lcode.dat':
-            expr = r"\." + file_format
-        # case 'lcode.*':
-        #     expr = r".*\.(swp|dat|det|pls)"
-        case 'ozzy.h5' | 'ozzy.nc':
-            expr = r"\." + file_format
-        case _:
-            raise Exception('Error: invalid input for "file_type" keyword')
-
-    return expr
-
 def tex_format(str):
     if str == '':
         newstr = str
@@ -401,6 +381,26 @@ def read_osiris(files, as_series):
     print(' -> Took ' + str(time.process_time()-t0) + ' s'  )
 
     return ds
+
+def get_file_pattern(file_type):
+
+    match file_type:
+        case 'osiris':
+            fend = ['h5']
+            re_pat = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+        case 'lcode':
+            fend = ['swp','dat','det','bin','bit','pls']
+            re_pat = r"([\w_]*)(\d{5}|\d{6}\.\d{3})[m|w]?\.([a-z]{3})"
+        case 'ozzy':
+            fend = ['h5', 'nc']
+            re_pat = r"([\w-]*)([\d{5}])\.(h5|nc)"
+        case 'openpmd' | 'hipace':
+            fend = ['json']
+            re_pat = r"([\w]*)_(\d{6})\.(json)"
+        case _:
+            raise Exception('Error: invalid input for "file_type" keyword')
+
+    return (fend,re_pat)
 
 def read(filepaths, file_type, as_series=True):
 

@@ -12,14 +12,6 @@ from . import plotting
 
 # Helper functions
 
-def validate_file_type(file_type):
-    try:
-        assert len(file_type.split('.')) == 2
-    except AssertionError:
-        print('Error: invalid input for "file_type" keyword')
-        raise 
-    return
-
 # Data processing
 
 def coord_to_physical_distance(ds, coord, n0, units='m'):
@@ -83,42 +75,47 @@ def sample_particles(ds, n):
 # Reading/writing files
 
 def find_runs(path, runs_pattern):
-# ADD os.path.expanduser()!!
 
     dirs = []
     run_names = []
+    if isinstance(runs_pattern, str):
+        runs_pattern = [runs_pattern]
 
-    if runs_pattern == None:
+    # Expand user home directory
 
-        runname = PurePath(path).parts[-1]
-        dirs.append(runname)
+    runs_pattern = [os.path.expanduser(item) for item in runs_pattern]
 
-    else:
+    # Try to find directories matching runs_pattern
 
-        if isinstance(runs_pattern, str):
-            runs_pattern = [runs_pattern]
-
-        for run in runs_pattern:
-            filesindir = sorted(glob.glob(run, root_dir=path))
-            dirs = dirs + [folder for folder in filesindir if os.path.isdir(os.path.join(path,folder))]
+    for run in runs_pattern:
+        filesindir = sorted(glob.glob(run, root_dir=path))
+        dirs = dirs + [folder for folder in filesindir
+        if os.path.isdir(os.path.join(path,folder))]
         
     run_names = dirs    
     nruns = len(dirs)
 
-    if nruns == 0:
+    # In case no run folders were found
 
+    if nruns == 0:
+        print('Could not find any run folder:')
+        print(' - Checking whether already inside folder... ')
         # Check whether already inside run folder
         folder = PurePath(path).parts[-1]
         try:
             assert any([folder == item for item in runs_pattern])
         except AssertionError:
-            print('Could not find any run folder.\nProceeding without a run name.')
+            print('     ...no')
+            print(' - Proceeding without a run name.')
             run_names = ['undefined']
         else:
+            print('     ...yes')
             run_names = [folder]
         finally:
             dirs.append('.')
             nruns = 1
+
+    # Save data in dictionary
 
     dirs_dict = {}
     for i, k in enumerate(run_names):
@@ -128,47 +125,54 @@ def find_runs(path, runs_pattern):
 
 
 def find_quants(path, dirs_runs, quants, file_type):
-# ADD os.path.expanduser()!!
 
-    validate_file_type(file_type)
-    file_format = file_type.split('.')[-1]
+    (file_endings,re_pat) = backends.get_file_pattern(file_type)
 
+    if quants == None:
+        quants = ['']
+    if isinstance(quants, str):
+        quants = [quants]
+
+    # Define search strings for glob
+    searchterms = []
+    for q in quants:
+        if '.' not in q:
+            term = []
+            for fend in file_endings:
+                term.append('**/'+q+'*.'+fend)    
+            searchterms = searchterms + term
+
+    # Search files matching mattern
     filenames = []
-
     for run, dir in dirs_runs.items():
 
         searchdir = os.path.join(path, dir)
-
-        if quants == None:
-            query = sorted(glob.glob('**/*.'+file_format, recursive=True, root_dir=searchdir))
-        else:
-            if isinstance(quants, str):
-                quants = [quants]
-            for q in quants:
-                query = sorted(glob.glob('**/'+q+'*', recursive=True, root_dir=searchdir))
-                filenames = filenames + [os.path.basename(f) for f in query]
+        
+        for term in searchterms:
+            query = sorted(glob.glob(term), recursive=True, root_dir=searchdir)
+            filenames = filenames + [os.path.basename(f) for f in query]
 
     # Look for clusters of files matching pattern
 
-    tail_pattern = backends.get_regex_tail(file_type)
-    pattern = r".*" + tail_pattern
+    pattern = re.compile(re_pat)
 
-    matched = [f for f in filenames if re.match(pattern,f)]
+    matches = [pattern.match(f) for f in filenames if pattern.match(f)!=None]
+    matchfn = [f for f in filenames if pattern.match(f)!=None]
 
     quants_dict = collections.defaultdict(list)
-    for f in matched:
-        pat = re.sub(tail_pattern, '', f).strip('-_ ')
-        if f not in quants_dict[pat]:
-            quants_dict[pat].append(f)
+    for m, f in zip(matches, matchfn):
+        label = m.group(1).strip('_')
+        if f not in quants_dict[label]:
+            quants_dict[label].append(f)
 
-    # Discard quantities with suffixes if input specifies exact match
+    # # Discard quantities with suffixes if input specifies exact match
 
-    found_quants = list(quants_dict.keys())
-    for q in quants:
-        if q[-1] == '.':
-            for foundq in found_quants:
-                if (q in foundq) and (q != foundq):
-                    del quants_dict[foundq]
+    # found_quants = list(quants_dict.keys())
+    # for q in quants:
+    #     if q[-1] == '.':
+    #         for foundq in found_quants:
+    #             if (q in foundq) and (q != foundq):
+    #                 del quants_dict[foundq]
 
     # Summarise and return
 
@@ -204,12 +208,13 @@ def open_series(files, file_type):
 
 def open_compare(file_type, path=os.getcwd(), runs='*', quants='*'):
 
-    # Get run information
+    # Expand '~' in path
+    path = os.path.expanduser(path)
 
+    # Get run information
     dirs_runs, nruns = find_runs(path, runs)
 
     # Get quantity information
-
     files_quants, nquants, ndumps = find_quants(path, dirs_runs, quants, file_type)
 
     # Print info found so far
