@@ -42,7 +42,8 @@ def axis_from_extent(nx, lims):
         raise Exception('Extent "lims" should be given as a two-element tuple: (min, max)')
     
     dx = (lims[1]-lims[0]) / nx
-    ax = np.arange(lims[0]+dx, lims[1]+dx, dx) - 0.5*dx
+    ax = np.linspace(lims[0], lims[1]-dx, num=nx) + 0.5*dx
+    # ax = np.arange(lims[0]+dx, lims[1]+dx, dx) - 0.5*dx
 
     return ax
     
@@ -149,7 +150,7 @@ def find_quants(path, dirs_runs, quants, file_type):
         searchdir = os.path.join(path, dir)
         
         for term in searchterms:
-            query = sorted(glob.glob(term), recursive=True, root_dir=searchdir)
+            query = sorted(glob.glob(term, recursive=True, root_dir=searchdir))
             filenames = filenames + [os.path.basename(f) for f in query]
 
     # Look for clusters of files matching pattern
@@ -247,7 +248,7 @@ def open_compare(file_type, path=os.getcwd(), runs='*', quants='*'):
                 fullloc = [os.path.join(run_dir,loc) for loc in fileloc]
                 filepaths_to_read = filepaths_to_read + fullloc
 
-            dataset = backends.read(filepaths_to_read, file_type, quant)
+            dataset = backends.read(filepaths_to_read, file_type, as_series=True)
             dataset.attrs['run'] = run
             df.at[run,quant] = dataset
     os.chdir(currpath)

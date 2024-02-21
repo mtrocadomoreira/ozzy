@@ -252,7 +252,7 @@ def lcode_concat_time(ds, files):
     return ds
 
 
-def read_lcode_parts(files, as_series, pattern_info):
+def read_lcode_parts(files, pattern_info, as_series=True):
 
     print('Reading files...')
 
@@ -276,8 +276,6 @@ def read_lcode_parts(files, as_series, pattern_info):
 
     # Get file type of all files so as to allow mix between beamfile and tb*.swp
     subcat_all = [lcode_identify_data_type(f)[0].subcat for f in files]
-
-    print(subcat_all)
 
     if any([sc == 'parts' for sc in subcat_all]) & (as_series == True):
         print('\nConcatenating along time... (this may take a while for particle data)')
@@ -305,7 +303,7 @@ def read_lcode_grid(files, as_series, pattern_info, match):
 
         ds_t.append(ds_tmp)
 
-    if (not as_series | pattern_info.time == 'full'):
+    if ((not as_series) | (pattern_info.time == 'full')):
         assert len(ds_t) == 1
         ds = ds_t[0]
 
@@ -322,7 +320,10 @@ def read_lcode_grid(files, as_series, pattern_info, match):
 
 def read_ozzy(files, as_series):
 
-    ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+    if len(files) != 0:
+        ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+    else:
+        ds = xr.Dataset()
 
     return ds
 
@@ -341,7 +342,7 @@ def read_lcode(files, as_series):
             ds = read_lcode_grid(files, as_series, pattern_info, match)
 
         case 'parts':
-            ds = read_lcode_parts(files, as_series, pattern_info)
+            ds = read_lcode_parts(files, pattern_info, as_series)
 
         case 'info':
             print('Error: Backend for this type of file has not been implemented yet. Exiting.')
@@ -393,7 +394,7 @@ def get_file_pattern(file_type):
             re_pat = r"([\w_]*)(\d{5}|\d{6}\.\d{3})[m|w]?\.([a-z]{3})"
         case 'ozzy':
             fend = ['h5', 'nc']
-            re_pat = r"([\w-]*)([\d{5}])\.(h5|nc)"
+            re_pat = r"([\w-]*)([\d{5}]*)\.(h5|nc)"
         case 'openpmd' | 'hipace':
             fend = ['json']
             re_pat = r"([\w]*)_(\d{6})\.(json)"
