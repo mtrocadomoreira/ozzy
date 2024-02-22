@@ -69,6 +69,53 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None):
 
     return parts
 
+
+def get_phase_space(raw_ds, vars, extents=None, nbins=200):
+
+    # Define extent and nbins depending on input
+
+    if extents == None:
+        extents = {}
+        for v in vars:
+            maxval = float(raw_ds[v].max().compute().to_numpy())
+            minval = float(raw_ds[v].min().compute().to_numpy())
+            if (minval < 0) & (maxval > 0):
+                extr = max([abs(minval),maxval])
+                lims = (-extr, extr)
+            else:
+                lims = (minval, maxval)
+            extents[v] = lims
+    else:
+        assert type(extents) == dict
+
+    if type(nbins) == int:
+        bins = {}
+        for v in vars:
+            bins[v] = nbins
+    else:
+        assert type(nbins) == dict
+        bins = nbins
+
+    # Prepare axes dataset
+
+    axes_ds = xr.Dataset()
+    for v in vars:
+        ax = oz.axis_from_extent(bins[v], extents[v])
+        axes_ds = axes_ds.assign_coords({v: ax})
+        axes_ds[v].attrs.update(raw_ds[v].attrs)
+
+    # Deposit quantities on phase space grid
+
+    ps = parts_into_grid(raw_ds, axes_ds)
+
+    # Change metadata
+
+    ps = ps.rename_vars({'nb': 'Q'})
+    ps['Q'].attrs['units'] = r"$\Delta\xi m c^2 / (2 e)$"
+    ps['Q'].attrs['long_name'] = r"$Q$"
+
+    return ps
+
 def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expand_time=True, axisym=False):
 
     print('\nPreparing...')
