@@ -277,7 +277,7 @@ def read_lcode_parts(files, pattern_info, as_series=True):
     # Get file type of all files so as to allow mix between beamfile and tb*.swp
     subcat_all = [lcode_identify_data_type(f)[0].subcat for f in files]
 
-    if any([sc == 'parts' for sc in subcat_all]) & (as_series == True):
+    if any([(sc == 'parts') | (sc == 'species') for sc in subcat_all]) & (as_series == True):
         print('\nConcatenating along time... (this may take a while for particle data)')
         t0 = time.process_time()
         ds = lcode_concat_time(ds_t, files)
