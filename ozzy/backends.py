@@ -194,6 +194,7 @@ def lcode_parse_grid(file, pattern_info, match):
     if pattern_info.subcat == 'alongz':
 
         label = {'e': '$E_z$', 'g': '$\phi$'}
+        units = {'e': '$E_0$', 'g': '$m c^2 / e$'}
         prefix = ''
         quant1 = quant + '_max'
 
@@ -211,7 +212,9 @@ def lcode_parse_grid(file, pattern_info, match):
         )
 
         xds[quant1].attrs['long_name'] = prefix +  'max. ' + label[quant]
+        xds[quant1].attrs['units'] = units[quant]
         xds[quant1.replace('max','min')].attrs['long_name'] = prefix + 'min. ' + label[quant]
+        xds[quant1.replace('max','min')].attrs['units'] = units[quant]
 
     else:
 
