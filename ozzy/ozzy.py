@@ -8,7 +8,7 @@ import re
 import collections
 
 from . import backends
-from . import plotting
+# from . import plotting
 
 # Helper functions
 
@@ -30,6 +30,7 @@ def coord_to_physical_distance(ds, coord, n0, units='m'):
     else:
         newcoord = coord + '_' + units
         newds = ds.assign_coords({newcoord: skdepth*ds.coords[coord] })
+        newds[newcoord].attrs['long_name'] = '$' + coord + '$'
         newds[newcoord].attrs['units'] = '$\mathrm{' + units + '}$'
 
     return newds
@@ -192,7 +193,8 @@ def open(path, file_type):
 
     assert isinstance(path, str)
     path = os.path.expanduser(path)
-    ds = backends.read([path], file_type, as_series=False)
+    file = glob.glob(path)
+    ds = backends.read(file, file_type, as_series=False)
 
     return ds
 
