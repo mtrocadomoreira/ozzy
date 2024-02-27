@@ -189,23 +189,23 @@ def find_quants(path, dirs_runs, quants, file_type):
     return (quants_dict, nquants, max_ndumps) 
 
 
-def open(path, file_type):
+def open(path, file_type, axes_lims=None):
 
     assert isinstance(path, str)
     path = os.path.expanduser(path)
     file = glob.glob(path)
-    ds = backends.read(file, file_type, as_series=False)
+    ds = backends.read(file, file_type, as_series=False, axes_lims=axes_lims)
 
     return ds
 
-def open_series(files, file_type):
+def open_series(files, file_type, axes_lims=None):
 
     if isinstance(files, str):
         filelist = sorted(glob.glob(os.path.expanduser(files)))
     else:
         filelist = [os.path.expanduser(f) for f in files]
 
-    ds = backends.read(filelist, file_type, as_series=True)
+    ds = backends.read(filelist, file_type, as_series=True, axes_lims=axes_lims)
 
     return ds
 

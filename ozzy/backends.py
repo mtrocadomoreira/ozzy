@@ -8,6 +8,7 @@ import dask.array as da
 import os
 import re
 import time
+from . import ozzy as oz
 
 # --- Load backend info ---
 
@@ -53,8 +54,10 @@ def lcode_identify_data_type(file_string):
 
 def lcode_append_time(ds, file_string):
 
-    thistime = float(re.search(r"\d{5}", file_string).group(0))
+    thistime = float(re.search(r"\d{5}", os.path.basename(file_string)).group(0))
     ds_out = ds.assign_coords({'t': [thistime]})
+    ds_out.coords['t'].attrs['long_name'] = '$t$'
+    ds_out.coords['t'].attrs['units'] = r'$\omega_p^{-1}$'
 
     return ds_out
 
@@ -292,7 +295,7 @@ def read_lcode_parts(files, pattern_info, as_series=True):
     return ds
 
 
-def read_lcode_grid(files, as_series, pattern_info, match):
+def read_lcode_grid(files, as_series, pattern_info, match, axes_lims):
 
     print('Reading files...')
 
@@ -316,6 +319,9 @@ def read_lcode_grid(files, as_series, pattern_info, match):
         ds = lcode_concat_time(ds_t, files)
         print(' -> Took ' + str(time.process_time()-t0) + ' s')
 
+    if axes_lims != None:
+        ds = oz.coords_from_extent(ds, axes_lims)
+
     return ds
 
 
@@ -331,7 +337,7 @@ def read_ozzy(files, as_series):
     return ds
 
 
-def read_lcode(files, as_series):
+def read_lcode(files, as_series, axes_lims):
     # assuming files is already sorted into a single type of data (no different kinds of files)
 
     pattern_info, match = lcode_identify_data_type(files[0])
@@ -342,7 +348,9 @@ def read_lcode(files, as_series):
     match pattern_info.cat:
 
         case 'grid':
-            ds = read_lcode_grid(files, as_series, pattern_info, match)
+            if axes_lims == None:
+                print('\nWARNING: axis extents were not specified. Dataset object(s) will not have coordinates.\n')
+            ds = read_lcode_grid(files, as_series, pattern_info, match, axes_lims)
 
         case 'parts':
             ds = read_lcode_parts(files, pattern_info, as_series)
@@ -406,13 +414,13 @@ def get_file_pattern(file_type):
 
     return (fend,re_pat)
 
-def read(filepaths, file_type, as_series=True):
+def read(filepaths, file_type, as_series=True, axes_lims=None):
 
     match file_type:
         case 'osiris':
             ds = read_osiris(filepaths, as_series)
         case 'lcode':
-            ds = read_lcode(filepaths, as_series)
+            ds = read_lcode(filepaths, as_series, axes_lims)
         case 'ozzy':
             ds = read_ozzy(filepaths, as_series)
         case _:
