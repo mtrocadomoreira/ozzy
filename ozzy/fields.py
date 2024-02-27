@@ -14,11 +14,49 @@ def get_kaxis(axis):
 
 # --- Diagnostics ---
 
-def ave_vphi_from_waterfall(da, dcells, xvar='zeta', yvar='t'):
+def ave_vphi_from_waterfall(da, dcells=11, xvar='zeta', yvar='t'):
+    """Calculates the average phase velocity within a 2D moving window from waterfall field data
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        Field waterfall data (2D)
+    dcells : int | tuple | dict, optional
+        Number of cells for the 2D moving window. If 'int' is given, the same number is taken for both directions. By default 11
+    xvar : str, optional
+        Name of the horizontal coordinate in the DataArray object, by default 'zeta'
+    yvar : str, optional
+        Name of the vertical coordinate in the DataArray object, by default 't'
+
+    Returns
+    -------
+    xarray.DataArray
+        DataArray object containing the 2D phase velocity map (same dimensions as input data).
+    """   
 
     # define dcells in each direction: dx, dt
 
+    match type(dcells):
+        case int:
+            dx = dcells
+            dt = dcells
+        case tuple:
+            dx = dcells[1]
+            dt = dcells[0]
+        case dict:
+            dx = dcells[xvar]
+            dt = dcells[yvar]
+        case _:
+            raise Exception('Error: format of "dcells" keyword not recognized')
+
     # check if dcells in either direction is odd (and correct if not)
+
+    if dx % 2 == 0:
+        print('Window size in horizontal direction was even number, adding +1')
+        dx = dx + 1
+    if dt % 2 == 0:
+        print('Window size in vertical direction was even number, adding +1')
+        dt = dt + 1
 
     # define margins
 
@@ -42,6 +80,8 @@ def ave_vphi_from_waterfall(da, dcells, xvar='zeta', yvar='t'):
 
     # Loop along center of data
 
+    print('\nCalculating the phase velocity...')
+
     for i in np.arange(mx, Nx-mx):
         for j in np.arange(mt, Nt-mt):
 
@@ -55,7 +95,31 @@ def ave_vphi_from_waterfall(da, dcells, xvar='zeta', yvar='t'):
 
     # Deal with margins
 
+    # - corners
+    vphi[0:mt,0:mx] = vphi[mt,mx]
+    vphi[-mt:,-mx:] = vphi[-(mt+1),-(mx+1)]
+    vphi[0:mt,-mx:] = vphi[mt,-(mx+1)]
+    vphi[-mt:,0:mx] = vphi[-(mt+1),mx]
 
+    # - up/down
+    for j in np.arange(0,mt-1):
+        vphi[j,mx:-mx] = vphi[mt,mx:-mx]
+        vphi[-(j+1),mx:-mx] = vphi[-(mt+1),mx:-mx]
 
+    # - left/right
+    for i in np.arange(0,mx-1):
+        vphi[mt:-mt,i] = vphi[mt:-mt,mx]
+        vphi[mt:-mt,-(i+1)] = vphi[mt:-mt,-(mx+1)]
 
-    return
+    # Create DataArray object
+
+    res = xr.DataArray(vphi, coords=data.coords, dims=data.dims, name='v_phi',
+        attrs = {
+            'long_name': '$v_\phi$',
+            'units': '$c$'
+        }
+    )
+
+    print('     Done!')
+
+    return res
