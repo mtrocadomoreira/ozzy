@@ -27,6 +27,9 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None):
 
     spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
 
+    if len(spatial_dims) == 0:
+        raise Exception('Did not find any spatial dimensions in input axes dataset')
+
     bin_edges = []
     for axis in spatial_dims:
         axis_arr = np.array(axes_ds[axis])
