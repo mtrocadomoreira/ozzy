@@ -8,11 +8,23 @@ import time
 
 # --- Helper functions ---
 
+def get_space_dims(ds, time_dim = 't'):
+    return list(set(list(ds.coords)) - {time_dim})
+
 def bins_from_axis(axis):
     vmin = axis[0] - 0.5*(axis[1]-axis[0])
     binaxis = axis + 0.5*(axis[1]-axis[0])
     binaxis = np.insert(binaxis, 0, vmin)
     return binaxis
+
+def bin_edges_from_ds(axes_ds, time_dim='t'):
+    bin_edges = []
+    for axis in get_space_dims(axes_ds, time_dim):
+        axis_arr = np.array(axes_ds[axis])
+        bin_edges.append(bins_from_axis(axis_arr))
+    return bin_edges
+
+# --- Actual functions ---
 
 
 def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
@@ -31,15 +43,11 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
     if (n0!=None) & (xi_var==None):
         raise Exception('Name of xi variable must be provided when n0 is provided.')
 
-    spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
-
+    spatial_dims = get_space_dims(axes_ds, time_dim)
     if len(spatial_dims) == 0:
         raise Exception('Did not find any spatial dimensions in input axes dataset')
 
-    bin_edges = []
-    for axis in spatial_dims:
-        axis_arr = np.array(axes_ds[axis])
-        bin_edges.append(bins_from_axis(axis_arr))
+    bin_edges = bin_edges_from_ds(axes_ds, time_dim)
 
     q_binned = []
 
@@ -265,7 +273,7 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
 
     print('\nMatching particle distribution with sign of fields:')
 
-    spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
+    spatial_dims = get_space_dims(axes_ds, time_dim) 
     summed = []
 
     conditions = {
@@ -339,6 +347,24 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
 
     return
     
+
+def field_space(raw_ds, fields_ds, time_dim='t'):
+
+    # spatial_dims = get_space_dims(fields_ds, time_dim)
+    spatial_dims = ['x1', 'x2']
+
+
+    for dim in spatial_dims:
+        
+        axis = fields_ds.coords[dim].to_numpy()
+        dx = axis[1] - axis[0]
+
+        raw_ds[dim + '_i'] = floor(raw_ds[dim] / dx)
+
+
+
+
+    return parts
 
 
     
