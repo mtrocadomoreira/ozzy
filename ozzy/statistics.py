@@ -2,6 +2,7 @@ import os
 import numpy as np
 import xarray as xr
 from . import ozzy as oz
+from . import backends as ozbk
 from flox.xarray import xarray_reduce
 import time
 
@@ -23,7 +24,12 @@ def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
     # name of file: 'quant_rms_grid.pkl' or keyword
     return
 
-def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None):
+def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
+    n0=None, xi_var=None):
+    # assumes that axis is normalized when n0 and xi_var are provided
+
+    if (n0!=None) & (xi_var==None):
+        raise Exception('Name of xi variable must be provided when n0 is provided.')
 
     spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
 
@@ -69,6 +75,14 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None):
         q_binned.append(qds_i)
 
     parts = xr.concat(q_binned, time_dim)
+    parts['nb'].attrs['long_name'] = r'$\rho$'
+
+    if n0 == None:
+        parts['nb'].attrs['units'] = r'$e \frac{\Delta \xi}{2 \: r_e} k_p^2$'
+    else:
+        dxi = axes_ds[xi_var].to_numpy()[1] - axes_ds[xi_var].to_numpy()[0]
+        parts = ozbk.lcode_convert_q(parts, dxi, q_var='nb', n0=n0)
+        parts['nb'].attrs['units'] = r'$e \: k_p^2$'
 
     return parts
 
@@ -114,7 +128,7 @@ def get_phase_space(raw_ds, vars, extents=None, nbins=200):
     # Change metadata
 
     ps = ps.rename_vars({'nb': 'Q'})
-    ps['Q'].attrs['units'] = r"$\Delta\xi m c^2 / (2 e)$"
+    ps['Q'].attrs['units'] = r"a.u."
     ps['Q'].attrs['long_name'] = r"$Q$"
 
     return ps
@@ -221,7 +235,7 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     return
     
 
-def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile=None, weight_var = 'q', r_var = None):
+def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile='charge_in_field_quadrants.nc', weight_var = 'q', n0=None, xi_var=None):
 
     t0 = time.process_time()
 
@@ -233,9 +247,19 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
     print('\nBinning particles into a grid...')
     t0_1 = time.process_time()
 
-    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var)
+    # No rvar because we want absolute charge, not density
+    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var=None)
 
     print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+
+    if n0 == None:
+        units = r'$e \frac{\Delta\xi}{2 r_e} E_0$'
+    elif (n0 != None) & (xi_var == None):
+        raise Exception('Must provide name of xi variable when n0 is provided.')
+    else:
+        dxi = axes_ds[xi_var].to_numpy()[1] - axes_ds[xi_var].to_numpy()[0]
+        parts = ozbk.lcode_convert_q(parts, dxi, q_var='nb', n0=n0)
+        units = r'$e E_0$'
 
     # Select subsets of the fields
 
@@ -244,57 +268,64 @@ def charge_in_fields(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), out
     spatial_dims = list(set(list(axes_ds.coords)) - {time_dim})
     summed = []
 
-    for f in fields:
+    conditions = {
+        'pospos': (fields_ds['ez'] >= 0.0) & (fields_ds['wr'] >= 0.0),
+        'posneg': (fields_ds['ez'] >= 0.0) & (fields_ds['wr'] < 0.0),
+        'negpos': (fields_ds['ez'] < 0.0) & (fields_ds['wr'] >= 0.0),
+        'negneg': (fields_ds['ez'] < 0.0) & (fields_ds['wr'] < 0.0),
+    }
 
-        print('     - ' + f)
+    newdims = {
+        'pospos': {'ez_sign': [1.0], 'wr_sign': [1.0]},
+        'posneg': {'ez_sign': [1.0], 'wr_sign': [-1.0]},
+        'negpos': {'ez_sign': [-1.0], 'wr_sign': [1.0]},
+        'negneg': {'ez_sign': [-1.0], 'wr_sign': [-1.0]}
+    }
+
+    for case, cond in conditions.items():
+
+        print('     - case: ' + case)
+
         t0_1 = time.process_time()
 
-        f_pos = fields_ds[f].where((fields_ds[f]>=0.0).compute(), drop=True)
-        f_neg = fields_ds[f].where((fields_ds[f]<0.0).compute(), drop=True)
+        ez_sel = fields_ds['ez'].where(cond.compute(), drop=True)
+        wr_sel = fields_ds['wr'].where(cond.compute(), drop=True)
 
-        f_pos = abs(f_pos * parts['nb'])
-        f_neg = abs(f_neg * parts['nb'])
-
-        q_pos = f_pos.sum(dim=spatial_dims, skipna=True)
-        q_neg = f_neg.sum(dim=spatial_dims, skipna=True)
+        w_prll = abs(ez_sel * parts['nb']).sum(dim=spatial_dims, skipna=True)
+        w_perp = abs(wr_sel * parts['nb']).sum(dim=spatial_dims, skipna=True)
+        w_both = w_prll + w_perp
 
         # Set metadata
 
-        q_pos.name = 'q_' + f + '_pos'
-        q_neg.name = 'q_' + f + '_neg'
+        ndims = w_prll.ndim
 
-        if 'long_name' in fields_ds[f].attrs:
-            flabel = fields_ds[f].attrs['long_name'].strip('$') 
-        else:
-            flabel = f.capitalize()
+        w_prll = w_prll.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
+        w_perp = w_perp.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
+        w_both = w_both.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
+        
+        w_prll.name = 'Wpar'
+        w_perp.name = 'Wperp'
+        w_both.name = 'Wtot'
 
-        q_pos.attrs['long_name'] = '$Q(' + f + ' \\geq 0)$'
-        q_neg.attrs['long_name'] = '$Q(' + f + ' < 0)$'
-
-        if 'units' in raw_ds['q'].attrs:
-            unt = raw_ds['q'].attrs['units']
-        else:
-            unt = ''
-        q_pos.attrs['units'] = unt
-        q_pos.attrs['units'] = unt
-
-        # Add to list
-
-        summed = summed + [q_pos, q_neg]
+        summed = summed + [w_prll, w_perp, w_both]
 
         print('      -> Took ' + str(time.process_time()-t0_1) + ' s'  )
-        
-    data_vars = { da.name: da for da in summed }
-    charge_ds = xr.Dataset(data_vars)
+
+    # data_vars = { da.name: da for da in summed }
+    charge_ds = xr.merge(summed)
+
+    charge_ds['Wpar'].attrs['long_name'] = r'$W_\parallel$'
+    charge_ds['Wperp'].attrs['long_name'] = r'$W_\perp$'
+    charge_ds['Wtot'].attrs['long_name'] = r'$W_\mathrm{tot}$'
+
+    for var in charge_ds.data_vars:
+        charge_ds[var].attrs['units'] = units
 
     # Save data
 
     print('\nSaving data...')
 
     t0_1 = time.process_time()
-
-    if outfile is None:
-        outfile = 'charge_in_fields.nc'
 
     filepath = os.path.join(savepath,outfile)
     print('\nSaving file ' + filepath)
