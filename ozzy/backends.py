@@ -61,6 +61,25 @@ def lcode_append_time(ds, file_string):
 
     return ds_out
 
+def lcode_convert_q(ds, dxi, q_var='q', n0=None):
+    # expects n0 in 1/cm^3
+
+    print('\nConverting charge...')
+
+    re = 2.8179403227e-13 # in cm
+    if n0 == None:
+        print('     - assuming dxi is in units of cm')
+        factor = dxi / (2*re)
+    else:
+        print('     - assuming dxi is in normalized units')
+        distcm = 531760.37819 / np.sqrt(n0)
+        factor = dxi * distcm / (2*re)
+
+    ds[q_var] = ds[q_var] * factor
+    ds[q_var].attrs['units'] = '$e$'
+
+    return ds
+
 
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
 
@@ -159,7 +178,7 @@ def lcode_parse_parts(file, pattern_info):
 
     cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'pid']
     label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'pid']
-    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$\\Delta \\xi m_e c^2 / (2 e)$', '']
+    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$e \\frac{\\Delta \\xi}{2 \\: r_e}$', '']
 
     if pattern_info.subcat == 'lost':
         cols = ['t'] + cols
