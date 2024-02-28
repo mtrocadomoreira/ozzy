@@ -198,14 +198,14 @@ def open(path, file_type, axes_lims=None):
 
     return ds
 
-def open_series(files, file_type, axes_lims=None):
+def open_series(files, file_type, axes_lims=None, nfiles=None):
 
     if isinstance(files, str):
         filelist = sorted(glob.glob(os.path.expanduser(files)))
     else:
         filelist = [os.path.expanduser(f) for f in files]
 
-    ds = backends.read(filelist, file_type, as_series=True, axes_lims=axes_lims)
+    ds = backends.read(filelist[:nfiles], file_type, as_series=True, axes_lims=axes_lims)
 
     return ds
 
