@@ -163,14 +163,23 @@ def config_osiris(ds):
 
     # Save other metadata
 
-    ds = ds.assign_coords({'time': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0]})
-    ds = ds.expand_dims(dim={'time':1}, axis=ndims)
+    ds = ds.assign_coords({'t': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0]})
+    ds = ds.expand_dims(dim={'t':1}, axis=ndims)
     ds.time.attrs['units'] = tex_format(ds.attrs['TIME UNITS'])
     ds.time.attrs['long_name'] = 'Time'
     ds.attrs['length_x1'] = length_x1
     ds.attrs['dx'] = dx
     ds.attrs['nx'] = nx
 
+    return ds
+
+
+def config_ozzy(ds):
+
+    if ('t' in ds.coords) & ('t' not in ds.dims):
+        assert ds['t'].size == 1
+        ds = ds.expand_dims(dim={'t': 1}, axis=ds[list(ds)[0]].ndim )
+    
     return ds
 
 
@@ -209,7 +218,7 @@ def lcode_parse_grid(file, pattern_info, match):
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd.read_table(file, sep='\s+', header=None)\
             .to_dask_array(lengths=True)
-        ddf = ddf.transpose()
+        # ddf = ddf.transpose()
 
     quant = match.group(1)
 
@@ -349,8 +358,32 @@ def read_lcode_grid(files, as_series, pattern_info, match, axes_lims):
 def read_ozzy(files, as_series):
 
     if len(files) != 0:
-        ds = xr.open_mfdataset(files, engine='h5netcdf').load()
+
+        print('Reading files...')
+
+        try:
+
+            with dask.config.set({"array.slicing.split_large_chunks": True}):
+                ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf')
+            for file in files:
+                print('  - '+ file)
+
+        except:
+
+            ds_t = []
+            for file in files:
+                print('  - '+ file)
+                with dask.config.set({"array.slicing.split_large_chunks": True}):
+                    ds_tmp = xr.open_dataset(file, engine='h5netcdf', chunks='auto')
+                ds_t.append(config_ozzy(ds_tmp))
+            print('\nConcatenating along time... (this may take a while)')
+            ds = xr.concat(ds_t, 't', fill_value={'q': 0.0})
+        
+        ds.attrs['source'] = os.path.commonpath(files)
+        ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+
     else:
+
         ds = xr.Dataset()
 
     return ds
@@ -421,10 +454,10 @@ def get_file_pattern(file_type):
             re_pat = r"([\w-]+)-(\d{6})\.(h5|hdf)"
         case 'lcode':
             fend = ['swp','dat','det','bin','bit','pls']
-            re_pat = r"([\w_]*)(\d{5}|\d{6}\.\d{3})[m|w]?\.([a-z]{3})"
+            re_pat = r"([\w-]*)(\d{5}|\d{6}\.\d{3})[m|w]?\.([a-z]{3})"
         case 'ozzy':
             fend = ['h5', 'nc']
-            re_pat = r"([\w-]*)([\d{5}]*)\.(h5|nc)"
+            re_pat = r"([\w-]*)(\d{5}|\d{6})\.(h5|nc)"
         case 'openpmd' | 'hipace':
             fend = ['json']
             re_pat = r"([\w]*)_(\d{6})\.(json)"
