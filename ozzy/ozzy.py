@@ -62,7 +62,10 @@ def coords_from_extent(ds, mapping):
 
 
 def sample_particles(ds, n):
-    surviving = ds['x1'].isel(t=-1).notnull().compute()
+
+    dvar =  list(set(list(ds)) - {'pid','t','q'})[0]
+
+    surviving = ds[dvar].isel(t=-1).notnull().compute()
     pool = ds.coords['pid'][surviving]
     nparts = len(pool)
     if n > nparts:
