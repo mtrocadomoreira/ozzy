@@ -115,7 +115,7 @@ def ave_vphi_from_waterfall(da, dcells=11, xvar='zeta', yvar='t'):
 
     res = xr.DataArray(vphi, coords=data.coords, dims=data.dims, name='v_phi',
         attrs = {
-            'long_name': '$v_\phi$',
+            'long_name': r'$v_\phi$',
             'units': '$c$'
         }
     )

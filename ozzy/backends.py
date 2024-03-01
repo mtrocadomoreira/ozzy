@@ -186,12 +186,12 @@ def config_ozzy(ds):
 def lcode_parse_parts(file, pattern_info):
 
     cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'pid']
-    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', '$|\mathrm{rqm}|$', '$q$', 'pid']
+    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', r'$|\mathrm{rqm}|$', '$q$', 'pid']
     units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$e \\frac{\\Delta \\xi}{2 \\: r_e}$', '']
 
     if pattern_info.subcat == 'lost':
         cols = ['t'] + cols
-        units = ['$\omega_p^{-1}$'] + units
+        units = [r'$\omega_p^{-1}$'] + units
         label = ['$t$'] + label
 
     arr = np.fromfile(file).reshape(-1,len(cols))
@@ -216,7 +216,7 @@ def lcode_parse_parts(file, pattern_info):
 def lcode_parse_grid(file, pattern_info, match):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
-        ddf = dd.read_table(file, sep='\s+', header=None)\
+        ddf = dd.read_table(file, sep=r'\s+', header=None)\
             .to_dask_array(lengths=True)
         # ddf = ddf.transpose()
 
@@ -224,7 +224,7 @@ def lcode_parse_grid(file, pattern_info, match):
 
     if pattern_info.subcat == 'alongz':
 
-        label = {'e': '$E_z$', 'g': '$\phi$'}
+        label = {'e': '$E_z$', 'g': r'$\phi$'}
         units = {'e': '$E_0$', 'g': '$m c^2 / e$'}
         prefix = ''
         quant1 = quant + '_max'
@@ -278,7 +278,7 @@ def lcode_concat_time(ds, files):
 
     ds = xr.concat(ds, 't', fill_value={'q': 0.0})
     ds.coords['t'].attrs['long_name'] = '$t$'
-    ds.coords['t'].attrs['units'] = '$\omega_p^{-1}$'
+    ds.coords['t'].attrs['units'] = r'$\omega_p^{-1}$'
     ds = ds.sortby('t')
     ds.attrs['source'] = os.path.commonpath(files)
     ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )

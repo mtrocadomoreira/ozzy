@@ -31,7 +31,7 @@ def coord_to_physical_distance(ds, coord, n0, units='m'):
         newcoord = coord + '_' + units
         newds = ds.assign_coords({newcoord: skdepth*ds.coords[coord] })
         newds[newcoord].attrs['long_name'] = '$' + coord + '$'
-        newds[newcoord].attrs['units'] = '$\mathrm{' + units + '}$'
+        newds[newcoord].attrs['units'] = r'$\mathrm{' + units + '}$'
 
     return newds
 
