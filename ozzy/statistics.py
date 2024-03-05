@@ -8,14 +8,17 @@ import time
 
 # --- Helper functions ---
 
-def get_space_dims(ds, time_dim = 't'):
+
+def get_space_dims(ds, time_dim='t'):
     return list(set(list(ds.coords)) - {time_dim})
+
 
 def bins_from_axis(axis):
     vmin = axis[0] - 0.5*(axis[1]-axis[0])
     binaxis = axis + 0.5*(axis[1]-axis[0])
     binaxis = np.insert(binaxis, 0, vmin)
     return binaxis
+
 
 def bin_edges_from_ds(axes_ds, time_dim='t'):
     bin_edges = []
@@ -36,16 +39,19 @@ def mean_rms_grid(xda, dims, savepath=os.getcwd(), outfile=None):
     # name of file: 'quant_rms_grid.pkl' or keyword
     return
 
+
 def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
-    n0=None, xi_var=None):
+                    n0=None, xi_var=None):
     # assumes that axis is normalized when n0 and xi_var are provided
 
-    if (n0!=None) & (xi_var==None):
-        raise Exception('Name of xi variable must be provided when n0 is provided.')
+    if (n0 is not None) & (xi_var is None):
+        raise Exception(
+            'Name of xi variable must be provided when n0 is provided.')
 
     spatial_dims = get_space_dims(axes_ds, time_dim)
     if len(spatial_dims) == 0:
-        raise Exception('Did not find any spatial dimensions in input axes dataset')
+        raise Exception(
+            'Did not find any spatial dimensions in input axes dataset')
 
     bin_edges = bin_edges_from_ds(axes_ds, time_dim)
 
@@ -53,7 +59,7 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
 
     # Multiply weight by radius, if r_var is specified
 
-    if r_var == None:
+    if r_var is None:
         wvar = weight_var
     else:
         raw_ds['w'] = raw_ds[weight_var] / raw_ds[r_var]
@@ -67,9 +73,9 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
 
         part_coords = [ds_i[var] for var in spatial_dims]
         dist, edges = np.histogramdd(
-            part_coords, 
-            bins = bin_edges, 
-            weights = ds_i[wvar]
+            part_coords,
+            bins=bin_edges,
+            weights=ds_i[wvar]
         )
 
         newcoords = {var: axes_ds[var] for var in spatial_dims}
@@ -77,7 +83,7 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
         qds_i = xr.Dataset(
             data_vars={
                 'nb': (spatial_dims, dist)
-            }, 
+            },
             coords=newcoords
         )
         q_binned.append(qds_i)
@@ -85,7 +91,7 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
     parts = xr.concat(q_binned, time_dim)
     parts['nb'].attrs['long_name'] = r'$\rho$'
 
-    if n0 == None:
+    if n0 is None:
         parts['nb'].attrs['units'] = r'$e \frac{\Delta \xi}{2 \: r_e} k_p^2$'
     else:
         dxi = axes_ds[xi_var].to_numpy()[1] - axes_ds[xi_var].to_numpy()[0]
@@ -102,26 +108,26 @@ def get_phase_space(raw_ds, vars, extents=None, nbins=200):
 
     # Define extent and nbins depending on input
 
-    if extents == None:
+    if extents is None:
         extents = {}
         for v in vars:
             maxval = float(raw_ds[v].max().compute().to_numpy())
             minval = float(raw_ds[v].min().compute().to_numpy())
             if (minval < 0) & (maxval > 0):
-                extr = max([abs(minval),maxval])
+                extr = max([abs(minval), maxval])
                 lims = (-extr, extr)
             else:
                 lims = (minval, maxval)
             extents[v] = lims
     else:
-        assert type(extents) == dict
+        assert extents is dict
 
-    if type(nbins) == int:
+    if nbins is int:
         bins = {}
         for v in vars:
             bins[v] = nbins
     else:
-        assert type(nbins) == dict
+        assert nbins is dict
         bins = nbins
 
     # Prepare axes dataset
@@ -144,7 +150,10 @@ def get_phase_space(raw_ds, vars, extents=None, nbins=200):
 
     return ps
 
-def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expand_time=True, axisym=False):
+
+def mean_std_raw(xds, dim, binned_axis,
+                 savepath=os.getcwd(), outfile=None,
+                 expand_time=True, axisym=False):
 
     print('\nPreparing...')
 
@@ -158,8 +167,9 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     if dim not in xds.data_vars:
         print('Error: dimension "' + dim + '" not found in dataset.')
         raise Exception('Could not find dimension to perform operation along.')
-    
-    # Check if dimension(s) in input "binned_axis" = xarray.DataArray exist in input dataset "xds" = xarray.Dataset
+
+    # Check if dimension(s) in input "binned_axis" = xarray.DataArray exist
+    # in input dataset "xds" = xarray.Dataset
 
     if isinstance(binned_axis, xr.DataArray):
         binned_axis = binned_axis.to_dataset()
@@ -167,7 +177,8 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     problem = 0
     for out_dim in binned_axis.data_vars:
         if out_dim not in xds.data_vars:
-            print('Error: output dimension "' + out_dim + '" could not be found in input dataset.')
+            print('Error: output dimension "' + out_dim +
+                  '" could not be found in input dataset.')
             problem = problem + 1
     if problem > 0:
         raise Exception('Problem matching output dim(s) with input dim(s).')
@@ -186,23 +197,24 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
             bin_arr.append(bins_from_axis(axis))
             bin_vars.append(var)
     except AttributeError:
-        print('Error: Was expecting the keyword "binned_axis" to be either an xarray.DataArray or an xarray.Dataset.')
+        print('Error: Was expecting the keyword "binned_axis" \
+            to be either an xarray.DataArray or an xarray.Dataset')
         raise
 
     # Prepare dataset for calculation
 
     ds = xds[bin_vars + [dim, 'q']]
     ds[dim+'_sqw'] = (ds[dim]**2) * ds['q']
-    if axisym == False:
+    if axisym is False:
         ds[dim+'_w'] = ds[dim]*ds['q']
     ds = ds.drop_vars(['q', dim])
 
     # Determine bin index for each particle (and for each binning variable)
 
     for i, bvar in enumerate(bin_vars):
-        group_id = np.digitize(ds[bvar].isel(t=0),bin_arr[i])
+        group_id = np.digitize(ds[bvar].isel(t=0), bin_arr[i])
         group_labels = [bin_axes[i][j] for j in group_id]
-        ds = ds.assign_coords({ bvar+'_bin': ('pid',group_labels) })
+        ds = ds.assign_coords({bvar+'_bin': ('pid', group_labels)})
 
     # Perform mean along the dataset and get final variables
 
@@ -212,23 +224,31 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
 
     result = ds
     for dim_da in by_dims:
-        try: 
-            result = xarray_reduce(result, dim_da, func='mean', sort=True, dim='pid', keep_attrs=True, fill_value=np.nan)
-        except:
-            print('This is probably a problem with the multiple binning axes. Have to look over this.')
+        try:
+            result = xarray_reduce(
+                result, dim_da, func='mean', sort=True, dim='pid',
+                keep_attrs=True, fill_value=np.nan)
+        except Exception:
+            print(
+                'This is probably a problem with the multiple binning axes. \
+                    Have to look over this.')
             raise
 
-    if axisym == False:
+    if axisym is False:
         result[dim+'_std'] = np.sqrt(result[dim+'_sqw'] - result[dim+'_w']**2)
         result = result.rename({dim+'_w': dim+'_mean'})
 
-        result[dim+'_mean'].attrs['long_name'] = 'mean(' + xds[dim].attrs['long_name'] + ')'
-        result[dim+'_mean'].attrs['units'] = xds[dim].attrs['units']
+        result[dim+'_mean'] = result[dim+'_mean'].assign_attrs(
+            long_name='mean(' + xds[dim].attrs['long_name'] + ')',
+            units=xds[dim].attrs['units']
+        )
     else:
         result[dim+'_std'] = np.sqrt(result[dim+'_sqw'])
 
-    result[dim+'_std'].attrs['long_name'] = 'std(' + xds[dim].attrs['long_name'] + ')'
-    result[dim+'_std'].attrs['units'] = xds[dim].attrs['units']
+    result[dim+'_std'] = result[dim+'_std'].assign_attrs(
+        long_name='std(' + xds[dim].attrs['long_name'] + ')',
+        units=xds[dim].attrs['units']
+    )
     result = result.drop_vars(dim+'_sqw')
 
     # Save data
@@ -236,7 +256,7 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     if outfile is None:
         outfile = dim + '_mean_std_raw.nc'
 
-    filepath = os.path.join(savepath,outfile)
+    filepath = os.path.join(savepath, outfile)
     print('\nSaving file ' + filepath)
 
     oz.save(result, filepath)
@@ -244,13 +264,15 @@ def mean_std_raw(xds, dim, binned_axis, savepath=os.getcwd(), outfile=None, expa
     print('\nDone!')
 
     return
-    
 
-def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getcwd(), outfile='charge_in_field_quadrants.nc', weight_var = 'q', n0=None, xi_var=None):
+
+def charge_in_field_quadrants(raw_ds, fields_ds, time_dim='t',
+                              savepath=os.getcwd(),
+                              outfile='charge_in_field_quadrants.nc',
+                              weight_var='q', n0=None, xi_var=None):
 
     t0 = time.process_time()
 
-    fields = fields_ds.data_vars
     axes_ds = xr.Dataset(fields_ds.coords)
 
     # Bin particles
@@ -261,12 +283,13 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
     # No rvar because we want absolute charge, not density
     parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var=None)
 
-    print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+    print(' -> Took ' + str(time.process_time()-t0_1) + ' s')
 
-    if n0 == None:
+    if n0 is None:
         units = r'$e \frac{\Delta\xi}{2 r_e} E_0$'
-    elif (n0 != None) & (xi_var == None):
-        raise Exception('Must provide name of xi variable when n0 is provided.')
+    elif (n0 is not None) & (xi_var is None):
+        raise Exception(
+            'Must provide name of xi variable when n0 is provided.')
     else:
         dxi = axes_ds[xi_var].to_numpy()[1] - axes_ds[xi_var].to_numpy()[0]
         parts = ozbk.lcode_convert_q(parts, dxi, q_var='nb', n0=n0)
@@ -276,7 +299,7 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
 
     print('\nMatching particle distribution with sign of fields:')
 
-    spatial_dims = get_space_dims(axes_ds, time_dim) 
+    spatial_dims = get_space_dims(axes_ds, time_dim)
     summed = []
 
     conditions = {
@@ -310,17 +333,17 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
 
         ndims = w_prll.ndim
 
-        w_prll = w_prll.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
-        w_perp = w_perp.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
-        w_both = w_both.expand_dims(dim=newdims[case], axis = [ndims,ndims+1])
-        
+        w_prll = w_prll.expand_dims(dim=newdims[case], axis=[ndims, ndims+1])
+        w_perp = w_perp.expand_dims(dim=newdims[case], axis=[ndims, ndims+1])
+        w_both = w_both.expand_dims(dim=newdims[case], axis=[ndims, ndims+1])
+
         w_prll.name = 'Wpar'
         w_perp.name = 'Wperp'
         w_both.name = 'Wtot'
 
         summed = summed + [w_prll, w_perp, w_both]
 
-        print('      -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+        print('      -> Took ' + str(time.process_time()-t0_1) + ' s')
 
     # data_vars = { da.name: da for da in summed }
     charge_ds = xr.merge(summed)
@@ -338,18 +361,18 @@ def charge_in_field_quadrants(raw_ds, fields_ds, time_dim ='t', savepath=os.getc
 
     t0_1 = time.process_time()
 
-    filepath = os.path.join(savepath,outfile)
+    filepath = os.path.join(savepath, outfile)
     print('\nSaving file ' + filepath)
 
     oz.save(charge_ds, filepath)
 
-    print(' -> Took ' + str(time.process_time()-t0_1) + ' s'  )
+    print(' -> Took ' + str(time.process_time()-t0_1) + ' s')
 
     print('\nDone!')
-    print('...in ' + str(time.process_time()-t0) + ' s'  )
+    print('...in ' + str(time.process_time()-t0) + ' s')
 
     return
-    
+
 
 def field_space(raw_ds, fields_ds):
 
@@ -359,21 +382,24 @@ def field_space(raw_ds, fields_ds):
     t_in_parts = 't' in raw_ds.dims
 
     if t_in_fields | t_in_parts:
-        raise Exception('Error: this function does not allow a time dimension. Reduce dimension of dataset with sel() or isel() first.')
+        raise Exception(
+            'Error: this function does not allow a time dimension. \
+                Reduce dimension of dataset with sel() or isel() first.')
 
     # Attribute grid cell index to each particle
 
     spatial_dims = ['x1', 'x2']
-    
+
     for dim in spatial_dims:
         axis = fields_ds.coords[dim].to_numpy()
         dx = axis[1] - axis[0]
         raw_ds[dim + '_i'] = np.floor(abs(raw_ds[dim]) / dx)
 
     arr_shape = fields_ds[list(fields_ds)[0]].to_numpy().shape
-    raw_ds['x_ij'] = np.ravel_multi_index((raw_ds['x2_i'].astype(int), raw_ds['x1_i'].astype(int)), arr_shape)
+    raw_ds['x_ij'] = np.ravel_multi_index(
+        (raw_ds['x2_i'].astype(int), raw_ds['x1_i'].astype(int)), arr_shape)
 
-    raw_ds = raw_ds.drop_vars(['x1_i','x2_i'])
+    raw_ds = raw_ds.drop_vars(['x1_i', 'x2_i'])
 
     # Read field values
 
@@ -387,6 +413,3 @@ def field_space(raw_ds, fields_ds):
         raw_ds[fvar] = da_tmp
 
     return raw_ds
-
-
-    

@@ -15,12 +15,14 @@ import glob
 
 from importlib.resources import files
 lcode_data_file = files('ozzy').joinpath('lcode_file_key.csv')
-lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0)
+lcode_regex = pd.read_csv(lcode_data_file, sep=';', header=0)
+
 
 # --- Helper functions ---
 
 def get_regex_snippet(pattern, string):
     return re.search(pattern, string).group(0)
+
 
 def tex_format(str):
     if str == '':
@@ -29,12 +31,14 @@ def tex_format(str):
         newstr = '$' + str + '$'
     return newstr
 
+
 def unpack_str(attr):
     if isinstance(attr, np.ndarray):
         result = attr[0]
     else:
         result = attr
     return result
+
 
 def lcode_get_rqm(ds):
 
@@ -45,33 +49,37 @@ def lcode_get_rqm(ds):
 
     return ds
 
+
 def lcode_identify_data_type(file_string):
 
     for row in lcode_regex.itertuples(index=False):
 
         pattern = row.regex
-        match = re.fullmatch(pattern,os.path.basename(file_string))
-        if match != None:
+        match = re.fullmatch(pattern, os.path.basename(file_string))
+        if match is not None:
             break
 
     return (row, match)
 
+
 def lcode_append_time(ds, file_string):
 
-    thistime = float(get_regex_snippet(r"\d{5}", os.path.basename(file_string)))
+    thistime = float(get_regex_snippet(
+        r"\d{5}", os.path.basename(file_string)))
     ds_out = ds.assign_coords({'t': [thistime]})
     ds_out.coords['t'].attrs['long_name'] = '$t$'
     ds_out.coords['t'].attrs['units'] = r'$\omega_p^{-1}$'
 
     return ds_out
 
+
 def lcode_convert_q(ds, dxi, q_var='q', n0=None):
     # expects n0 in 1/cm^3
 
     print('\nConverting charge...')
 
-    re = 2.8179403227e-13 # in cm
-    if n0 == None:
+    re = 2.8179403227e-13  # in cm
+    if n0 is None:
         print('     - assuming dxi is in units of cm')
         factor = dxi / (2*re)
     else:
@@ -84,11 +92,11 @@ def lcode_convert_q(ds, dxi, q_var='q', n0=None):
 
     return ds
 
+
 def dd_read_table(file, sep=r'\s+', header=None):
     ddf = dd.read_table(file, sep=sep, header=header)\
             .to_dask_array(lengths=True)
     return ddf.squeeze()
-
 
 
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
@@ -102,7 +110,7 @@ def config_osiris(ds):
     ax_units = []
     ax_type = []
     xmax = []
-    xmin = []    
+    xmin = []
     fname = ds.encoding['source']
 
     f = h5py.File(fname, 'r')
@@ -130,9 +138,9 @@ def config_osiris(ds):
 
     varname = list(ds.keys())[0]
     ds[varname] = ds[varname].assign_attrs(
-        long_name = tex_format(ds.attrs['LABEL']), 
-        units = tex_format(ds.attrs['UNITS'])
-        )
+        long_name=tex_format(ds.attrs['LABEL']),
+        units=tex_format(ds.attrs['UNITS'])
+    )
     del ds.attrs['LABEL'], ds.attrs['UNITS']
 
     nx = np.array(ds[varname].shape)
@@ -140,18 +148,22 @@ def config_osiris(ds):
     if ndims >= 2:
         nx[1], nx[0] = nx[0], nx[1]
     if ndims == 3:
-        nx = np.roll(nx,1)
+        nx = np.roll(nx, 1)
 
     # Rename dimensions
 
     match ndims:
         case 1:
-            ds = ds.rename_dims({'phony_dim_0':'x1'})
+            ds = ds.rename_dims({'phony_dim_0': 'x1'})
         case 2:
-            ds = ds.rename_dims({'phony_dim_0':'x2', 'phony_dim_1': 'x1'})
+            ds = ds.rename_dims({'phony_dim_0': 'x2', 'phony_dim_1': 'x1'})
         case 3:
-            ds = ds.rename_dims({'phony_dim_0':'x3', 'phony_dim_1': 'x2', 'phony_dim_2': 'x1'})
-            
+            ds = ds.rename_dims({
+                'phony_dim_0': 'x3',
+                'phony_dim_1': 'x2',
+                'phony_dim_2': 'x1'
+            })
+
     # Save axis values and metadata
 
     dx = (xmax-xmin) / nx
@@ -160,26 +172,33 @@ def config_osiris(ds):
     ax = np.arange(dx[0], length_x1+dx[0], dx[0]) - 0.5*dx[0]
     ds = ds.assign_coords({'x1': ax})
 
-    for i in np.arange(1,ndims):
+    for i in np.arange(1, ndims):
         coord = 'x' + str(i+1)
         ax = np.arange(xmin[i]+dx[i], xmax[i]+dx[i], dx[i]) - 0.5*dx[i]
         ds = ds.assign_coords({coord: ax})
 
-    for i in np.arange(0,ndims):
+    for i in np.arange(0, ndims):
         coord = 'x' + str(i+1)
-        ds.coords[coord].attrs['long_name'] = tex_format(ax_labels[i].decode('UTF-8'))
-        ds.coords[coord].attrs['units'] = tex_format(ax_units[i].decode('UTF-8'))
+        ds.coords[coord].attrs['long_name'] = tex_format(
+            ax_labels[i].decode('UTF-8'))
+        ds.coords[coord].attrs['units'] = tex_format(
+            ax_units[i].decode('UTF-8'))
         ds.coords[coord].attrs['TYPE'] = ax_type[i].decode('UTF-8')
 
     # Save other metadata
 
-    ds = ds.assign_coords({'t': ds.attrs['TIME'], 'iter': ds.attrs['ITER'], 'move_offset': xmin[0]})
-    ds = ds.expand_dims(dim={'t':1}, axis=ndims)
+    ds = ds.assign_coords({
+        't': ds.attrs['TIME'],
+        'iter': ds.attrs['ITER'],
+        'move_offset': xmin[0]
+    })
+    ds = ds.expand_dims(dim={'t': 1}, axis=ndims)
     ds.time.attrs['units'] = tex_format(ds.attrs['TIME UNITS'])
     ds.time.attrs['long_name'] = 'Time'
     ds.attrs['length_x1'] = length_x1
     ds.attrs['dx'] = dx
     ds.attrs['nx'] = nx
+    ds.attrs['move_c'] = move_c
 
     return ds
 
@@ -188,37 +207,40 @@ def config_ozzy(ds):
 
     if ('t' in ds.coords) & ('t' not in ds.dims):
         assert ds['t'].size == 1
-        ds = ds.expand_dims(dim={'t': 1}, axis=ds[list(ds)[0]].ndim )
-    
+        ds = ds.expand_dims(dim={'t': 1}, axis=ds[list(ds)[0]].ndim)
+
     return ds
 
 
 def lcode_parse_parts(file, pattern_info):
 
     cols = ['x1', 'x2', 'p1', 'p2', 'L', 'abs_rqm', 'q', 'pid']
-    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$', '$L$', r'$|\mathrm{rqm}|$', '$q$', 'pid']
-    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$', '$m_e c^2 / \\omega_p$', '', '$e \\frac{\\Delta \\xi}{2 \\: r_e}$', '']
+    label = ['$\\xi$', '$r$', '$p_z$', '$p_r$',
+             '$L$', r'$|\mathrm{rqm}|$', '$q$', 'pid']
+    units = ['$k_p^{-1}$', '$k_p^{-1}$', '$m_e c$', '$m_e c$',
+             '$m_e c^2 / \\omega_p$', '',
+             '$e \\frac{\\Delta \\xi}{2 \\: r_e}$', '']
 
     if pattern_info.subcat == 'lost':
         cols = ['t'] + cols
         units = [r'$\omega_p^{-1}$'] + units
         label = ['$t$'] + label
 
-    arr = np.fromfile(file).reshape(-1,len(cols))
-    dda = da.from_array(arr[0:-1,:])
+    arr = np.fromfile(file).reshape(-1, len(cols))
+    dda = da.from_array(arr[0:-1, :])
 
     data_vars = {}
     for i, var in enumerate(cols[0:-1]):
-        data_vars[var] = ('pid', dda[:,i], {
+        data_vars[var] = ('pid', dda[:, i], {
             'long_name': label[i],
             'units': units[i]
-        })  
+        })
 
-    ds = xr.Dataset(data_vars).assign_coords({'pid': dda[:,-1]})
+    ds = xr.Dataset(data_vars).assign_coords({'pid': dda[:, -1]})
     ds.coords['pid'].attrs['long_name'] = label[-1]
     ds.coords['pid'].attrs['units'] = units[-1]
     if pattern_info.subcat != 'lost':
-        ds = ds.expand_dims(dim={'t':1}, axis=1)
+        ds = ds.expand_dims(dim={'t': 1}, axis=1)
 
     return ds
 
@@ -239,7 +261,7 @@ def lcode_parse_grid(file, pattern_info, match):
         units = {'e': '$E_0$', 'g': '$m c^2 / e$'}
         prefix = ''
         quant1 = quant + '_max'
-        quant2 = quant1.replace('max','min')
+        quant2 = quant1.replace('max', 'min')
 
         if match.group(2) == 'loc':
             quant1 = quant1 + '_loc'
@@ -247,47 +269,47 @@ def lcode_parse_grid(file, pattern_info, match):
 
         xds = xr.Dataset(
             data_vars={
-                quant1: ('t', ddf[:,1]),
-                quant2: ('t', ddf[:,3]),
-                'ximax': ('t', ddf[:,2]),
-                'ximin': ('t', ddf[:,4])
+                quant1: ('t', ddf[:, 1]),
+                quant2: ('t', ddf[:, 3]),
+                'ximax': ('t', ddf[:, 2]),
+                'ximin': ('t', ddf[:, 4])
             },
             coords={
-                't': ddf[:,0]
+                't': ddf[:, 0]
             }
         )
 
         xds[quant1] = xds[quant1].assign_attrs(
-            long_name = prefix +  'max. ' + label[quant],
-            units = units[quant]
+            long_name=prefix + 'max. ' + label[quant],
+            units=units[quant]
         )
         xds[quant2] = xds[quant2].assign_attrs(
-            long_name = prefix + 'min. ' + label[quant],
-            units = units[quant]
+            long_name=prefix + 'min. ' + label[quant],
+            units=units[quant]
         )
         xds['t'] = xds['t'].assign_attrs(
-            long_name = r"$t$",
-            units = r"$\omega_p^{-1}$"
+            long_name=r"$t$",
+            units=r"$\omega_p^{-1}$"
         )
 
     elif pattern_info.subcat == 'plzshape':
 
         xds = xr.Dataset(
             data_vars={
-                'np': ('t', ddf[:,1])
+                'np': ('t', ddf[:, 1])
             },
             coords={
-                't': ddf[:,0]
+                't': ddf[:, 0]
             }
         )
 
         xds['np'] = xds['np'].assign_attrs(
-            long_name = r"$n_p$",
-            units = r"$n_0$"
+            long_name=r"$n_p$",
+            units=r"$n_0$"
         )
         xds['t'] = xds['t'].assign_attrs(
-            long_name = r"$t$",
-            units = r"$\omega_p^{-1}$"
+            long_name=r"$t$",
+            units=r"$\omega_p^{-1}$"
         )
 
     else:
@@ -300,8 +322,9 @@ def lcode_parse_grid(file, pattern_info, match):
                 dims = ['x1']
                 ddf = np.flip(ddf, axis=0)
 
-                timestr = get_regex_snippet(r"\d{5}",os.path.basename(file))
-                xifile = glob.glob(os.path.join(os.path.dirname(file),'xi_'+timestr+'.swp'))
+                timestr = get_regex_snippet(r"\d{5}", os.path.basename(file))
+                xifile = glob.glob(os.path.join(
+                    os.path.dirname(file), 'xi_'+timestr+'.swp'))
                 xiddf = dd_read_table(xifile)
 
                 # look for xi axis file and add it
@@ -314,7 +337,7 @@ def lcode_parse_grid(file, pattern_info, match):
                 raise Exception('Invalid number of dimensions in file ' + file)
 
         xds = xr.Dataset(data_vars={quant: (dims, ddf)})\
-            .expand_dims(dim={'t':1}, axis=ndims)
+            .expand_dims(dim={'t': 1}, axis=ndims)
 
         xds[quant].attrs['long_name'] = quant
         xds.attrs['ndims'] = ndims
@@ -331,7 +354,8 @@ def lcode_concat_time(ds, files):
     ds.coords['t'].attrs['units'] = r'$\omega_p^{-1}$'
     ds = ds.sortby('t')
     ds.attrs['source'] = os.path.commonpath(files)
-    ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+    ds.attrs['files_prefix'] = os.path.commonprefix(
+        [os.path.basename(f) for f in files])
 
     return ds
 
@@ -342,14 +366,14 @@ def read_lcode_parts(files, pattern_info, as_series=True):
 
     ds_t = []
     for file in files:
-        print('  - '+ file)
+        print('  - ' + file)
 
         ds_tmp = lcode_parse_parts(file, pattern_info)
 
         if pattern_info.subcat == 'beamfile':
-            bfbit_path = os.path.join(os.path.dirname(file),'beamfile.bit')
+            bfbit_path = os.path.join(os.path.dirname(file), 'beamfile.bit')
             if os.path.exists(bfbit_path):
-                with open(bfbit_path,'r') as f:
+                with open(bfbit_path, 'r') as f:
                     thistime = float(f.read())
                 ds_tmp = ds_tmp.assign_coords({'t': [thistime]})
 
@@ -358,11 +382,14 @@ def read_lcode_parts(files, pattern_info, as_series=True):
 
         ds_t.append(ds_tmp)
 
-    # Get file type of all files so as to allow mix between beamfile and tb*.swp
+    # Get file type of all files so as to allow mix between
+    # beamfile and tb*.swp
     subcat_all = [lcode_identify_data_type(f)[0].subcat for f in files]
 
-    if any([(sc == 'parts') | (sc == 'species') for sc in subcat_all]) & (as_series == True):
-        print('\nConcatenating along time... (this may take a while for particle data)')
+    if any([(sc == 'parts') | (sc == 'species') for sc in subcat_all]) \
+            & (as_series is True):
+        print('\nConcatenating along time... \
+            (this may take a while for particle data)')
         t0 = time.process_time()
         ds = lcode_concat_time(ds_t, files)
         print(' -> Took ' + str(time.process_time()-t0) + ' s')
@@ -379,7 +406,7 @@ def read_lcode_grid(files, as_series, pattern_info, match, axes_lims):
 
     ds_t = []
     for file in files:
-        print('  - '+ file)
+        print('  - ' + file)
         ds_tmp = lcode_parse_grid(file, pattern_info, match)
 
         if pattern_info.time == 'single':
@@ -397,7 +424,7 @@ def read_lcode_grid(files, as_series, pattern_info, match, axes_lims):
         ds = lcode_concat_time(ds_t, files)
         print(' -> Took ' + str(time.process_time()-t0) + ' s')
 
-    if axes_lims != None:
+    if axes_lims is not None:
         ds = oz.coords_from_extent(ds, axes_lims)
 
     return ds
@@ -416,21 +443,25 @@ def read_ozzy(files, as_series):
             with dask.config.set({"array.slicing.split_large_chunks": True}):
                 ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf')
             for file in files:
-                print('  - '+ file)
+                print('  - ' + file)
 
-        except:
+        except Exception:
 
             ds_t = []
             for file in files:
-                print('  - '+ file)
-                with dask.config.set({"array.slicing.split_large_chunks": True}):
-                    ds_tmp = xr.open_dataset(file, engine='h5netcdf', chunks='auto')
+                print('  - ' + file)
+                with dask.config.set(
+                    {"array.slicing.split_large_chunks": True}
+                ):
+                    ds_tmp = xr.open_dataset(
+                        file, engine='h5netcdf', chunks='auto')
                 ds_t.append(config_ozzy(ds_tmp))
             print('\nConcatenating along time... (this may take a while)')
             ds = xr.concat(ds_t, 't', fill_value={'q': 0.0})
-        
+
         ds.attrs['source'] = os.path.commonpath(files)
-        ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+        ds.attrs['files_prefix'] = os.path.commonprefix(
+            [os.path.basename(f) for f in files])
 
     else:
 
@@ -440,29 +471,38 @@ def read_ozzy(files, as_series):
 
 
 def read_lcode(files, as_series, axes_lims):
-    # assuming files is already sorted into a single type of data (no different kinds of files)
+    # assuming files is already sorted into a single type
+    # of data (no different kinds of files)
 
     pattern_info, match = lcode_identify_data_type(files[0])
 
-    if match == None:
-        raise Exception('Error: could not identify the type of LCODE data file.')
+    if match is None:
+        raise Exception(
+            'Error: could not identify the type of LCODE data file.')
 
     match pattern_info.cat:
 
         case 'grid':
-            if axes_lims == None:
-                print('\nWARNING: axis extents were not specified. Dataset object(s) will not have coordinates.\n')
-            ds = read_lcode_grid(files, as_series, pattern_info, match, axes_lims)
+            if axes_lims is None:
+                print(
+                    '\nWARNING: axis extents were not specified. \
+                        Dataset object(s) will not have coordinates.\n')
+            ds = read_lcode_grid(
+                files, as_series, pattern_info, match, axes_lims)
 
         case 'parts':
             ds = read_lcode_parts(files, pattern_info, as_series)
 
         case 'info':
-            print('Error: Backend for this type of file has not been implemented yet. Exiting.')
+            print(
+                'Error: Backend for this type of file has not been \
+                    implemented yet. Exiting.')
             return
 
         case 'uncat':
-            print('Error: Backend for this type of file has not been implemented yet. Exiting.')
+            print(
+                'Error: Backend for this type of file has not been \
+                    implemented yet. Exiting.')
             return
 
     return ds
@@ -476,25 +516,30 @@ def read_osiris(files, as_series):
 
     t0 = time.process_time()
 
-    if as_series == False:
+    if as_series is False:
         assert len(files) == 1
 
     try:
 
         with dask.config.set({"array.slicing.split_large_chunks": True}):
 
-            ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf', phony_dims='access', preprocess=config_osiris, combine='by_coords', join='exact')
+            ds = xr.open_mfdataset(files, chunks='auto', engine='h5netcdf',
+                                   phony_dims='access',
+                                   preprocess=config_osiris,
+                                   combine='by_coords', join='exact')
 
         ds.attrs['source'] = os.path.commonpath(files)
-        ds.attrs['files_prefix'] = os.path.commonprefix( [os.path.basename(f) for f in files] )
+        ds.attrs['files_prefix'] = os.path.commonprefix(
+            [os.path.basename(f) for f in files])
 
     except OSError:
 
         ds = xr.Dataset()
 
-    print(' -> Took ' + str(time.process_time()-t0) + ' s'  )
+    print(' -> Took ' + str(time.process_time()-t0) + ' s')
 
     return ds
+
 
 def get_file_pattern(file_type):
 
@@ -503,7 +548,7 @@ def get_file_pattern(file_type):
             fend = ['h5']
             re_pat = r"([\w-]+)-(\d{6})\.(h5|hdf)"
         case 'lcode':
-            fend = ['swp','dat','det','bin','bit','pls']
+            fend = ['swp', 'dat', 'det', 'bin', 'bit', 'pls']
             re_pat = r"([\w-]*)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
         case 'ozzy':
             fend = ['h5', 'nc']
@@ -514,7 +559,8 @@ def get_file_pattern(file_type):
         case _:
             raise Exception('Error: invalid input for "file_type" keyword')
 
-    return (fend,re_pat)
+    return (fend, re_pat)
+
 
 def read(filepaths, file_type, as_series=True, axes_lims=None):
 
