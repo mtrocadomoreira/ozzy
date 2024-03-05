@@ -9,6 +9,7 @@ import os
 import re
 import time
 from . import ozzy as oz
+import glob
 
 # --- Load backend info ---
 
@@ -17,6 +18,9 @@ lcode_data_file = files('ozzy').joinpath('lcode_file_key.csv')
 lcode_regex = pd.read_csv(lcode_data_file, sep=';',header=0)
 
 # --- Helper functions ---
+
+def get_regex_snippet(pattern, string):
+    return re.search(pattern, string).group(0)
 
 def tex_format(str):
     if str == '':
@@ -54,7 +58,7 @@ def lcode_identify_data_type(file_string):
 
 def lcode_append_time(ds, file_string):
 
-    thistime = float(re.search(r"\d{5}", os.path.basename(file_string)).group(0))
+    thistime = float(get_regex_snippet(r"\d{5}", os.path.basename(file_string)))
     ds_out = ds.assign_coords({'t': [thistime]})
     ds_out.coords['t'].attrs['long_name'] = '$t$'
     ds_out.coords['t'].attrs['units'] = r'$\omega_p^{-1}$'
@@ -79,6 +83,12 @@ def lcode_convert_q(ds, dxi, q_var='q', n0=None):
     ds[q_var].attrs['units'] = '$e$'
 
     return ds
+
+def dd_read_table(file, sep=r'\s+', header=None):
+    ddf = dd.read_table(file, sep=sep, header=header)\
+            .to_dask_array(lengths=True)
+    return ddf.squeeze()
+
 
 
 # --- Functions to pass to xarray.open_mfdataset for each file type ---
@@ -216,18 +226,20 @@ def lcode_parse_parts(file, pattern_info):
 def lcode_parse_grid(file, pattern_info, match):
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
-        ddf = dd.read_table(file, sep=r'\s+', header=None)\
-            .to_dask_array(lengths=True)
-        # ddf = ddf.transpose()
-
-    quant = match.group(1)
+        ddf = dd_read_table(file)
+        # ddf = dd.read_table(file, sep=r'\s+', header=None)\
+        #     .to_dask_array(lengths=True)
+        # ddf = ddf.squeeze()
 
     if pattern_info.subcat == 'alongz':
+
+        quant = match.group(1)
 
         label = {'e': '$E_z$', 'g': r'$\phi$'}
         units = {'e': '$E_0$', 'g': '$m c^2 / e$'}
         prefix = ''
         quant1 = quant + '_max'
+        quant2 = quant1.replace('max','min')
 
         if match.group(2) == 'loc':
             quant1 = quant1 + '_loc'
@@ -235,25 +247,63 @@ def lcode_parse_grid(file, pattern_info, match):
 
         xds = xr.Dataset(
             data_vars={
-                quant1: ('t', ddf[1]),
-                quant1.replace('max','min'): ('t', ddf[3]),
-                'ximax': ('t', ddf[2]),
-                'ximin': ('t', ddf[4])
+                quant1: ('t', ddf[:,1]),
+                quant2: ('t', ddf[:,3]),
+                'ximax': ('t', ddf[:,2]),
+                'ximin': ('t', ddf[:,4])
+            },
+            coords={
+                't': ddf[:,0]
             }
         )
 
-        xds[quant1].attrs['long_name'] = prefix +  'max. ' + label[quant]
-        xds[quant1].attrs['units'] = units[quant]
-        xds[quant1.replace('max','min')].attrs['long_name'] = prefix + 'min. ' + label[quant]
-        xds[quant1.replace('max','min')].attrs['units'] = units[quant]
+        xds[quant1] = xds[quant1].assign_attrs(
+            long_name = prefix +  'max. ' + label[quant],
+            units = units[quant]
+        )
+        xds[quant2] = xds[quant2].assign_attrs(
+            long_name = prefix + 'min. ' + label[quant],
+            units = units[quant]
+        )
+        xds['t'] = xds['t'].assign_attrs(
+            long_name = r"$t$",
+            units = r"$\omega_p^{-1}$"
+        )
+
+    elif pattern_info.subcat == 'plzshape':
+
+        xds = xr.Dataset(
+            data_vars={
+                'np': ('t', ddf[:,1])
+            },
+            coords={
+                't': ddf[:,0]
+            }
+        )
+
+        xds['np'] = xds['np'].assign_attrs(
+            long_name = r"$n_p$",
+            units = r"$n_0$"
+        )
+        xds['t'] = xds['t'].assign_attrs(
+            long_name = r"$t$",
+            units = r"$\omega_p^{-1}$"
+        )
 
     else:
+
+        quant = match.group(1)
 
         ndims = ddf.ndim
         match ndims:
             case 1:
                 dims = ['x1']
                 ddf = np.flip(ddf, axis=0)
+
+                timestr = get_regex_snippet(r"\d{5}",os.path.basename(file))
+                xifile = glob.glob(os.path.join(os.path.dirname(file),'xi_'+timestr+'.swp'))
+                xiddf = dd_read_table(xifile)
+
                 # look for xi axis file and add it
                 # check whether on axis or off axis
             case 2:
@@ -332,7 +382,7 @@ def read_lcode_grid(files, as_series, pattern_info, match, axes_lims):
         print('  - '+ file)
         ds_tmp = lcode_parse_grid(file, pattern_info, match)
 
-        if pattern_info.subcat != 'alongz':
+        if pattern_info.time == 'single':
             ds_tmp = lcode_append_time(ds_tmp, file)
 
         ds_t.append(ds_tmp)
@@ -454,7 +504,7 @@ def get_file_pattern(file_type):
             re_pat = r"([\w-]+)-(\d{6})\.(h5|hdf)"
         case 'lcode':
             fend = ['swp','dat','det','bin','bit','pls']
-            re_pat = r"([\w-]*)(\d{5}|\d{6}\.\d{3})[m|w]?\.([a-z]{3})"
+            re_pat = r"([\w-]*)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
         case 'ozzy':
             fend = ['h5', 'nc']
             re_pat = r"([\w-]*)(\d{5}|\d{6})\.(h5|nc)"
