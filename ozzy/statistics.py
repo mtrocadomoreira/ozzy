@@ -92,6 +92,9 @@ def parts_into_grid(raw_ds, axes_ds, time_dim='t', weight_var='q', r_var=None,
         parts = ozbk.lcode_convert_q(parts, dxi, q_var='nb', n0=n0)
         parts['nb'].attrs['units'] = r'$e \: k_p^2$'
 
+    for var in parts.coords:
+        parts.coords[var].assign_attrs(axes_ds[var].attrs)
+
     return parts
 
 
