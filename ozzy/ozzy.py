@@ -65,15 +65,20 @@ def sample_particles(ds, n):
 
     dvar =  list(set(list(ds)) - {'pid','t','q'})[0]
 
-    surviving = ds[dvar].isel(t=-1).notnull().compute()
-    pool = ds.coords['pid'][surviving]
+    if 't' in ds.dims:
+        surviving = ds[dvar].isel(t=-1).notnull().compute()
+        pool = ds.coords['pid'][surviving]
+    else:
+        pool = ds.coords['pid']
     nparts = len(pool)
+
     if n > nparts:
         print('Warning: number of particles to be sampled is larger than total particles. Proceeding without any sampling.')
     else:
         rng = np.random.default_rng()
         downsamp = rng.choice(pool['pid'], size=n, replace=False, shuffle=False)
         ds = ds.sel(pid=np.sort(downsamp))
+
     return ds
 
 
@@ -207,12 +212,12 @@ def open_series(files, file_type, axes_lims=None, nfiles=None):
         filelist = sorted(glob.glob(os.path.expanduser(files)))
     else:
         filelist = [os.path.expanduser(f) for f in files]
-
+        
     ds = backends.read(filelist[:nfiles], file_type, as_series=True, axes_lims=axes_lims)
 
     return ds
 
-def open_compare(file_type, path=os.getcwd(), runs='*', quants='*'):
+def open_compare(file_type, path=os.getcwd(), runs='*', quants='*', axes_lims=None):
 
     # Expand '~' in path
     path = os.path.expanduser(path)
@@ -253,7 +258,7 @@ def open_compare(file_type, path=os.getcwd(), runs='*', quants='*'):
                 fullloc = [os.path.join(run_dir,loc) for loc in fileloc]
                 filepaths_to_read = filepaths_to_read + fullloc
 
-            dataset = backends.read(filepaths_to_read, file_type, as_series=True)
+            dataset = backends.read(filepaths_to_read, file_type, as_series=True, axes_lims=axes_lims)
             dataset.attrs['run'] = run
             df.at[run,quant] = dataset
     os.chdir(currpath)
