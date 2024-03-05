@@ -386,11 +386,7 @@ def field_space(raw_ds, fields_ds):
         )
         raw_ds[fvar] = da_tmp
 
-    # Select columns
-
-    parts = raw_ds[['pid', 'q', 'abs_rqm'] + [fvar for fvar in fields_ds.data_vars]]
-
-    return parts
+    return raw_ds
 
 
     
