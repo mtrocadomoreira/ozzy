@@ -28,6 +28,8 @@ class Backend:
                     'Invalid input for "file_type" keyword. Available options are "osiris", "lcode", or "ozzy".'
                 )
 
+    # TODO: define function to set attributes of standard quantities like t, x1, etc
+
     def parse_data(self, files):
         print("\nReading the following files:")
         ods = self.parse(files, self.as_series)

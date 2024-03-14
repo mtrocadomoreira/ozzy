@@ -58,10 +58,6 @@ def lcode_concat_time(ds, files):
     ds.coords["t"].attrs["long_name"] = "$t$"
     ds.coords["t"].attrs["units"] = r"$\omega_p^{-1}$"
     ds = ds.sortby("t")
-    ds.attrs["source"] = os.path.commonpath(files)
-    ds.attrs["files_prefix"] = os.path.commonprefix(
-        [os.path.basename(f) for f in files]
-    )
 
     return ds
 
