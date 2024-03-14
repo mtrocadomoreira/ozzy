@@ -1,4 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
+
 # List of requirements
 requirements = [
     "pandas",
@@ -8,7 +10,7 @@ requirements = [
     "h5py",
     "h5netcdf",
     "dask",
-    "matplotlib"
+    "matplotlib",
 ]  # This could be retrieved from requirements.txt
 # Package (minimal) configuration
 setup(
@@ -19,5 +21,5 @@ setup(
     author="Mariana Moreira",
     packages=find_packages(),  # __init__.py folders search
     install_requires=requirements,
-    include_package_data=True
+    include_package_data=True,
 )
