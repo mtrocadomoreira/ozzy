@@ -10,8 +10,8 @@ from importlib.resources import files
 lcode_data_file = files("ozzy").joinpath("lcode_file_key.csv")
 lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 
-lcode_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
-lcode_ending = ["swp", "dat", "det", "bin", "bit", "pls"]
+general_regex_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
+general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
 
 
 def check_file_key(file):

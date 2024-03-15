@@ -5,6 +5,9 @@ import numpy as np
 import h5py
 import dask
 
+general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+general_file_endings = ["h5"]
+
 
 def config_osiris(ds):
     # Read some properties with HDF5 interface
