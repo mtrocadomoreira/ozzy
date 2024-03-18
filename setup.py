@@ -14,7 +14,7 @@ requirements = [
 ]  # This could be retrieved from requirements.txt
 # Package (minimal) configuration
 setup(
-    name="ozzy",
+    name="ozzy_refactor",
     version="0.0.0",
     description="PIC simulation data analysis for the lazy and impatient",
     url="https://github.com/mtrocadomoreira/ozzy",

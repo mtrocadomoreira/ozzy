@@ -6,31 +6,15 @@ import collections
 
 class Backend:
     def __init__(self, file_type, as_series=True, axes_lims=None, *args, **kwargs):
+        self.name = file_type
         self.as_series = as_series
         self.axes_lims = axes_lims
-        self._quant_files = None
+
         match file_type:
             case "osiris":
-                from . import osiris_backend
-
-                self.name = "osiris"
-                self.parse = osiris_backend.read_osiris
-
-                self.regex_pattern = osiris_backend.general_regex_pattern
-                self.file_endings = osiris_backend.general_file_endings
-
-                # TODO define:
-                #   - self.find_quants()
+                from . import osiris_backend as backend_mod
             case "lcode":
-                from . import lcode_backend
-
-                self.name = "lcode"
-                self.parse = lcode_backend.read_lcode
-
-                self.regex_pattern = lcode_backend.general_regex_pattern
-                self.file_endings = lcode_backend.general_file_endings
-                # TODO define:
-                #   - self.find_quants()
+                from . import lcode_backend as backend_mod
             case "ozzy":
                 pass
                 # ds = read_ozzy(filepaths, as_series)
@@ -38,6 +22,13 @@ class Backend:
                 raise ValueError(
                     'Invalid input for "file_type" keyword. Available options are "osiris", "lcode", or "ozzy".'
                 )
+
+        self.parse = backend_mod.read
+
+        self._quant_files = None
+        self._regex_pattern = backend_mod.general_regex_pattern
+        self._file_endings = backend_mod.general_file_endings
+        self._quants_ignore = backend_mod.quants_ignore
 
     # TODO: define function to set attributes of standard quantities like t, x1, etc, only if missing
 
@@ -52,7 +43,7 @@ class Backend:
         for q in quants:
             if "." not in q:
                 term = []
-                for fend in self.file_endings:
+                for fend in self._file_endings:
                     term.append("**/" + q + "*." + fend)
                 searchterms = searchterms + term
 
@@ -65,18 +56,24 @@ class Backend:
                 filenames = filenames + [os.path.basename(f) for f in query]
 
         # Look for clusters of files matching pattern
-        pattern = re.compile(self.regex_pattern)
+        pattern = re.compile(self._regex_pattern)
         matches = (
             (pattern.fullmatch(f), f)
             for f in filenames
             if pattern.fullmatch(f) is not None
         )
 
+        # Build output dictionary
         quants_dict = collections.defaultdict(list)
         for m, f in matches:
             label = m.group(1).strip("_-")
             if f not in quants_dict[label]:
                 quants_dict[label].append(f)
+
+        # Drop quantities that should be ignored
+        if self._quants_ignore is not None:
+            for q in self._quants_ignore:
+                del quants_dict[q]
 
         return quants_dict
 
@@ -84,9 +81,9 @@ class Backend:
         self._quant_files = self.find_quants(*args, **kwargs)
         return self._quant_files
 
-    def parse_data(self, files):
+    def parse_data(self, files, *args, **kwargs):
         print("\nReading the following files:")
-        ods = self.parse(files, self.as_series)
+        ods = self.parse(files, self.as_series, *args, **kwargs)
 
         # Set metadata
         ods = ods.assign_attrs(

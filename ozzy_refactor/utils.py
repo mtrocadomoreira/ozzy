@@ -3,6 +3,7 @@ from pathlib import PurePath
 import time
 import os
 import glob
+import re
 import numpy as np
 
 
@@ -47,12 +48,16 @@ def tex_format(str):
     return newstr
 
 
+def get_regex_snippet(pattern, string):
+    return re.search(pattern, string).group(0)
+
+
 # I/O
 
 
 def prep_file_input(files):
     if isinstance(files, str):
-        filelist = sorted(glob.glob(os.path.expanduser(files)))
+        filelist = [os.path.expanduser(files)]
     else:
         filelist = [os.path.expanduser(f) for f in files]
     return filelist

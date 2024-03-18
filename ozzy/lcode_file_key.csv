@@ -18,5 +18,5 @@ fl\d{5}\.swp;uncat;single;;
 ls(\d{6}\.\d{3})\.swp;uncat;single;;
 (r|f)\d{5}\.det;uncat;single;;
 ([a-z][a-z])\d{5}\.det;uncat;single;;xi\d{5}\.det
-xi_?([a-zA-Z2]{2,3})?_\d{5}\.swp;grid;single;lineout;xi_\d{5}\.swp
+xi_([a-zA-Z2]{2,3})_\d{5}\.swp;grid;single;lineout;xi_\d{5}\.swp
 (([a-z]|\d)[a-z])\d{5}[m|w]?\.swp;grid;single;2d;

@@ -64,7 +64,7 @@ def open_compare(file_types, path=os.getcwd(), runs="*", quants="*", axes_lims=N
         for bk in bknds:
             for quant, quant_files in bk._quant_files.items():
                 filepaths = get_abs_filepaths(path, run_dir, quant_files)
-                ods = bk.parse_data(filepaths, axes_lims=axes_lims)
+                ods = bk.parse_data(filepaths, axes_lims=axes_lims, quant_name=quant)
                 ods.attrs["run"] = run
                 df.at[run, quant] = ods
 

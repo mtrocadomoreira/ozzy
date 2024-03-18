@@ -7,6 +7,7 @@ import dask
 
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
+quants_ignore = None
 
 
 def config_osiris(ds):
@@ -103,7 +104,7 @@ def config_osiris(ds):
 
 
 @stopwatch
-def read_osiris(files, as_series):
+def read(files, as_series):
     for f in files:
         print_file_item(f)
 
