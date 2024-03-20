@@ -10,9 +10,13 @@ import dask.array as da
 import xarray as xr
 from importlib.resources import files
 
+# These three variables must be defined in each backend module
+
 general_regex_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
 general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
 quants_ignore = ["xi"]
+
+# The function read() must also be defined in each backend module
 
 lcode_data_file = files("ozzy_refactor").joinpath("lcode_file_key.csv")
 lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
@@ -20,6 +24,13 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 # -------------------------------------------
 # - Define metadata of different file types -
 # -------------------------------------------
+
+# Coordinates
+default_coord_metadata = {
+    "t": {"long_name": r"$t$", "units": r"$\omega_p^{-1}$"},
+    "x1": {"long_name": r"$\xi$", "units": r"$k_p^{-1}$"},
+    "x2": {"long_name": r"$r$", "units": r"$k_p^{-1}$"},
+}
 
 # Grid data
 prefix = ["er", "ef", "ez", "bf", "wr", "fi", "nb", "ne", "ni"]
@@ -93,6 +104,26 @@ quant_info['extrema'] = qinfo_extrema
 # - Function definitions -
 # ------------------------
 
+def set_default_coord_metadata(self, ods):
+    for var in ods.coords:
+        if var in default_coord_metadata:
+            # Check which metadata should be set
+            set_meta = {"long_name": False, "units": False}
+            for k in set_meta.keys():
+                if k not in ods.coords[var].attrs:
+                    set_meta[k] = True
+                else:
+                    if len(ods.coords[var].attrs[k]) == 0:
+                        set_meta[k] = True
+
+            if any(set_meta.values()):
+                for k, v in set_meta.items():
+                    ods.coords[var].attrs[k] = (
+                        default_coord_metadata[var][k] if v else None
+                    )
+
+    return ods
+
 def get_file_type(file):
     for row in lcode_regex.itertuples(index=False):
         pattern = row.regex
@@ -152,6 +183,21 @@ def read_lineout_single(file, **kwargs):
 
     return ds
 
+def read_lineout_post(ds, file_info, fpath):
+
+    files = (os.path.join(fpath,file) for file in os.listdir(fpath) if os.path.isfile(os.path.join(fpath, file)))
+    for file in files:
+        match = re.fullmatch(file_info.suppl, os.path.basename(file))
+        if match is not None:
+            print(f"    -> found a file with xi axis data:\n        {file}")
+            break
+    
+    if match is not None:
+        axis_ds = read_lineout_single(file, quant_name='x1').isel(t=0)
+        ds = ds.assign_coords({'x1': axis_ds['x1']})
+
+    return ds
+
 
 def read_grid_single(file, **kwargs):
     with dask.config.set({"array.slicing.split_large_chunks": True}):
@@ -185,12 +231,12 @@ def set_quant_metadata(ds, file_info):
     return ds
 
 
-def read_agg(files, file_info, parser_func):
+def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     print("     Reading files...")
     ds_t = []
     for file in files:
         print_file_item(file)
-        ds_tmp = parser_func(file)
+        ds_tmp = parser_func(file, **kwargs)
         ds_tmp = lcode_append_time(ds_tmp, file)
         ds_t.append(ds_tmp)
     print("\n   Concatenating along time...")
@@ -199,7 +245,10 @@ def read_agg(files, file_info, parser_func):
     # Get name of quantity and define appropriate metadata
     ds = set_quant_metadata(ds, file_info)
 
-    # TODO: deal with lineout and maybe other special cases where coordinate info has to be read from a supplemental file
+    if post_func is not None:
+        fpath = os.path.dirname(files[0])
+        ds = post_func(ds, file_info, fpath)
+
     return ds
 
 
@@ -239,12 +288,13 @@ def read_extrema(files, file_info):
     return ds
 
 
-def read(files, as_series, axes_lims, *args, **kwargs):
+def read(files, axes_lims, **kwargs):
     file_info = get_file_type(files[0])
 
     if file_info is None:
         raise TypeError("Could not identify the type of LCODE data file.")
 
+    data_type = None
     match file_info.type:
         case "grid":
             if axes_lims is None:
@@ -252,15 +302,19 @@ def read(files, as_series, axes_lims, *args, **kwargs):
                     "\nWARNING: axis extents were not specified. Dataset object(s) will not have any coordinates.\n"
                 )
             ds = read_agg(files, file_info, read_grid_single, **kwargs)
+            data_type = 'grid'
 
         case "lineout":
-            ds = read_agg(files, file_info, read_lineout_single, **kwargs)
+            ds = read_agg(files, file_info, read_lineout_single, post_func = read_lineout_post, **kwargs)
+            data_type = 'grid'
 
         case "parts":
-            ds = read_agg(files, file_info, read_parts_single)
+            ds = read_agg(files, file_info, read_parts_single, **kwargs)
+            data_type = 'part'
 
         case "extrema":
             ds = read_extrema(files, file_info)
+            data_type = 'grid'
 
         case "info" | "plzshape" | "beamfile" | "notimplemented":
             raise NotImplementedError(
@@ -271,7 +325,9 @@ def read(files, as_series, axes_lims, *args, **kwargs):
                 "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
             )
 
-        ods = OzDataset(ds)
+        ods = OzDataset(ds, type=data_type)
+
+        ods = set_default_coord_metadata(ods)
 
         if file_info.type == 'grid' & axes_lims is not None:
             ods = ods.coords_from_extent(axes_lims)

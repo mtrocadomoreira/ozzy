@@ -5,9 +5,8 @@ import collections
 
 
 class Backend:
-    def __init__(self, file_type, as_series=True, axes_lims=None, *args, **kwargs):
+    def __init__(self, file_type, axes_lims=None, *args, **kwargs):
         self.name = file_type
-        self.as_series = as_series
         self.axes_lims = axes_lims
 
         match file_type:
@@ -17,7 +16,8 @@ class Backend:
                 from . import lcode_backend as backend_mod
             case "ozzy":
                 pass
-                # ds = read_ozzy(filepaths, as_series)
+                # TODO: ozzy backend module
+                # from . import ozzy_backend as backend_mod
             case _:
                 raise ValueError(
                     'Invalid input for "file_type" keyword. Available options are "osiris", "lcode", or "ozzy".'
@@ -29,8 +29,6 @@ class Backend:
         self._regex_pattern = backend_mod.general_regex_pattern
         self._file_endings = backend_mod.general_file_endings
         self._quants_ignore = backend_mod.quants_ignore
-
-    # TODO: define function to set attributes of standard quantities like t, x1, etc, only if missing
 
     def find_quants(self, path, dirs_runs, quants):
         if quants is None:
@@ -83,7 +81,7 @@ class Backend:
 
     def parse_data(self, files, *args, **kwargs):
         print("\nReading the following files:")
-        ods = self.parse(files, self.as_series, *args, **kwargs)
+        ods = self.parse(files, *args, **kwargs)
 
         # Set metadata
         ods = ods.assign_attrs(

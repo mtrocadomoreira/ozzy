@@ -5,9 +5,16 @@ import numpy as np
 import h5py
 import dask
 
+# These three variables must be defined in each backend module
+
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
+
+# The function read() must also be defined in each backend module
+
+
+# TODO: make compatible with part data (and different data types in general)
 
 
 def config_osiris(ds):
@@ -104,13 +111,9 @@ def config_osiris(ds):
 
 
 @stopwatch
-def read(files, as_series):
+def read(files):
     for f in files:
         print_file_item(f)
-
-    if as_series is False:
-        assert len(files) == 1
-        # TODO: error/warning message here
 
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
@@ -127,4 +130,4 @@ def read(files, as_series):
     except OSError:
         ds = xr.Dataset()
 
-    return OzDataset(ds)
+    return OzDataset(ds, type=ds.attrs["TYPE"])
