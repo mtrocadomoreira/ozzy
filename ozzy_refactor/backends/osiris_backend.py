@@ -1,9 +1,10 @@
-from .utils import stopwatch, print_file_item, unpack_str, tex_format
-from .ozdataset import OzDataset
-import xarray as xr
-import numpy as np
-import h5py
 import dask
+import h5py
+import numpy as np
+import xarray as xr
+
+from ..ozdataset import OzDataset
+from ..utils import print_file_item, stopwatch, tex_format, unpack_str
 
 # These three variables must be defined in each backend module
 

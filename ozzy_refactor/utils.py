@@ -1,11 +1,11 @@
+import glob
+import os
+import re
+import time
 from datetime import timedelta
 from pathlib import PurePath
-import time
-import os
-import glob
-import re
-import numpy as np
 
+import numpy as np
 
 # Decorators
 
@@ -69,7 +69,7 @@ def get_abs_filepaths(path, run_dir, quant_files):
         fileloc = glob.glob(
             "**/" + file, recursive=True, root_dir=os.path.join(path, run_dir)
         )
-        fullloc = [os.path.abspath(loc) for loc in fileloc]
+        fullloc = [os.path.join(path, run_dir, loc) for loc in fileloc]
         filepaths_to_read = filepaths_to_read + fullloc
     return filepaths_to_read
 

@@ -1,14 +1,16 @@
-from .utils import stopwatch, print_file_item, get_regex_snippet
-from .ozdataset import OzDataset
 import os
 import re
+from importlib.resources import files
+
+import dask
+import dask.array as da
+import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-import dask
-import dask.dataframe as dd
-import dask.array as da
 import xarray as xr
-from importlib.resources import files
+
+from ..ozdataset import OzDataset
+from ..utils import get_regex_snippet, print_file_item, stopwatch
 
 # These three variables must be defined in each backend module
 
@@ -43,7 +45,7 @@ label = [
     r"$\Phi$",
     r"$\rho_b$",
     r"$\delta n_e$",
-    r"$\delta n_i$"
+    r"$\delta n_i$",
 ]
 units = [
     r"$E_0$",
@@ -54,7 +56,7 @@ units = [
     r"$m_e c^2/e$",
     r"$e n_0$",
     r"$n_0$",
-    r"$n_0$"
+    r"$n_0$",
 ]
 qinfo_grid = dict()
 for i, pref in enumerate(prefix):
@@ -70,7 +72,7 @@ label = [
     r"$L$",
     r"$|\mathrm{rqm}|$",
     r"$q$",
-    "pid"
+    "pid",
 ]
 units = [
     r"$k_p^{-1}$",
@@ -80,29 +82,27 @@ units = [
     r"$m_e c^2 / \omega_p$",
     "",
     r"$e \frac{\Delta \xi}{2 \: r_e}$",
-    ""
+    "",
 ]
 qinfo_parts = dict()
 for i, pref in enumerate(prefix):
     qinfo_parts[pref] = (label[i], units[i])
 
 # Field extrema
-prefix = ['e', 'g']
+prefix = ["e", "g"]
 label = [r"$E_z$", r"$\Phi$"]
 units = [r"$E_0$", r"$m_e c^2 / e$"]
 qinfo_extrema = dict()
 for i, pref in enumerate(prefix):
     qinfo_extrema[pref] = (label[i], units[i])
 
-
-quant_info['parts'] = qinfo_parts
-quant_info['grid'] = qinfo_grid
-quant_info['extrema'] = qinfo_extrema
+quant_info = {"parts": qinfo_parts, "grid": qinfo_grid, "extrema": qinfo_extrema}
 
 
 # ------------------------
 # - Function definitions -
 # ------------------------
+
 
 def set_default_coord_metadata(self, ods):
     for var in ods.coords:
@@ -124,7 +124,8 @@ def set_default_coord_metadata(self, ods):
 
     return ods
 
-def get_file_type(file):
+
+def get_file_type(file: str):
     for row in lcode_regex.itertuples(index=False):
         pattern = row.regex
         match = re.fullmatch(pattern, os.path.basename(file))
@@ -135,12 +136,12 @@ def get_file_type(file):
     return row
 
 
-def dd_read_table(file, sep=r"\s+", header=None):
+def dd_read_table(file: str, sep=r"\s+", header=None):
     ddf = dd.read_table(file, sep=sep, header=header).to_dask_array(lengths=True)
     return ddf.squeeze()
 
 
-def lcode_append_time(ds, file_string):
+def lcode_append_time(ds, file_string: str):
     thistime = float(get_regex_snippet(r"\d{5}", os.path.basename(file_string)))
     ds_out = ds.assign_coords({"t": [thistime]})
     ds_out.coords["t"].attrs["long_name"] = r"$t$"
@@ -155,21 +156,21 @@ def lcode_concat_time(ds):
     return ds
 
 
-def read_parts_single(file):
-    parts_cols = list(quant_info['parts'].keys())
+def read_parts_single(file: str, **kwargs) -> xr.Dataset:
+    parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
-    dda = da.from_array(arr[0:-1, :]) # last row is excluded because it marks the eof
+    dda = da.from_array(arr[0:-1, :])  # last row is excluded because it marks the eof
 
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
         data_vars[var] = ("pid", dda[:, i])
     ds = xr.Dataset(data_vars).assign_coords({"pid": dda[:, -1]})
-    ds.coords["pid"].attrs["long_name"] = quant_info['parts']['pid'][0]
+    ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
 
     return ds
 
 
-def read_lineout_single(file, **kwargs):
+def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
@@ -177,29 +178,34 @@ def read_lineout_single(file, **kwargs):
     ndims = ddf.ndim
     assert ndims == 1
 
-    ds = xr.Dataset(data_vars={quant_name: (["x1"], ddf)})\
-        .expand_dims(dim={"t": 1}, axis=ndims)
+    ds = xr.Dataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
+        dim={"t": 1}, axis=ndims
+    )
     ds.attrs["ndims"] = ndims
 
     return ds
 
-def read_lineout_post(ds, file_info, fpath):
 
-    files = (os.path.join(fpath,file) for file in os.listdir(fpath) if os.path.isfile(os.path.join(fpath, file)))
+def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
+    files = (
+        os.path.join(fpath, file)
+        for file in os.listdir(fpath)
+        if os.path.isfile(os.path.join(fpath, file))
+    )
     for file in files:
         match = re.fullmatch(file_info.suppl, os.path.basename(file))
         if match is not None:
             print(f"    -> found a file with xi axis data:\n        {file}")
             break
-    
+
     if match is not None:
-        axis_ds = read_lineout_single(file, quant_name='x1').isel(t=0)
-        ds = ds.assign_coords({'x1': axis_ds['x1']})
+        axis_ds = read_lineout_single(file, quant_name="x1").isel(t=0)
+        ds = ds.assign_coords({"x1": axis_ds["x1"]})
 
     return ds
 
 
-def read_grid_single(file, **kwargs):
+def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
@@ -207,8 +213,9 @@ def read_grid_single(file, **kwargs):
     ndims = ddf.ndim
     assert ndims == 2
 
-    ds = xr.Dataset(data_vars={quant_name: (["x2", "x1"], ddf)})\
-        .expand_dims(dim={"t": 1}, axis=ndims)
+    ds = xr.Dataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
+        dim={"t": 1}, axis=ndims
+    )
     ds.attrs["ndims"] = ndims
 
     return ds
@@ -222,10 +229,9 @@ def set_quant_metadata(ds, file_info):
         while found_q is False:
             found_q, q = next(q_in_quant)
         if found_q is True:
-            ds[q] = ds[q].assign_attrs({
-                    'long_name': quants_key[q][0],
-                    'units': quants_key[q][1]
-                })
+            ds[q] = ds[q].assign_attrs(
+                {"long_name": quants_key[q][0], "units": quants_key[q][1]}
+            )
         else:
             ds[q].attrs["long_name"] = q
     return ds
@@ -252,7 +258,9 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     return ds
 
 
-def read_extrema(files, file_info):
+def read_extrema(files: list[str] | str, file_info):
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        ddf = dd_read_table(files)
 
     match = re.fullmatch(file_info.regex, files[0])
     quant = match.group(1)
@@ -266,70 +274,79 @@ def read_extrema(files, file_info):
         prefix = "local "
 
     ds = xr.Dataset(
-            data_vars={
-                quant1: ("t", ddf[:, 1]),
-                quant2: ("t", ddf[:, 3]),
-                "ximax": ("t", ddf[:, 2]),
-                "ximin": ("t", ddf[:, 4]),
-            },
-            coords={"t": ddf[:, 0]},
-        )
+        data_vars={
+            quant1: ("t", ddf[:, 1]),
+            quant2: ("t", ddf[:, 3]),
+            "ximax": ("t", ddf[:, 2]),
+            "ximin": ("t", ddf[:, 4]),
+        },
+        coords={"t": ddf[:, 0]},
+    )
 
     ds[quant1] = ds[quant1].assign_attrs(
-        long_name=prefix + "max. " + quant_info[file_info.type][quant][0], 
-        units=quant_info[file_info.type][quant][1]
+        long_name=prefix + "max. " + quant_info[file_info.type][quant][0],
+        units=quant_info[file_info.type][quant][1],
     )
     ds[quant2] = ds[quant2].assign_attrs(
-        long_name=prefix + "min. " + quant_info[file_info.type][quant][0], 
-        units=quant_info[file_info.type][quant][1]
+        long_name=prefix + "min. " + quant_info[file_info.type][quant][0],
+        units=quant_info[file_info.type][quant][1],
     )
     ds["t"] = ds["t"].assign_attrs(long_name=r"$t$", units=r"$\omega_p^{-1}$")
 
     return ds
 
 
-def read(files, axes_lims, **kwargs):
-    file_info = get_file_type(files[0])
+def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
+    if len(files) == 0:
+        ds = xr.Dataset()
+        ods = OzDataset(ds)
+    else:
+        file_info = get_file_type(files[0])
 
-    if file_info is None:
-        raise TypeError("Could not identify the type of LCODE data file.")
+        if file_info is None:
+            raise TypeError("Could not identify the type of LCODE data file.")
 
-    data_type = None
-    match file_info.type:
-        case "grid":
-            if axes_lims is None:
-                print(
-                    "\nWARNING: axis extents were not specified. Dataset object(s) will not have any coordinates.\n"
+        data_type = None
+        match file_info.type:
+            case "grid":
+                if axes_lims is None:
+                    print(
+                        "\nWARNING: axis extents were not specified. Dataset object(s) will not have any coordinates.\n"
+                    )
+                ds = read_agg(files, file_info, read_grid_single, **kwargs)
+                data_type = "grid"
+
+            case "lineout":
+                ds = read_agg(
+                    files,
+                    file_info,
+                    read_lineout_single,
+                    post_func=read_lineout_post,
+                    **kwargs,
                 )
-            ds = read_agg(files, file_info, read_grid_single, **kwargs)
-            data_type = 'grid'
+                data_type = "grid"
 
-        case "lineout":
-            ds = read_agg(files, file_info, read_lineout_single, post_func = read_lineout_post, **kwargs)
-            data_type = 'grid'
+            case "parts":
+                ds = read_agg(files, file_info, read_parts_single, **kwargs)
+                data_type = "part"
 
-        case "parts":
-            ds = read_agg(files, file_info, read_parts_single, **kwargs)
-            data_type = 'part'
+            case "extrema":
+                ds = read_extrema(files, file_info)
+                data_type = "grid"
 
-        case "extrema":
-            ds = read_extrema(files, file_info)
-            data_type = 'grid'
-
-        case "info" | "plzshape" | "beamfile" | "notimplemented":
-            raise NotImplementedError(
-                "Backend for this type of file has not been implemented yet. Exiting."
-            )
-        case _:
-            raise TypeError(
-                "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
-            )
+            case "info" | "plzshape" | "beamfile" | "notimplemented":
+                raise NotImplementedError(
+                    "Backend for this type of file has not been implemented yet. Exiting."
+                )
+            case _:
+                raise TypeError(
+                    "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
+                )
 
         ods = OzDataset(ds, type=data_type)
-
         ods = set_default_coord_metadata(ods)
 
-        if file_info.type == 'grid' & axes_lims is not None:
+        if file_info.type == "grid" & axes_lims is not None:
             ods = ods.coords_from_extent(axes_lims)
 
     return ods

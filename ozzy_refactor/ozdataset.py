@@ -5,7 +5,7 @@ import xarray as xr
 class OzDataset(xr.Dataset):
     __slots__ = "data_type"
 
-    def __init__(self, type: str | list[str] = None, *args, **kwargs):
+    def __init__(self, type: str | list[str] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_type = type
 

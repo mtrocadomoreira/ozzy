@@ -1,7 +1,7 @@
-import os
-import glob
-import re
 import collections
+import glob
+import os
+import re
 
 
 class Backend:
@@ -11,13 +11,11 @@ class Backend:
 
         match file_type:
             case "osiris":
-                from . import osiris_backend as backend_mod
+                from .backends import osiris_backend as backend_mod
             case "lcode":
-                from . import lcode_backend as backend_mod
+                from .backends import lcode_backend as backend_mod
             case "ozzy":
-                pass
-                # TODO: ozzy backend module
-                # from . import ozzy_backend as backend_mod
+                from .backends import ozzy_backend as backend_mod
             case _:
                 raise ValueError(
                     'Invalid input for "file_type" keyword. Available options are "osiris", "lcode", or "ozzy".'
@@ -71,7 +69,8 @@ class Backend:
         # Drop quantities that should be ignored
         if self._quants_ignore is not None:
             for q in self._quants_ignore:
-                del quants_dict[q]
+                if q in quants_dict:
+                    del quants_dict[q]
 
         return quants_dict
 
