@@ -1,9 +1,9 @@
 import os
 
 import dask
-import xarray as xr
 
-from ..ozdataset import OzDataset
+from .. import core as oz
+from ..ozdataset import OzzyDatasetBase
 from ..utils import print_file_item, stopwatch
 
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
@@ -24,16 +24,16 @@ def read(files):
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:
-                ds = xr.open_mfdataset(files, chunks="auto", engine="h5netcdf")
+                ds = oz.open_mfdataset(files, chunks="auto", engine="h5netcdf")
                 print_file_item(file for file in files)
             except ValueError:
                 ds_t = []
                 for file in files:
                     print_file_item(file)
-                    ds_tmp = xr.open_dataset(file, engine="h5netcdf", chunks="auto")
+                    ds_tmp = oz.open_dataset(file, engine="h5netcdf", chunks="auto")
                     ds_t.append(config_ozzy(ds_tmp))
                 print("\nConcatenating along time... (this may take a while)")
-                ds = xr.concat(ds_t, "t", fill_value={"q": 0.0})
+                ds = oz.concat(ds_t, "t", fill_value={"q": 0.0})
 
             ds = ds.assign_attrs(
                 source=os.path.commonpath(files),
@@ -41,6 +41,10 @@ def read(files):
             )
 
     except OSError:
-        ds = xr.Dataset()
+        ds = OzzyDatasetBase(data_origin="ozzy")
 
-    return OzDataset(ds)
+    return OzzyDatasetBase(ds)
+
+
+# Defines specific methods for data from this code
+class Methods: ...

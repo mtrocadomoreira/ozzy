@@ -1,16 +1,63 @@
-from .utils import (
-    stopwatch,
-    prep_file_input,
-    find_runs,
-    print_file_item,
-    get_abs_filepaths,
-)
-from .backend import Backend
 import os
+from functools import wraps
+
 import pandas as pd
+import xarray as xr
+
+from .backend import Backend
+from .ozdataset import dataset_cls_factory
+from .utils import (
+    find_runs,
+    get_abs_filepaths,
+    prep_file_input,
+    print_file_item,
+    stopwatch,
+)
+
+# TODO: add custom merge, concat, etc functions that are careful with mixing data_origin and data_type
 
 
-@stopwatch
+def ozzy_wrapper(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        result = func(*args, **kwargs)
+
+        # Maintain class of input objects
+        for obj in args:
+            if isinstance(obj, xr.Dataset):
+                break
+        for obj in kwargs.values():
+            if isinstance(obj, xr.Dataset):
+                break
+        if isinstance(obj, xr.Dataset):
+            ClassIn = type(obj)
+        else:
+            ClassIn = dataset_cls_factory()
+
+        if result is tuple:
+            for res in result:
+                res = (
+                    ClassIn(res)
+                    if isinstance(res, xr.Dataset) | isinstance(res, xr.DataArray)
+                    else res
+                )
+        else:
+            if isinstance(result, xr.Dataset) | isinstance(result, xr.DataArray):
+                result = ClassIn(result)
+        return result
+
+    return wrapped
+
+
+for name, item in xr.__dict__.items():
+    if callable(item) & ~isinstance(item, type):
+        exec(f"{name} = ozzy_wrapper(item)")
+
+# ---------------------------
+# Core functions
+# ---------------------------
+
+
 def open(path, file_type, axes_lims=None):
     filelist = prep_file_input(path)
 

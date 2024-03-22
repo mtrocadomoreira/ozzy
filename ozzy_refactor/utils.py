@@ -120,3 +120,21 @@ def find_runs(path, runs_pattern):
 
 def find_quants():
     return
+
+
+# Data manipulation
+
+
+def axis_from_extent(nx: int, lims: tuple[float, float]):
+    if nx == 0:
+        raise ZeroDivisionError("Number of cells in axis cannot be zero.")
+    dx = (lims[1] - lims[0]) / nx
+    ax = np.linspace(lims[0], lims[1] - dx, num=nx) + 0.5 * dx
+    return ax
+
+
+def bins_from_axis(axis):
+    vmin = axis[0] - 0.5 * (axis[1] - axis[0])
+    binaxis = axis + 0.5 * (axis[1] - axis[0])
+    binaxis = np.insert(binaxis, 0, vmin)
+    return binaxis

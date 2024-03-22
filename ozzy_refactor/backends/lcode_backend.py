@@ -7,10 +7,13 @@ import dask.array as da
 import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-import xarray as xr
+from xarray import Dataset as xrDataset
 
-from ..ozdataset import OzDataset
+from .. import core as oz
+from ..ozdataset import OzzyDatasetBase
 from ..utils import get_regex_snippet, print_file_item, stopwatch
+
+# TODO implement asyncio for the file reading
 
 # These three variables must be defined in each backend module
 
@@ -151,12 +154,12 @@ def lcode_append_time(ds, file_string: str):
 
 @stopwatch
 def lcode_concat_time(ds):
-    ds = xr.concat(ds, "t", fill_value={"q": 0.0})
+    ds = oz.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
     return ds
 
 
-def read_parts_single(file: str, **kwargs) -> xr.Dataset:
+def read_parts_single(file: str, **kwargs) -> xrDataset:
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
     dda = da.from_array(arr[0:-1, :])  # last row is excluded because it marks the eof
@@ -164,13 +167,13 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
         data_vars[var] = ("pid", dda[:, i])
-    ds = xr.Dataset(data_vars).assign_coords({"pid": dda[:, -1]})
+    ds = xrDataset(data_vars).assign_coords({"pid": dda[:, -1]})
     ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
 
     return ds
 
 
-def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
+def read_lineout_single(file: str, quant_name: str) -> xrDataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
@@ -178,7 +181,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     ndims = ddf.ndim
     assert ndims == 1
 
-    ds = xr.Dataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
+    ds = xrDataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -186,7 +189,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     return ds
 
 
-def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
+def read_lineout_post(ds: xrDataset, file_info, fpath: str) -> xrDataset:
     files = (
         os.path.join(fpath, file)
         for file in os.listdir(fpath)
@@ -205,7 +208,7 @@ def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
     return ds
 
 
-def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
+def read_grid_single(file: str, quant_name: str) -> xrDataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
@@ -213,7 +216,7 @@ def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
     ndims = ddf.ndim
     assert ndims == 2
 
-    ds = xr.Dataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
+    ds = xrDataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -273,7 +276,7 @@ def read_extrema(files: list[str] | str, file_info):
         quant1 = quant1 + "_loc"
         prefix = "local "
 
-    ds = xr.Dataset(
+    ds = xrDataset(
         data_vars={
             quant1: ("t", ddf[:, 1]),
             quant2: ("t", ddf[:, 3]),
@@ -298,8 +301,7 @@ def read_extrema(files: list[str] | str, file_info):
 
 def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
     if len(files) == 0:
-        ds = xr.Dataset()
-        ods = OzDataset(ds)
+        ods = OzzyDatasetBase(data_origin="lcode")
     else:
         file_info = get_file_type(files[0])
 
@@ -343,10 +345,36 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
                 )
 
-        ods = OzDataset(ds, type=data_type)
+        ods = OzzyDatasetBase(ds, data_type=data_type)
         ods = set_default_coord_metadata(ods)
 
         if file_info.type == "grid" & axes_lims is not None:
             ods = ods.coords_from_extent(axes_lims)
 
     return ods
+
+
+# Defines specific methods for data from this code
+class Methods:
+    def convert_q(self, dxi, q_var="q", n0=None):
+        # expects n0 in 1/cm^3
+        # TODO: make this compatible with pint
+
+        if self.data_type != "part":
+            raise ValueError("This method can only be used on particle data")
+
+        print("\n   Converting charge...")
+
+        re = 2.8179403227e-13  # in cm
+        if n0 is None:
+            print("         - assuming dxi is in units of cm")
+            factor = dxi / (2 * re)
+        else:
+            print("         - assuming dxi is in normalized units")
+            distcm = 531760.37819 / np.sqrt(n0)
+            factor = dxi * distcm / (2 * re)
+
+        self[q_var] = self[q_var] * factor
+        self[q_var].attrs["units"] = "$e$"
+
+        return

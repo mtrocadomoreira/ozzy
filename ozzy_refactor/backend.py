@@ -3,6 +3,8 @@ import glob
 import os
 import re
 
+from .ozdataset import dataset_cls_factory
+
 
 class Backend:
     def __init__(self, file_type, axes_lims=None, *args, **kwargs):
@@ -22,6 +24,7 @@ class Backend:
                 )
 
         self.parse = backend_mod.read
+        self.mixin = backend_mod.Methods
 
         self._quant_files = None
         self._regex_pattern = backend_mod.general_regex_pattern
@@ -93,4 +96,6 @@ class Backend:
             }
         )
 
-        return ods
+        NewClass = dataset_cls_factory(self, ods.data_type)
+
+        return NewClass(ods)
