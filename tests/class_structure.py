@@ -2,7 +2,7 @@ import xarray as xr
 
 
 class OzDataset(xr.Dataset):
-    __slots__ = ("data_type", "origin")
+    __slots__ = ("pic_data_type", "origin")
 
 
 class GridMixin:
@@ -20,18 +20,18 @@ class BackendMixin:
         print("i am custom")
 
 
-def dataset_factory(data_type, origin):
+def dataset_factory(pic_data_type, origin):
     dtypes = {"grid": GridMixin, "part": PartMixin}
     otypes = {"osiris": BackendMixin}
 
-    # class NewClass(OzDataset, dtypes[data_type], otypes[origin]):
+    # class NewClass(OzDataset, dtypes[pic_data_type], otypes[origin]):
     #     def __init__(self, *args, **kwargs):
     #         super().__init__(*args, **kwargs)
 
     knight_class = type(
         "MyName",
-        (OzDataset, dtypes[data_type], otypes[origin]),
-        {"data_type": data_type, "origin": origin},
+        (OzDataset, dtypes[pic_data_type], otypes[origin]),
+        {"pic_data_type": pic_data_type, "origin": origin},
     )
 
     return knight_class
@@ -42,5 +42,5 @@ obj = cust_cls(OzDataset())
 obj.grid_method()
 print(type(obj))
 print(isinstance(obj, xr.Dataset))
-print(obj.data_type)
+print(obj.pic_data_type)
 print(obj.origin)

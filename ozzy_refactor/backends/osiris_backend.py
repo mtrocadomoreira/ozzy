@@ -131,7 +131,7 @@ def read(files):
     except OSError:
         ds = OzzyDatasetBase(data_origin="osiris")
 
-    return OzzyDatasetBase(ds, data_type=ds.attrs["TYPE"])
+    return OzzyDatasetBase(ds, pic_data_type=ds.attrs["TYPE"])
 
 
 # Defines specific methods for data from this code

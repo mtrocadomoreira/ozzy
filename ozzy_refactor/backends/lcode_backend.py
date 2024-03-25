@@ -99,7 +99,38 @@ qinfo_extrema = dict()
 for i, pref in enumerate(prefix):
     qinfo_extrema[pref] = (label[i], units[i])
 
-quant_info = {"parts": qinfo_parts, "grid": qinfo_grid, "extrema": qinfo_extrema}
+# Lineouts
+prefix = ["xi_Ez", "xi_Ez2", "xi_Er", "xi_Bf", "xi_Ef", "xi_ne", "xi_nb", "xi_nb2"]
+label = [
+    r"$E_z(r=0)$",
+    r"$E_z(r=r_\mathrm{aux})$",
+    r"$E_r(r=r_\mathrm{aux})$",
+    r"$B_\theta(r=r_\mathrm{aux})$",
+    r"$E_\theta(r=r_\mathrm{aux})$",
+    r"$\delta n_e(r = 0)$",
+    r"$\rho_b(r=0)$",
+    r"$\rho_b(r=r_\mathrm{aux})$",
+]
+units = [
+    r"$E_0$",
+    r"$E_0$",
+    r"$E_0$",
+    r"$E_0$",
+    r"$E_0$",
+    r"$n_0$",
+    r"$e n_0$",
+    r"$e n_0$",
+]
+qinfo_lineout = dict()
+for i, pref in enumerate(prefix):
+    qinfo_lineout[pref] = (label[i], units[i])
+
+quant_info = {
+    "parts": qinfo_parts,
+    "grid": qinfo_grid,
+    "extrema": qinfo_extrema,
+    "lineout": qinfo_lineout,
+}
 
 
 # ------------------------
@@ -202,7 +233,7 @@ def read_lineout_post(ds: xrDataset, file_info, fpath: str) -> xrDataset:
             break
 
     if match is not None:
-        axis_ds = read_lineout_single(file, quant_name="x1").isel(t=0)
+        axis_ds = read_lineout_single(file, quant_name="x1")  # .isel(t=0)
         ds = ds.assign_coords({"x1": axis_ds["x1"]})
 
     return ds
@@ -227,7 +258,7 @@ def read_grid_single(file: str, quant_name: str) -> xrDataset:
 def set_quant_metadata(ds, file_info):
     quants_key = quant_info[file_info.type]
     for quant in ds.data_vars:
-        q_in_quant = ((q in quant, q) for q in quants_key)
+        q_in_quant = ((q == quant, q) for q in quants_key)
         found_q = False
         while found_q is False:
             found_q, q = next(q_in_quant)
@@ -249,7 +280,7 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
         ds_tmp = lcode_append_time(ds_tmp, file)
         ds_t.append(ds_tmp)
     print("\n   Concatenating along time...")
-    ds = lcode_concat_time(ds_t, files)
+    ds = lcode_concat_time(ds_t)
 
     # Get name of quantity and define appropriate metadata
     ds = set_quant_metadata(ds, file_info)
@@ -308,7 +339,7 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
         if file_info is None:
             raise TypeError("Could not identify the type of LCODE data file.")
 
-        data_type = None
+        pic_data_type = None
         match file_info.type:
             case "grid":
                 if axes_lims is None:
@@ -316,7 +347,7 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                         "\nWARNING: axis extents were not specified. Dataset object(s) will not have any coordinates.\n"
                     )
                 ds = read_agg(files, file_info, read_grid_single, **kwargs)
-                data_type = "grid"
+                pic_data_type = "grid"
 
             case "lineout":
                 ds = read_agg(
@@ -326,15 +357,15 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     post_func=read_lineout_post,
                     **kwargs,
                 )
-                data_type = "grid"
+                pic_data_type = "grid"
 
             case "parts":
                 ds = read_agg(files, file_info, read_parts_single, **kwargs)
-                data_type = "part"
+                pic_data_type = "part"
 
             case "extrema":
                 ds = read_extrema(files, file_info)
-                data_type = "grid"
+                pic_data_type = "grid"
 
             case "info" | "plzshape" | "beamfile" | "notimplemented":
                 raise NotImplementedError(
@@ -345,7 +376,7 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
                 )
 
-        ods = OzzyDatasetBase(ds, data_type=data_type)
+        ods = OzzyDatasetBase(ds, pic_data_type=pic_data_type)
         ods = set_default_coord_metadata(ods)
 
         if file_info.type == "grid" & axes_lims is not None:
@@ -360,7 +391,7 @@ class Methods:
         # expects n0 in 1/cm^3
         # TODO: make this compatible with pint
 
-        if self.data_type != "part":
+        if self.pic_data_type != "part":
             raise ValueError("This method can only be used on particle data")
 
         print("\n   Converting charge...")

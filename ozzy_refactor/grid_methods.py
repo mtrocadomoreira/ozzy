@@ -16,7 +16,7 @@ class GridMixin:
         return list(set(list(self.coords)) - {time_dim})
 
     def get_bin_edges(self, time_dim: str = "t"):
-        if "grid" not in self.data_type:
+        if "grid" not in self.pic_data_type:
             raise TypeError("Dataset must contain grid data for this method to be used")
         bin_edges = []
         for axis in self.get_space_dims(time_dim):

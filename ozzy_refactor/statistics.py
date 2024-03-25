@@ -9,7 +9,7 @@ from .utils import stopwatch
 
 
 def _check_raw_and_grid(raw_ds, grid_ds):
-    if raw_ds.data_type != "part" | grid_ds.data_type != "grid":
+    if raw_ds.pic_data_type != "part" | grid_ds.pic_data_type != "grid":
         raise ValueError(
             "First argument must be a dataset containing particle data and second argument must be a dataset containing grid data"
         )
@@ -79,7 +79,7 @@ def parts_into_grid(
         qds_i = OzzyDatasetBase(
             data_vars={"nb": (spatial_dims, dist)},
             coords=newcoords,
-            data_type="grid",
+            pic_data_type="grid",
             data_origin=raw_ds.data_origin,
         )
         q_binned.append(qds_i)

@@ -4,8 +4,7 @@ from functools import wraps
 import pandas as pd
 import xarray as xr
 
-from .backend import Backend
-from .ozdataset import dataset_cls_factory
+from .backend import Backend, dataset_cls_factory
 from .utils import (
     find_runs,
     get_abs_filepaths,
@@ -14,7 +13,11 @@ from .utils import (
     stopwatch,
 )
 
-# TODO: add custom merge, concat, etc functions that are careful with mixing data_origin and data_type
+# -----------------------------------------------------------------------
+# Wrapper around xarray functions
+# -----------------------------------------------------------------------
+
+# TODO: add custom merge, concat, etc functions that are careful with mixing data_origin and pic_data_type
 
 
 def ozzy_wrapper(func):
@@ -23,12 +26,20 @@ def ozzy_wrapper(func):
         result = func(*args, **kwargs)
 
         # Maintain class of input objects
-        for obj in args:
-            if isinstance(obj, xr.Dataset):
+
+        for arg in args:
+            if any([isinstance(arg, itertype) for itertype in [list, tuple, dict]]):
+                for obj in arg:
+                    if isinstance(obj, xr.Dataset):
+                        break
+                else:
+                    for obj in kwargs.values():
+                        if isinstance(obj, xr.Dataset):
+                            break
+                    else:
+                        continue
                 break
-        for obj in kwargs.values():
-            if isinstance(obj, xr.Dataset):
-                break
+
         if isinstance(obj, xr.Dataset):
             ClassIn = type(obj)
         else:
@@ -53,9 +64,10 @@ for name, item in xr.__dict__.items():
     if callable(item) & ~isinstance(item, type):
         exec(f"{name} = ozzy_wrapper(item)")
 
-# ---------------------------
+
+# -----------------------------------------------------------------------
 # Core functions
-# ---------------------------
+# -----------------------------------------------------------------------
 
 
 def open(path, file_type, axes_lims=None):

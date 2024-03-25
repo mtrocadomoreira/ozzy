@@ -41,12 +41,12 @@ class PartMixin:
         expand_time=True,
         axisym=False,
     ):
-        if axes_ds.data_type != "grid":
+        if axes_ds.pic_data_type != "grid":
             raise ValueError("axes_ds must be grid data")
 
         if isinstance(axes_ds, DataArray):
             axes_ds = OzzyDatasetBase(
-                axes_ds, data_type="grid", data_origin=axes_ds.data_origin
+                axes_ds, pic_data_type="grid", data_origin=axes_ds.data_origin
             )
 
         if vars is str:
@@ -167,7 +167,7 @@ class PartMixin:
         else:
             bins = nbins
 
-        axes_ds = OzzyDatasetBase(data_type="grid", data_origin=self.data_origin)
+        axes_ds = OzzyDatasetBase(pic_data_type="grid", data_origin=self.data_origin)
         for v in vars:
             ax = axis_from_extent(bins[v], extents[v])
             axes_ds = axes_ds.assign_coords({v: ax})

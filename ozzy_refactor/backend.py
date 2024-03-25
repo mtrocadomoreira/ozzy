@@ -3,7 +3,13 @@ import glob
 import os
 import re
 
-from .ozdataset import dataset_cls_factory
+from .grid_methods import GridMixin
+from .ozdataset import OzzyDatasetBase
+from .part_methods import PartMixin
+
+# -----------------------------------------------------------------------
+# Backend class
+# -----------------------------------------------------------------------
 
 
 class Backend:
@@ -96,6 +102,59 @@ class Backend:
             }
         )
 
-        NewClass = dataset_cls_factory(self, ods.data_type)
+        NewClass = dataset_cls_factory(self, ods.pic_data_type)
 
         return NewClass(ods)
+
+
+# -----------------------------------------------------------------------
+# Class factory for each dataset subtype
+# -----------------------------------------------------------------------
+
+
+def dataset_cls_factory(
+    backends: Backend | list[Backend] | None = None, pic_data_type: str | None = None
+):
+    # Sort out backend input
+
+    if backends is Backend:
+        backends = [backends]
+    elif backends is None:
+        backends = []
+
+    backends_mixin = [bknd.mixin for bknd in backends]
+
+    if len(backends) > 1:
+        dorigin_str = "mixed"
+    elif len(backends):
+        dorigin_str = backends[0].name
+    elif len(backends) == 0:
+        dorigin_str = "ozzy"
+
+    # Sort out data type input
+
+    dtype_key = {"grid": GridMixin, "part": PartMixin}
+
+    try:
+        dtype_str = pic_data_type.title()
+    except AttributeError:
+        dtype_str = ""
+
+    try:
+        dtype_mixin = [dtype_key[pic_data_type]]
+    except KeyError:
+        dtype_mixin = []
+
+    # Define new class
+
+    from_classes = [OzzyDatasetBase] + backends_mixin + dtype_mixin
+
+    cls_name = dorigin_str.title() + dtype_str.title() + "Dataset"
+
+    NewClass = type(
+        cls_name,
+        tuple(from_classes),
+        {"pic_data_type": dtype_str, "data_origin": dorigin_str},
+    )
+
+    return NewClass
