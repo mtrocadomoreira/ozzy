@@ -4,7 +4,7 @@ from functools import wraps
 import pandas as pd
 import xarray as xr
 
-from .backend import Backend, dataset_cls_factory
+from .backend import Backend
 from .utils import (
     find_runs,
     get_abs_filepaths,
@@ -25,43 +25,43 @@ def ozzy_wrapper(func):
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
 
-        # Maintain class of input objects
+        # # Maintain class of input objects
 
-        for arg in args:
-            if any([isinstance(arg, itertype) for itertype in [list, tuple, dict]]):
-                for obj in arg:
-                    if isinstance(obj, xr.Dataset):
-                        break
-                else:
-                    for obj in kwargs.values():
-                        if isinstance(obj, xr.Dataset):
-                            break
-                    else:
-                        continue
-                break
+        # for arg in args:
+        #     if any([isinstance(arg, itertype) for itertype in [list, tuple, dict]]):
+        #         for obj in arg:
+        #             if isinstance(obj, xr.Dataset):
+        #                 break
+        #         else:
+        #             for obj in kwargs.values():
+        #                 if isinstance(obj, xr.Dataset):
+        #                     break
+        #             else:
+        #                 continue
+        #         break
 
-        if isinstance(obj, xr.Dataset):
-            ClassIn = type(obj)
-        else:
-            ClassIn = dataset_cls_factory()
+        # if isinstance(obj, xr.Dataset):
+        #     ClassIn = type(obj)
+        # else:
+        #     ClassIn = OzzyDatasetBase  # dataset_cls_factory()
 
-        if result is tuple:
-            for res in result:
-                res = (
-                    ClassIn(res)
-                    if isinstance(res, xr.Dataset) | isinstance(res, xr.DataArray)
-                    else res
-                )
-        else:
-            if isinstance(result, xr.Dataset) | isinstance(result, xr.DataArray):
-                result = ClassIn(result)
+        # if type(result) is tuple:
+        #     for res in result:
+        #         res = (
+        #             ClassIn(res)
+        #             if isinstance(res, xr.Dataset) | isinstance(res, xr.DataArray)
+        #             else res
+        #         )
+        # else:
+        #     if isinstance(result, xr.Dataset) | isinstance(result, xr.DataArray):
+        #         result = ClassIn(result)
         return result
 
     return wrapped
 
 
 for name, item in xr.__dict__.items():
-    if callable(item) & ~isinstance(item, type):
+    if callable(item) & ~isinstance(item, type) & ~name.startswith("__"):
         exec(f"{name} = ozzy_wrapper(item)")
 
 

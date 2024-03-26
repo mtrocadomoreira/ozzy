@@ -49,7 +49,7 @@ class PartMixin:
                 axes_ds, pic_data_type="grid", data_origin=axes_ds.data_origin
             )
 
-        if vars is str:
+        if isinstance(vars, str):
             vars = [vars]
 
         # Prepare binning array
@@ -160,7 +160,7 @@ class PartMixin:
                     lims = (minval, maxval)
                 extents[v] = lims
 
-        if nbins is int:
+        if isinstance(nbins, int):
             bins = {}
             for v in vars:
                 bins[v] = nbins

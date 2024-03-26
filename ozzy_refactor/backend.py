@@ -102,14 +102,67 @@ class Backend:
             }
         )
 
-        NewClass = dataset_cls_factory(self, ods.pic_data_type)
+        # NewClass = dataset_cls_factory(self, ods.pic_data_type)
 
-        return NewClass(ods)
+        enable_mixins(ods, self)
+
+        # return NewClass(ods)
+        return ods
 
 
 # -----------------------------------------------------------------------
 # Class factory for each dataset subtype
 # -----------------------------------------------------------------------
+
+# dynamically add mixin methods to existing instance of OzzyDatasetBase
+
+
+def enable_mixins(ods, backends: Backend | list[Backend] | None = None):
+    # Sort out backend input
+
+    if isinstance(backends, Backend):
+        backends = [backends]
+    elif backends is None:
+        backends = []
+
+    backends_mixin = [bknd.mixin for bknd in backends]
+
+    if len(backends) > 1:
+        dorigin_str = "mixed"
+    elif len(backends):
+        dorigin_str = backends[0].name
+    elif len(backends) == 0:
+        dorigin_str = "ozzy"
+
+    # Sort out data type input
+
+    dtype_key = {"grid": GridMixin, "part": PartMixin}
+
+    try:
+        dtype_str = ods.pic_data_type.title()
+    except AttributeError:
+        dtype_str = ""
+
+    try:
+        dtype_mixin = [dtype_key[ods.pic_data_type]]
+    except KeyError:
+        dtype_mixin = []
+
+    # Define new class
+
+    from_classes = [OzzyDatasetBase] + backends_mixin + dtype_mixin
+
+    cls_name = dorigin_str.title() + dtype_str.title() + "Dataset"
+
+    NewClass = type(
+        cls_name,
+        tuple(from_classes),
+        {"__slots__": ()},
+    )
+
+    # Set NewClass as the instance's class
+
+    ods.__class__ = NewClass
 
 
 def dataset_cls_factory(
@@ -117,7 +170,7 @@ def dataset_cls_factory(
 ):
     # Sort out backend input
 
-    if backends is Backend:
+    if isinstance(backends, Backend):
         backends = [backends]
     elif backends is None:
         backends = []

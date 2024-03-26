@@ -8,7 +8,7 @@ def wrap_funcs(func):
     def wrapped(*args, **kwargs):
         result = func(*args, **kwargs)
         # print(result)
-        if result is tuple:
+        if isinstance(result, tuple):
             for res in result:
                 res = Wrapper(res) if isinstance(res, xr.Dataset) else res
         else:

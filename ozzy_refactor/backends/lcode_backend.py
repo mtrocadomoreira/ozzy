@@ -138,7 +138,7 @@ quant_info = {
 # ------------------------
 
 
-def set_default_coord_metadata(self, ods):
+def set_default_coord_metadata(ods):
     for var in ods.coords:
         if var in default_coord_metadata:
             # Check which metadata should be set
@@ -190,7 +190,7 @@ def lcode_concat_time(ds):
     return ds
 
 
-def read_parts_single(file: str, **kwargs) -> xrDataset:
+def read_parts_single(file: str, **kwargs) -> OzzyDatasetBase:
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
     dda = da.from_array(arr[0:-1, :])  # last row is excluded because it marks the eof
@@ -198,7 +198,7 @@ def read_parts_single(file: str, **kwargs) -> xrDataset:
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
         data_vars[var] = ("pid", dda[:, i])
-    ds = xrDataset(data_vars).assign_coords({"pid": dda[:, -1]})
+    ds = OzzyDatasetBase(data_vars).assign_coords({"pid": dda[:, -1]})
     ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
 
     return ds
@@ -212,7 +212,7 @@ def read_lineout_single(file: str, quant_name: str) -> xrDataset:
     ndims = ddf.ndim
     assert ndims == 1
 
-    ds = xrDataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
+    ds = OzzyDatasetBase(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -239,7 +239,7 @@ def read_lineout_post(ds: xrDataset, file_info, fpath: str) -> xrDataset:
     return ds
 
 
-def read_grid_single(file: str, quant_name: str) -> xrDataset:
+def read_grid_single(file: str, quant_name: str) -> OzzyDatasetBase:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
@@ -247,7 +247,7 @@ def read_grid_single(file: str, quant_name: str) -> xrDataset:
     ndims = ddf.ndim
     assert ndims == 2
 
-    ds = xrDataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
+    ds = OzzyDatasetBase(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -307,7 +307,7 @@ def read_extrema(files: list[str] | str, file_info):
         quant1 = quant1 + "_loc"
         prefix = "local "
 
-    ds = xrDataset(
+    ds = OzzyDatasetBase(
         data_vars={
             quant1: ("t", ddf[:, 1]),
             quant2: ("t", ddf[:, 3]),
@@ -376,10 +376,10 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
                 )
 
-        ods = OzzyDatasetBase(ds, pic_data_type=pic_data_type)
+        ods = OzzyDatasetBase(ds)  # , pic_data_type=pic_data_type)
         ods = set_default_coord_metadata(ods)
 
-        if file_info.type == "grid" & axes_lims is not None:
+        if (file_info.type == "grid") & (axes_lims is not None):
             ods = ods.coords_from_extent(axes_lims)
 
     return ods

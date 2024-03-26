@@ -5,46 +5,56 @@ from .utils import stopwatch
 
 
 class OzzyDatasetBase(xr.Dataset):
-    __slots__ = ("_pic_data_type", "_data_origin")
+    # __slots__ = ("pic_data_type", "data_origin")
+    __slots__ = tuple()
 
     def __init__(
         self,
-        pic_data_type: str | None = None,
-        data_origin: str | list[str] | None = "ozzy",
+        # attrs=None,
         *args,
         **kwargs,
     ):
-        super().__init__(self, *args, **kwargs)
-        self.pic_data_type = pic_data_type
-        self.data_origin = (
-            [data_origin] if isinstance(data_origin, str) else data_origin
-        )
+        # self["pic_data_type"] = None
+        # self["data_origin"] = None
+        super().__init__(*args, **kwargs)
+
+        new_attrs = {"pic_data_type": None, "data_origin": None}
+
+        # attrs = {} if attrs is None else attrs
+        for key, deflt in new_attrs.items():
+            # self.attrs[key] = attrs[key] if key in attrs else deflt
+            self.attrs[key] = deflt
+
+        # self.pic_data_type = pic_data_type
+        # self.data_origin = (
+        #     [data_origin] if isinstance(data_origin, str) else data_origin
+        # )
 
     # TODO: define __str__ and __repr__
 
-    @property
-    def data_origin(self):
-        return self._data_origin
+    # @property
+    # def data_origin(self):
+    #     return self._data_origin
 
-    @data_origin.setter
-    def data_origin(self, arg):
-        self._data_origin = arg
+    # @data_origin.setter
+    # def data_origin(self, arg):
+    #     self._data_origin = arg
 
-    @data_origin.deleter
-    def data_origin(self):
-        self.data_origin = None
+    # @data_origin.deleter
+    # def data_origin(self):
+    #     self.data_origin = None
 
-    @property
-    def pic_data_type(self):
-        return self._pic_data_type
+    # @property
+    # def pic_data_type(self):
+    #     return self._pic_data_type
 
-    @pic_data_type.setter
-    def pic_data_type(self, arg):
-        self._pic_data_type = arg
+    # @pic_data_type.setter
+    # def pic_data_type(self, arg):
+    #     self._pic_data_type = arg
 
-    @pic_data_type.deleter
-    def pic_data_type(self):
-        self._pic_data_type = None
+    # @pic_data_type.deleter
+    # def pic_data_type(self):
+    #     self._pic_data_type = None
 
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
         # HACK: make this function pint-compatible
