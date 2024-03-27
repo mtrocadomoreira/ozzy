@@ -1,19 +1,17 @@
 import dask
 import h5py
 import numpy as np
+import xarray as xr
 
-from .. import core as oz
-from ..ozdataset import OzzyDatasetBase
+from ..new_dataset import new_dataset
 from ..utils import print_file_item, stopwatch, tex_format, unpack_str
 
 # These three variables must be defined in each backend module
+# The function read() and the Methods class must also be defined in each backend module
 
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
-
-# The function read() and the Methods class must also be defined in each backend module
-
 
 # TODO: make compatible with part data (and different data types in general)
 
@@ -118,7 +116,7 @@ def read(files):
 
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
-            ds = oz.open_mfdataset(
+            ds = xr.open_mfdataset(
                 files,
                 chunks="auto",
                 engine="h5netcdf",
@@ -128,10 +126,12 @@ def read(files):
                 join="exact",
             )
 
-    except OSError:
-        ds = OzzyDatasetBase(data_origin="osiris")
+        ds.attrs["pic_data_type"] = ds.attrs["TYPE"]
 
-    return OzzyDatasetBase(ds, pic_data_type=ds.attrs["TYPE"])
+    except OSError:
+        ds = new_dataset()
+
+    return ds
 
 
 # Defines specific methods for data from this code

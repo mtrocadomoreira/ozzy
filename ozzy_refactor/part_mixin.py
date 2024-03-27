@@ -1,10 +1,10 @@
 import os
 
 import numpy as np
+import xarray as xr
 from flox.xarray import xarray_reduce
-from xarray import DataArray
 
-from .ozdataset import OzzyDatasetBase
+from .new_dataset import new_dataset
 from .statistics import parts_into_grid
 from .utils import axis_from_extent, bins_from_axis
 
@@ -13,22 +13,22 @@ class PartMixin:
     def sample_particles(self, n):
         dvar = list(set(list(self)) - {"pid", "t", "q"})[0]
 
-        if "t" in self.dims:
-            surviving = self[dvar].isel(t=-1).notnull().compute()
-            pool = self.coords["pid"][surviving]
+        if "t" in self._obj.dims:
+            surviving = self._obj[dvar].isel(t=-1).notnull().compute()
+            pool = self._obj.coords["pid"][surviving]
         else:
-            pool = self.coords["pid"]
+            pool = self._obj.coords["pid"]
         nparts = len(pool)
 
         if n > nparts:
             print(
                 "WARNING: number of particles to be sampled is larger than total particles. Proceeding without any sampling."
             )
-            newds = self
+            newds = self._obj
         else:
             rng = np.random.default_rng()
             downsamp = rng.choice(pool["pid"], size=n, replace=False, shuffle=False)
-            newds = self.sel(pid=np.sort(downsamp))
+            newds = self._obj.sel(pid=np.sort(downsamp))
 
         return newds
 
@@ -41,13 +41,12 @@ class PartMixin:
         expand_time=True,
         axisym=False,
     ):
-        if axes_ds.pic_data_type != "grid":
+        # BUG: this will probably fail because axes_ds might be a DataArray
+        if "grid" not in axes_ds.attrs["pic_data_type"]:
             raise ValueError("axes_ds must be grid data")
 
-        if isinstance(axes_ds, DataArray):
-            axes_ds = OzzyDatasetBase(
-                axes_ds, pic_data_type="grid", data_origin=axes_ds.data_origin
-            )
+        if isinstance(axes_ds, xr.DataArray):
+            axes_ds = new_dataset(axes_ds, pic_data_type="grid")
 
         if isinstance(vars, str):
             vars = [vars]
@@ -58,15 +57,15 @@ class PartMixin:
         bin_vars = []
         bin_axes = []
 
-        for var in axes_ds.data_vars:
-            axis = np.array(axes_ds[var])
+        for var in axes_ds._obj.data_vars:
+            axis = np.array(axes_ds._obj[var])
             bin_axes.append(axis)
             bin_arr.append(bins_from_axis(axis))
             bin_vars.append(var)
 
         # Prepare dataset for calculation
 
-        ds = self[bin_vars + vars + ["q"]]
+        ds = self._obj[bin_vars + vars + ["q"]]
 
         for dim in vars:
             ds[dim + "_sqw"] = (ds[dim] ** 2) * ds["q"]
@@ -136,7 +135,7 @@ class PartMixin:
         filepath = os.path.join(savepath, outfile)
         print("\nSaving file " + filepath)
 
-        result.save(filepath)
+        result.ozzy.save(filepath)
 
         print("\nDone!")
 
@@ -151,8 +150,8 @@ class PartMixin:
         if extents is None:
             extents = {}
             for v in vars:
-                maxval = float(self[v].max().compute().to_numpy())
-                minval = float(self[v].min().compute().to_numpy())
+                maxval = float(self._obj[v].max().compute().to_numpy())
+                minval = float(self._obj[v].min().compute().to_numpy())
                 if (minval < 0) & (maxval > 0):
                     extr = max([abs(minval), maxval])
                     lims = (-extr, extr)
@@ -167,15 +166,17 @@ class PartMixin:
         else:
             bins = nbins
 
-        axes_ds = OzzyDatasetBase(pic_data_type="grid", data_origin=self.data_origin)
+        axes_ds = new_dataset(
+            pic_data_type="grid", data_origin=self._obj.attrs["data_origin"]
+        )
         for v in vars:
             ax = axis_from_extent(bins[v], extents[v])
             axes_ds = axes_ds.assign_coords({v: ax})
-            axes_ds[v].attrs.update(self[v].attrs)
+            axes_ds[v].attrs.update(self._obj[v].attrs)
 
         # Deposit quantities on phase space grid
 
-        ps = parts_into_grid(self, axes_ds)
+        ps = parts_into_grid(self._obj, axes_ds)
         ps = ps.rename_vars({"nb": "Q"})
         ps["Q"] = ps["Q"].assign_attrs({"units": r"a.u.", "long_name": r"$Q$"})
 

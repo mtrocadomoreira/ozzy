@@ -1,10 +1,9 @@
 import os
-from functools import wraps
 
 import pandas as pd
-import xarray as xr
 
 from .backend import Backend
+from .new_dataset import new_dataset as new_dataset_func
 from .utils import (
     find_runs,
     get_abs_filepaths,
@@ -14,60 +13,12 @@ from .utils import (
 )
 
 # -----------------------------------------------------------------------
-# Wrapper around xarray functions
-# -----------------------------------------------------------------------
-
-# TODO: add custom merge, concat, etc functions that are careful with mixing data_origin and pic_data_type
-
-
-def ozzy_wrapper(func):
-    @wraps(func)
-    def wrapped(*args, **kwargs):
-        result = func(*args, **kwargs)
-
-        # # Maintain class of input objects
-
-        # for arg in args:
-        #     if any([isinstance(arg, itertype) for itertype in [list, tuple, dict]]):
-        #         for obj in arg:
-        #             if isinstance(obj, xr.Dataset):
-        #                 break
-        #         else:
-        #             for obj in kwargs.values():
-        #                 if isinstance(obj, xr.Dataset):
-        #                     break
-        #             else:
-        #                 continue
-        #         break
-
-        # if isinstance(obj, xr.Dataset):
-        #     ClassIn = type(obj)
-        # else:
-        #     ClassIn = OzzyDatasetBase  # dataset_cls_factory()
-
-        # if type(result) is tuple:
-        #     for res in result:
-        #         res = (
-        #             ClassIn(res)
-        #             if isinstance(res, xr.Dataset) | isinstance(res, xr.DataArray)
-        #             else res
-        #         )
-        # else:
-        #     if isinstance(result, xr.Dataset) | isinstance(result, xr.DataArray):
-        #         result = ClassIn(result)
-        return result
-
-    return wrapped
-
-
-for name, item in xr.__dict__.items():
-    if callable(item) & ~isinstance(item, type) & ~name.startswith("__"):
-        exec(f"{name} = ozzy_wrapper(item)")
-
-
-# -----------------------------------------------------------------------
 # Core functions
 # -----------------------------------------------------------------------
+
+
+def new_dataset(*args, **kwargs):
+    return new_dataset_func(*args, **kwargs)
 
 
 def open(path, file_type, axes_lims=None):
@@ -125,8 +76,11 @@ def open_compare(file_types, path=os.getcwd(), runs="*", quants="*", axes_lims=N
                 filepaths = get_abs_filepaths(path, run_dir, quant_files)
                 ods = bk.parse_data(filepaths, axes_lims=axes_lims, quant_name=quant)
                 ods.attrs["run"] = run
+
+                if quant not in df.columns:
+                    df[quant] = pd.Series(dtype=object)
                 df.at[run, quant] = ods
 
     print("\nDone!")
 
-    return
+    return df

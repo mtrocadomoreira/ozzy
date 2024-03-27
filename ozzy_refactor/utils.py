@@ -52,6 +52,19 @@ def get_regex_snippet(pattern, string):
     return re.search(pattern, string).group(0)
 
 
+# Class manipulation
+
+
+def get_user_methods(clss):
+    return [
+        func
+        for func in dir(clss)
+        if callable(getattr(clss, func))
+        and (func in clss.__dict__)
+        and (~func.startswith("__"))
+    ]
+
+
 # I/O
 
 

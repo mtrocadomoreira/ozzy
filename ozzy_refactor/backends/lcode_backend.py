@@ -7,23 +7,22 @@ import dask.array as da
 import dask.dataframe as dd
 import numpy as np
 import pandas as pd
-from xarray import Dataset as xrDataset
+import xarray as xr
 
-from .. import core as oz
-from ..ozdataset import OzzyDatasetBase
+from ..new_dataset import new_dataset
 from ..utils import get_regex_snippet, print_file_item, stopwatch
 
 # TODO implement asyncio for the file reading
-
+# HACK: do this in a more pythonic way (blueprint for new backend)
 # These three variables must be defined in each backend module
+# The function read() must also be defined in each backend module
 
 general_regex_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
 general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
 quants_ignore = ["xi"]
 
-# The function read() must also be defined in each backend module
 
-lcode_data_file = files("ozzy_refactor").joinpath("lcode_file_key.csv")
+lcode_data_file = files("ozzy_refactor").joinpath("backends/lcode_file_key.csv")
 lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 
 # -------------------------------------------
@@ -185,12 +184,12 @@ def lcode_append_time(ds, file_string: str):
 
 @stopwatch
 def lcode_concat_time(ds):
-    ds = oz.concat(ds, "t", fill_value={"q": 0.0})
+    ds = xr.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
     return ds
 
 
-def read_parts_single(file: str, **kwargs) -> OzzyDatasetBase:
+def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
     dda = da.from_array(arr[0:-1, :])  # last row is excluded because it marks the eof
@@ -198,13 +197,13 @@ def read_parts_single(file: str, **kwargs) -> OzzyDatasetBase:
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
         data_vars[var] = ("pid", dda[:, i])
-    ds = OzzyDatasetBase(data_vars).assign_coords({"pid": dda[:, -1]})
+    ds = new_dataset(data_vars).assign_coords({"pid": dda[:, -1]})
     ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
 
     return ds
 
 
-def read_lineout_single(file: str, quant_name: str) -> xrDataset:
+def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
@@ -212,7 +211,7 @@ def read_lineout_single(file: str, quant_name: str) -> xrDataset:
     ndims = ddf.ndim
     assert ndims == 1
 
-    ds = OzzyDatasetBase(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
+    ds = new_dataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -220,7 +219,7 @@ def read_lineout_single(file: str, quant_name: str) -> xrDataset:
     return ds
 
 
-def read_lineout_post(ds: xrDataset, file_info, fpath: str) -> xrDataset:
+def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
     files = (
         os.path.join(fpath, file)
         for file in os.listdir(fpath)
@@ -239,7 +238,7 @@ def read_lineout_post(ds: xrDataset, file_info, fpath: str) -> xrDataset:
     return ds
 
 
-def read_grid_single(file: str, quant_name: str) -> OzzyDatasetBase:
+def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
@@ -247,7 +246,7 @@ def read_grid_single(file: str, quant_name: str) -> OzzyDatasetBase:
     ndims = ddf.ndim
     assert ndims == 2
 
-    ds = OzzyDatasetBase(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
+    ds = new_dataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
         dim={"t": 1}, axis=ndims
     )
     ds.attrs["ndims"] = ndims
@@ -261,13 +260,16 @@ def set_quant_metadata(ds, file_info):
         q_in_quant = ((q == quant, q) for q in quants_key)
         found_q = False
         while found_q is False:
-            found_q, q = next(q_in_quant)
+            try:
+                found_q, q = next(q_in_quant)
+            except StopIteration:
+                break
         if found_q is True:
             ds[q] = ds[q].assign_attrs(
                 {"long_name": quants_key[q][0], "units": quants_key[q][1]}
             )
         else:
-            ds[q].attrs["long_name"] = q
+            ds[quant].attrs["long_name"] = quant
     return ds
 
 
@@ -307,7 +309,7 @@ def read_extrema(files: list[str] | str, file_info):
         quant1 = quant1 + "_loc"
         prefix = "local "
 
-    ds = OzzyDatasetBase(
+    ds = new_dataset(
         data_vars={
             quant1: ("t", ddf[:, 1]),
             quant2: ("t", ddf[:, 3]),
@@ -332,7 +334,7 @@ def read_extrema(files: list[str] | str, file_info):
 
 def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
     if len(files) == 0:
-        ods = OzzyDatasetBase(data_origin="lcode")
+        ds = new_dataset()
     else:
         file_info = get_file_type(files[0])
 
@@ -376,13 +378,13 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     "Data type identified via lcode_file_key.csv is not foreseen in backend code for LCODE. This is probably an important bug."
                 )
 
-        ods = OzzyDatasetBase(ds)  # , pic_data_type=pic_data_type)
-        ods = set_default_coord_metadata(ods)
+        ds.attrs["pic_data_type"] = pic_data_type
+        ds = set_default_coord_metadata(ds)
 
         if (file_info.type == "grid") & (axes_lims is not None):
-            ods = ods.coords_from_extent(axes_lims)
+            ds = ds.ozzy.coords_from_extent(axes_lims)
 
-    return ods
+    return ds
 
 
 # Defines specific methods for data from this code
@@ -405,7 +407,7 @@ class Methods:
             distcm = 531760.37819 / np.sqrt(n0)
             factor = dxi * distcm / (2 * re)
 
-        self[q_var] = self[q_var] * factor
-        self[q_var].attrs["units"] = "$e$"
+        self._obj[q_var] = self._obj[q_var] * factor
+        self._obj[q_var].attrs["units"] = "$e$"
 
         return
