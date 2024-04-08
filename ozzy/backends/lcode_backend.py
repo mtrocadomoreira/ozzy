@@ -12,7 +12,6 @@ import xarray as xr
 from ..new_dataset import new_dataset
 from ..utils import get_regex_snippet, print_file_item, stopwatch
 
-# TODO implement asyncio for the file reading
 # HACK: do this in a more pythonic way (blueprint for new backend)
 # These three variables must be defined in each backend module
 # The function read() must also be defined in each backend module
@@ -22,7 +21,7 @@ general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
 quants_ignore = ["xi"]
 
 
-lcode_data_file = files("ozzy_refactor").joinpath("backends/lcode_file_key.csv")
+lcode_data_file = files("ozzy").joinpath("backends/lcode_file_key.csv")
 lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 
 # -------------------------------------------
