@@ -58,7 +58,7 @@ ds2 = OzzyAccessor(ds)
 
 print(ds2.pic_data_type)
 
-print(ds2.coords)
+print(ds2._obj)
 
 
 # ds = Dataset(pic_data_type="grid")

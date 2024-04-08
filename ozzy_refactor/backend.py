@@ -3,6 +3,9 @@ import glob
 import os
 import re
 
+from xarray import Dataset as xrDataset
+
+
 from .grid_methods import GridMixin
 from .ozdataset import OzzyDatasetBase
 from .part_methods import PartMixin
@@ -150,7 +153,7 @@ def enable_mixins(ods, backends: Backend | list[Backend] | None = None):
 
     # Define new class
 
-    from_classes = [OzzyDatasetBase] + backends_mixin + dtype_mixin
+    from_classes = [xrDataset, OzzyDatasetBase] + backends_mixin + dtype_mixin
 
     cls_name = dorigin_str.title() + dtype_str.title() + "Dataset"
 
