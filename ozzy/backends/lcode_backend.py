@@ -211,7 +211,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     assert ndims == 1
 
     ds = new_dataset(data_vars={quant_name: (["x1"], ddf)}).expand_dims(
-        dim={"t": 1}, axis=ndims
+        dim={"t": 1}, axis=0
     )
     ds.attrs["ndims"] = ndims
 
