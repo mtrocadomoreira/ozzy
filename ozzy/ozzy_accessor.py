@@ -62,7 +62,10 @@ class Gatekeeper(type):
         def wrapped(*args, **kwargs):
             inst = func.__self__
 
-            if func.__name__ not in inst.__class__.__dict__:
+            if func.__name__ in inst.__class__.__dict__:
+                return func(*args, **kwargs)
+
+            else:
                 try:
                     row = gatekeeper_table.loc[func.__name__]
 
