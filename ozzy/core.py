@@ -79,6 +79,8 @@ def open_compare(file_types, path=os.getcwd(), runs="*", quants="*", axes_lims=N
 
                 if quant not in df.columns:
                     df[quant] = pd.Series(dtype=object)
+                if run not in df.index:
+                    df.loc[run] = pd.Series(dtype=object)
                 df.at[run, quant] = ods
 
     print("\nDone!")
