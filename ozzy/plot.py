@@ -1,11 +1,11 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-from . import tol_colors as tc
-
-# import tol_colors as tc
 import os
 
 import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
+import seaborn as sns
+import xarray as xr
+
+from . import tol_colors as tc
 
 font_dirs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "fonts")
 font_files = fm.findSystemFonts(fontpaths=font_dirs)
@@ -52,7 +52,11 @@ sns.set_theme(
     style="ticks", font="serif", font_scale=1.1, rc=ozparams
 )  # palette=sns.husl_palette(l=.4)
 
+ozzy_color_wheel = list(tc.tol_cset("bright"))
+
 # plt.rc('axes', prop_cycle=plt.cycler('color', list(tc.tol_cset('bright'))))
+
+xr.set_options(cmap_divergent="RdBu_r", cmap_sequential="iridescent")
 
 
 def densplot(ds, ax=None, **kwargs):

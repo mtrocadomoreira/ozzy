@@ -1,7 +1,5 @@
 from setuptools import find_packages, setup
 
-
-# List of requirements
 requirements = [
     "pandas",
     "seaborn",

@@ -1,1 +1,1 @@
-from .ozzy import *
+from .core import *
