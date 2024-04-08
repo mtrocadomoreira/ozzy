@@ -1,3 +1,4 @@
+import functools
 import glob
 import os
 import re
@@ -11,6 +12,7 @@ import numpy as np
 
 
 def stopwatch(method):
+    @functools.wraps(method)
     def timed(*args, **kw):
         ts = time.perf_counter()
         result = method(*args, **kw)

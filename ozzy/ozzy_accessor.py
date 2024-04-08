@@ -61,27 +61,29 @@ class Gatekeeper(type):
     def doorman(cls, func):
         def wrapped(*args, **kwargs):
             inst = func.__self__
-            try:
-                row = gatekeeper_table.loc[func.__name__]
 
-                instance_value = inst._obj.attrs[row.var]
+            if func.__name__ not in inst.__class__.__dict__:
+                try:
+                    row = gatekeeper_table.loc[func.__name__]
 
-                if isinstance(instance_value, str):
-                    instance_value = [instance_value]
+                    instance_value = inst._obj.attrs[row.var]
 
-                if row.value in instance_value:
-                    return func(*args, **kwargs)
-                else:
-                    raise AttributeError(
-                        f"{func.__name__} method is only accessible when {row.var} is {row.value}. However,the dataset object's {row.var} attribute is {inst._obj.attrs[row.var]}."
+                    if isinstance(instance_value, str):
+                        instance_value = [instance_value]
+
+                    if row.value in instance_value:
+                        return func(*args, **kwargs)
+                    else:
+                        raise AttributeError(
+                            f"{func.__name__} method is only accessible when {row.var} is {row.value}. However,the dataset object's {row.var} attribute is {inst._obj.attrs[row.var]}."
+                        )
+
+                except KeyError:
+                    raise KeyError(
+                        f"{func.__name__} method was not found in class gatekeeper table"
                     )
-
-            except KeyError:
-                raise KeyError(
-                    f"{func.__name__} method was not found in class gatekeeper table"
-                )
-            except AttributeError:
-                raise
+                except AttributeError:
+                    raise
 
         return wrapped
 

@@ -4,6 +4,7 @@ import pandas as pd
 
 from .backend import Backend
 from .new_dataset import new_dataset as new_dataset_func
+from .ozzy_accessor import *
 from .utils import (
     find_runs,
     get_abs_filepaths,
