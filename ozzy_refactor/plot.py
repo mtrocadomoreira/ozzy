@@ -3,6 +3,7 @@ import os
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import seaborn as sns
+import xarray as xr
 
 from . import tol_colors as tc
 
@@ -54,6 +55,8 @@ sns.set_theme(
 ozzy_color_wheel = list(tc.tol_cset("bright"))
 
 # plt.rc('axes', prop_cycle=plt.cycler('color', list(tc.tol_cset('bright'))))
+
+xr.set_options(cmap_divergent="RdBu_r", cmap_sequential="iridescent")
 
 
 def densplot(ds, ax=None, **kwargs):

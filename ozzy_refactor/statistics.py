@@ -1,15 +1,18 @@
 import os
 
 import numpy as np
-from xarray import DataArray
+import xarray as xr
 
-from . import core as oz
-from .ozdataset import OzzyDatasetBase
+from .new_dataset import new_dataset
 from .utils import stopwatch
 
 
 def _check_raw_and_grid(raw_ds, grid_ds):
-    if raw_ds.pic_data_type != "part" | grid_ds.pic_data_type != "grid":
+    if (
+        "part"
+        not in raw_ds.attrs["pic_data_type"] | "grid"
+        not in grid_ds.attrs["pic_data_type"]
+    ):
         raise ValueError(
             "First argument must be a dataset containing particle data and second argument must be a dataset containing grid data"
         )
@@ -23,13 +26,13 @@ def _check_n0_input(n0, xi_var):
 
 
 def _define_q_units(n0, xi_var, dens_ds):
-    match dens_ds.data_origin:
+    match dens_ds.attrs["data_origin"]:
         case "lcode":
             if n0 is None:
                 units_str = r"$e \frac{\Delta \xi}{2 \: r_e} k_p^2$"
             else:
                 dxi = dens_ds[xi_var].to_numpy()[1] - dens_ds[xi_var].to_numpy()[0]
-                dens_ds.convert_q(dxi, q_var="nb", n0=n0)
+                dens_ds.ozzy.convert_q(dxi, q_var="nb", n0=n0)
                 units_str = r"$e \: k_p^2$"
         case _:
             units_str = "a.u."
@@ -50,11 +53,11 @@ def parts_into_grid(
 
     _check_n0_input(n0, xi_var)
 
-    spatial_dims = axes_ds.get_space_dims(time_dim)
+    spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
     if len(spatial_dims) == 0:
         raise KeyError("Did not find any spatial dimensions in input axes dataset")
 
-    bin_edges = axes_ds.get_bin_edges(time_dim)
+    bin_edges = axes_ds.ozzy.get_bin_edges(time_dim)
 
     q_binned = []
 
@@ -76,15 +79,15 @@ def parts_into_grid(
 
         newcoords = {var: axes_ds[var] for var in spatial_dims}
         newcoords[time_dim] = ds_i[time_dim]
-        qds_i = OzzyDatasetBase(
+        qds_i = new_dataset(
             data_vars={"nb": (spatial_dims, dist)},
             coords=newcoords,
             pic_data_type="grid",
-            data_origin=raw_ds.data_origin,
+            data_origin=raw_ds.attrs["data_origin"],
         )
         q_binned.append(qds_i)
 
-    parts = oz.concat(q_binned, time_dim)
+    parts = xr.concat(q_binned, time_dim)
 
     units_str = _define_q_units(n0, xi_var, parts)
 
@@ -111,7 +114,7 @@ def charge_in_field_quadrants(
 
     _check_raw_and_grid(raw_ds, fields_ds)
 
-    axes_ds = OzzyDatasetBase(fields_ds.coords)
+    axes_ds = new_dataset(fields_ds.coords)
 
     # Bin particles
 
@@ -128,7 +131,7 @@ def charge_in_field_quadrants(
 
     print("\nMatching particle distribution with sign of fields:")
 
-    spatial_dims = axes_ds.get_space_dims(time_dim)
+    spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
     fld_vars = list(fields_ds.data_vars)
     summed = []
 
@@ -170,8 +173,7 @@ def charge_in_field_quadrants(
 
         summed = summed + [w_prll, w_perp, w_both]
 
-    # data_vars = { da.name: da for da in summed }
-    charge_ds = oz.merge(summed)
+    charge_ds = xr.merge(summed)
 
     charge_ds[w_prll.name].attrs["long_name"] = (
         r"$W$ in " + fields_ds[fld_vars[0].attrs["long_name"]]
@@ -189,7 +191,7 @@ def charge_in_field_quadrants(
     print("\nSaving data...")
 
     filepath = os.path.join(savepath, outfile)
-    charge_ds.save(filepath)
+    charge_ds.ozzy.save(filepath)
 
     print("\nDone!")
 
@@ -230,7 +232,7 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
     # Read field values
 
     for fvar in fields_ds.data_vars:
-        da_tmp = DataArray(
+        da_tmp = xr.DataArray(
             fields_ds[fvar].to_numpy().flat[raw_ds["x_ij"].to_numpy()],
             dims="pid",
             attrs=fields_ds[fvar].attrs,
