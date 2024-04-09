@@ -25,7 +25,7 @@ def read(files):
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:
                 ds = xr.open_mfdataset(files, chunks="auto", engine="h5netcdf")
-                print_file_item(file for file in files)
+                (print_file_item(file) for file in files)
             except ValueError:
                 ds_t = []
                 for file in files:
