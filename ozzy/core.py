@@ -4,7 +4,7 @@ import pandas as pd
 
 from .backend import Backend
 from .new_dataset import new_dataset as new_dataset_func
-from .ozzy_accessor import *
+from .ozzy_accessor import *  # noqa: F403
 from .utils import (
     find_runs,
     get_abs_filepaths,
@@ -22,7 +22,7 @@ def new_dataset(*args, **kwargs):
     return new_dataset_func(*args, **kwargs)
 
 
-def open(path, file_type, axes_lims=None):
+def open(file_type, path, axes_lims=None):
     filelist = prep_file_input(path)
 
     # initialize the backend object (it deals with the error handling)
@@ -34,7 +34,7 @@ def open(path, file_type, axes_lims=None):
 
 
 @stopwatch
-def open_series(files, file_type, axes_lims=None, nfiles=None):
+def open_series(file_type, files, axes_lims=None, nfiles=None):
     filelist = prep_file_input(files)
 
     bknd = Backend(file_type, axes_lims, as_series=True)
