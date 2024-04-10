@@ -17,6 +17,8 @@ from .utils import (
 # Core functions
 # -----------------------------------------------------------------------
 
+# TODO: add progress bars
+
 
 def new_dataset(*args, **kwargs):
     return new_dataset_func(*args, **kwargs)

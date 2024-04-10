@@ -49,7 +49,9 @@ ozparams = {
 }
 
 sns.set_theme(
-    style="ticks", font="serif", font_scale=1.1, rc=ozparams
+    style="ticks",
+    font="serif",
+    rc=ozparams,  # font_scale=1,
 )  # palette=sns.husl_palette(l=.4)
 
 ozzy_color_wheel = list(tc.tol_cset("bright"))
@@ -67,6 +69,6 @@ def densplot(ds, ax=None, **kwargs):
 
     im = ds.plot.imshow(ax=ax, **kwargs)
     ax.grid(None)
-    plt.gcf().set_size_inches(8, 4.8)
+    # plt.gcf().set_size_inches(8, 4.8)
 
     return im, ax, f
