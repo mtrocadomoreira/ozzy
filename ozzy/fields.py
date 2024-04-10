@@ -58,8 +58,6 @@ def ave_vphi_from_waterfall(
                 '"dcells" keyword must be either of type int, tuple or dict'
             )
 
-    print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
-
     # Check if dcells in either direction is odd (and correct if not)
 
     if dx % 2 == 0:
@@ -69,13 +67,32 @@ def ave_vphi_from_waterfall(
         print("-> Window size in vertical direction was even number, adding +1")
         dt = dt + 1
 
+    print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
+
+    # Check whether several wavelengths are contained in a single window
+
+    if xvar in da.coords:
+        deltax = da[xvar][1] - da[xvar][0]
+        winlen = dx * deltax
+        win_wvl = winlen / (2 * np.pi)
+
+        print(
+            f"\nAssuming that the horizontal axis is in normalized units, the window size along this direction corresponds to {float(win_wvl)} plasma wavelengths."
+        )
+
+        if win_wvl < 2.5:
+            ncells_min = np.ceil(2.5 * 2 * np.pi / deltax)
+            print(
+                f"WARNING: For an accurate measurement, the window length should be at least 2.5 plasma wavelengths. This would correspond to {int(ncells_min)} cells in this case."
+            )
+
     # Define vphi map for each subwindow
 
-    xax = da.coords[xvar].to_numpy()
-    tax = da.coords[yvar].to_numpy()
+    xax = da.coords[xvar]
+    tax = da.coords[yvar]
 
-    kx = _get_kaxis(xax[0:dx])
-    kt = _get_kaxis(tax[0:dt])
+    kx = _get_kaxis(xax[0:dx].to_numpy())
+    kt = _get_kaxis(tax[0:dt].to_numpy())
     Kx, Kt = np.meshgrid(kx, kt)
     vphi_map = 1.0 - Kt / Kx
     vphi_map[np.where(Kx == 0)] = 0
@@ -87,17 +104,17 @@ def ave_vphi_from_waterfall(
 
     data = da.to_numpy()
     vphi = np.zeros_like(data)
-    Nt, Nx = data.shape
+    Nt, Nx = da.shape
 
     # Loop along center of data
 
     print("\nCalculating the phase velocity...")
 
     for i in tqdm(np.arange(mx, Nx - mx)):
-        for j in np.arange(mt, Nt - mt):  # probably can leave this progress bar out
+        for j in np.arange(mt, Nt - mt):
             window = data[j - mt : j + mt + 1, i - mx : i + mx + 1]
 
-            fftdata = abs(np.fft.fftshift(np.fft.fft2(window)))
+            fftdata = abs(np.fft.fftshift(np.fft.fft2(window, norm="forward")))
             factor = np.nansum(fftdata)
             fftdata = fftdata / factor
 
@@ -146,3 +163,29 @@ def ave_vphi_from_waterfall(
     print("\nDone!")
 
     return res
+
+
+def ave_vphi_validate(
+    da: xr.DataArray,
+    dcells: int | tuple | dict = 11,
+    xvar: str = "x1",
+    yvar: str = "t",
+):
+    match dcells:
+        case int():
+            dx = dcells
+            dt = dcells
+        case tuple():
+            dx = dcells[1]
+            dt = dcells[0]
+        case dict():
+            dx = dcells[xvar]
+            dt = dcells[yvar]
+        case _:
+            raise TypeError(
+                '"dcells" keyword must be either of type int, tuple or dict'
+            )
+
+    print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
+
+    roll = da.rolling({xvar: dx, yvar: dt}, center=True)
