@@ -8,17 +8,47 @@ from .utils import stopwatch
 def _get_kaxis(axis):
     nx = axis.size
     dx = (axis[-1] - axis[0]) / nx
-    kaxis = np.fft.fftshift(np.fft.fftfreq(nx, dx))
+    kaxis = 2 * np.pi * np.fft.fftshift(np.fft.fftfreq(nx, dx))
     return kaxis
+
+
+def _get_snr(data):
+    mx = np.max(data)
+    sd = np.std(data)
+    return mx / sd
 
 
 # --- Diagnostics ---
 
 
+def vphi_from_fft(data, xax, tax):
+    kx = _get_kaxis(xax)
+    kt = _get_kaxis(tax)
+
+    fftdata = abs(np.fft.fftshift(np.fft.fft2(data, norm="forward")))
+
+    inds = np.argmax(fftdata)
+    indt, indx = np.unravel_index(inds, fftdata.shape)
+
+    vphi_val = 1.0 - kt[indt] / kx[indx]
+
+    dkx = kx[1] - kx[0]
+    dkt = kt[1] - kt[0]
+
+    vphi_min = 1 - (kt[indt] + 0.5 * dkt) / (kx[indx] - 0.5 * dkx)
+    vphi_max = 1 - (kt[indt] - 0.5 * dkt) / (kx[indx] + 0.5 * dkx)
+
+    vphi_err_pos = np.abs(vphi_val - vphi_max)
+    vphi_err_neg = np.abs(vphi_val - vphi_min)
+    vphi_snr = _get_snr(fftdata)
+
+    return (vphi_val, vphi_err_pos, vphi_err_neg, vphi_snr)
+
+
 @stopwatch
 def ave_vphi_from_waterfall(
     da: xr.DataArray,
-    dcells: int | tuple | dict = 11,
+    dcells: int | tuple | dict = 31,
     xvar: str = "x1",
     yvar: str = "t",
 ) -> xr.DataArray:
@@ -67,8 +97,6 @@ def ave_vphi_from_waterfall(
         print("-> Window size in vertical direction was even number, adding +1")
         dt = dt + 1
 
-    print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
-
     # Check whether several wavelengths are contained in a single window
 
     if xvar in da.coords:
@@ -76,9 +104,9 @@ def ave_vphi_from_waterfall(
         winlen = dx * deltax
         win_wvl = winlen / (2 * np.pi)
 
-        print(
-            f"\nAssuming that the horizontal axis is in normalized units, the window size along this direction corresponds to {float(win_wvl)} plasma wavelengths."
-        )
+        # print(
+        #     f"\nAssuming that the horizontal axis is in normalized units, the window size along this direction corresponds to {float(win_wvl)} plasma wavelengths."
+        # )
 
         if win_wvl < 2.5:
             ncells_min = np.ceil(2.5 * 2 * np.pi / deltax)
@@ -93,9 +121,9 @@ def ave_vphi_from_waterfall(
 
     kx = _get_kaxis(xax[0:dx].to_numpy())
     kt = _get_kaxis(tax[0:dt].to_numpy())
-    Kx, Kt = np.meshgrid(kx, kt)
-    vphi_map = 1.0 - Kt / Kx
-    vphi_map[np.where(Kx == 0)] = 0
+    # Kx, Kt = np.meshgrid(kx, kt)
+    # vphi_map = 1.0 - Kt / Kx
+    # vphi_map[np.where(Kx == 0)] = 0
 
     # Define margins
 
@@ -104,6 +132,9 @@ def ave_vphi_from_waterfall(
 
     data = da.to_numpy()
     vphi = np.zeros_like(data)
+    vphi_err_pos = np.zeros_like(data)
+    vphi_err_neg = np.zeros_like(data)
+    vphi_snr = np.zeros_like(data)
     Nt, Nx = da.shape
 
     # Loop along center of data
@@ -115,77 +146,99 @@ def ave_vphi_from_waterfall(
             window = data[j - mt : j + mt + 1, i - mx : i + mx + 1]
 
             fftdata = abs(np.fft.fftshift(np.fft.fft2(window, norm="forward")))
-            factor = np.nansum(fftdata)
-            fftdata = fftdata / factor
+            # factor = np.nansum(fftdata)
+            # fftdata = fftdata / factor
 
-            vphi[j, i] = np.sum(fftdata * vphi_map)
+            inds = np.argmax(fftdata)
+            indt, indx = np.unravel_index(inds, fftdata.shape)
+
+            vphi_val = 1.0 - kt[indt] / kx[indx]
+
+            dkx = kx[1] - kx[0]
+            dkt = kt[1] - kt[0]
+
+            vphi_min = 1 - (kt[indt] + 0.5 * dkt) / (kx[indx] - 0.5 * dkx)
+            vphi_max = 1 - (kt[indt] - 0.5 * dkt) / (kx[indx] + 0.5 * dkx)
+
+            vphi[j, i] = vphi_val
+            vphi_err_pos[j, i] = np.abs(vphi_val - vphi_max)
+            vphi_err_neg[j, i] = np.abs(vphi_val - vphi_min)
+            vphi_snr[j, i] = _get_snr(fftdata)
+
+            # if _get_snr(fftdata) < 100.0:
+            #     print(
+            #         f"\nWARNING: Signal-to-noise ratio of FFT of window at ({i}, {j}) is {float(_get_snr(fftdata)):.2f}, which is below the threshold of 100. You may want to consider decreasing the window size.\n"
+            #     )
 
     # Deal with margins
 
     print("\nFilling the margin cells not covered by the moving window...")
 
-    with tqdm(total=100) as pbar:
-        nmargincells = 2 * (Nx * mt + Nt * mx - 2 * mx * mt)
-
+    for mat in [vphi, vphi_err_pos, vphi_err_neg, vphi_snr]:
         # - corners
-        vphi[0:mt, 0:mx] = vphi[mt, mx]
-        vphi[-mt:, -mx:] = vphi[-(mt + 1), -(mx + 1)]
-        vphi[0:mt, -mx:] = vphi[mt, -(mx + 1)]
-        vphi[-mt:, 0:mx] = vphi[-(mt + 1), mx]
-
-        newprog = 100 * 4 * mx * mt / nmargincells
-        pbar.update(newprog)
+        mat[0:mt, 0:mx] = mat[mt, mx]
+        mat[-mt:, -mx:] = mat[-(mt + 1), -(mx + 1)]
+        mat[0:mt, -mx:] = mat[mt, -(mx + 1)]
+        mat[-mt:, 0:mx] = mat[-(mt + 1), mx]
 
         # - up/down
-        for j in np.arange(0, mt - 1):
-            vphi[j, mx:-mx] = vphi[mt, mx:-mx]
-            vphi[-(j + 1), mx:-mx] = vphi[-(mt + 1), mx:-mx]
-            newprog = newprog + 100 * (Nx - 2 * mx) / nmargincells
-            pbar.update(newprog)
+        for j in np.arange(0, mt):  # mt - 1
+            mat[j, mx:-mx] = mat[mt, mx:-mx]
+            mat[-(j + 1), mx:-mx] = mat[-(mt + 1), mx:-mx]
 
         # - left/right
-        for i in np.arange(0, mx - 1):
-            vphi[mt:-mt, i] = vphi[mt:-mt, mx]
-            vphi[mt:-mt, -(i + 1)] = vphi[mt:-mt, -(mx + 1)]
-            newprog = newprog + 100 * (Nt - 2 * mt) / nmargincells
-            pbar.update(newprog)
+        for i in np.arange(0, mx):  # mx - 1
+            mat[mt:-mt, i] = mat[mt:-mt, mx]
+            mat[mt:-mt, -(i + 1)] = mat[mt:-mt, -(mx + 1)]
 
-    # Create DataArray object
+    # Create Dataset object
 
-    res = xr.DataArray(
-        vphi,
+    res = xr.Dataset(
+        {
+            "vphi": (da.dims, vphi),
+            "vphi_err_pos": (da.dims, vphi_err_pos),
+            "vphi_err_neg": (da.dims, vphi_err_neg),
+            "vphi_snr": (da.dims, vphi_snr),
+        },
         coords=da.coords,
-        dims=da.dims,
-        name="v_phi",
-        attrs={"long_name": r"$v_\phi$", "units": "$c$"},
     )
+
+    res["vphi"] = res["vphi"].assign_attrs({"long_name": r"$v_\phi$", "units": "$c$"})
+
+    # res = xr.DataArray(
+    #     vphi,
+    #     coords=da.coords,
+    #     dims=da.dims,
+    #     name="v_phi",
+    #     attrs={"long_name": r"$v_\phi$", "units": "$c$"},
+    # )
 
     print("\nDone!")
 
     return res
 
 
-def ave_vphi_validate(
-    da: xr.DataArray,
-    dcells: int | tuple | dict = 11,
-    xvar: str = "x1",
-    yvar: str = "t",
-):
-    match dcells:
-        case int():
-            dx = dcells
-            dt = dcells
-        case tuple():
-            dx = dcells[1]
-            dt = dcells[0]
-        case dict():
-            dx = dcells[xvar]
-            dt = dcells[yvar]
-        case _:
-            raise TypeError(
-                '"dcells" keyword must be either of type int, tuple or dict'
-            )
+# def ave_vphi_validate(
+#     da: xr.DataArray,
+#     dcells: int | tuple | dict = 11,
+#     xvar: str = "x1",
+#     yvar: str = "t",
+# ):
+#     match dcells:
+#         case int():
+#             dx = dcells
+#             dt = dcells
+#         case tuple():
+#             dx = dcells[1]
+#             dt = dcells[0]
+#         case dict():
+#             dx = dcells[xvar]
+#             dt = dcells[yvar]
+#         case _:
+#             raise TypeError(
+#                 '"dcells" keyword must be either of type int, tuple or dict'
+#             )
 
-    print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
+#     print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
 
-    roll = da.rolling({xvar: dx, yvar: dt}, center=True)
+#     roll = da.rolling({xvar: dx, yvar: dt}, center=True)

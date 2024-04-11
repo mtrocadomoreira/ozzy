@@ -33,7 +33,7 @@ ozparams = {
     "font.serif": ["Noto Serif", "serif"],
     "font.sans-serif": ["Arial", "Helvetica", "sans"],
     "text.usetex": False,
-    "axes.grid": True,
+    "axes.grid": False,
     "axes.prop_cycle": plt.cycler("color", list(tc.tol_cset("muted"))),
     "grid.color": ".9",
     "axes.linewidth": "0.75",

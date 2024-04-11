@@ -18,7 +18,7 @@ def stopwatch(method):
         result = method(*args, **kw)
         te = time.perf_counter()
         duration = timedelta(seconds=te - ts)
-        print(f"    -> {method.__name__} took: {duration}")
+        print(f"    -> '{method.__name__}' took: {duration}")
         return result
 
     return timed
