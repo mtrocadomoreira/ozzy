@@ -45,6 +45,122 @@ def vphi_from_fft(data, xax, tax):
     return (vphi_val, vphi_err_pos, vphi_err_neg, vphi_snr)
 
 
+def phase_from_xcorr(da1: xr.DataArray, da2: xr.DataArray, var: str = "x1"):
+    xcorr = xr.apply_ufunc(
+        np.correlate,
+        da1,
+        da2,
+        vectorize=True,
+        kwargs=dict(mode="full"),
+        dask="allowed",
+        input_core_dims=[[var], [var]],
+        exclude_dims={var},
+        output_core_dims=[[var]],
+        output_dtypes=[float],
+    )
+
+    # TODO: check that both axes of da1 and da2 are the same
+
+    axmin = np.min(da1.coords[var]).data
+    axis = da1.coords[var].to_numpy() - axmin
+
+    ax_corr = np.concatenate((np.flip(-axis[1:]), axis))
+    xcorr = xcorr.assign_coords({var: ax_corr})
+
+    dshift = max(xcorr)["x1"].data
+
+    return dshift
+
+
+def vphi_from_xcorr(
+    da: xr.DataArray,
+    xvar: str = "x1",
+    tvar: str = "t",
+    window_len: float = 2.5,
+    k: float | str = 1.0,
+) -> xr.Dataset:
+    delta_x = (da.coords[xvar][1] - da.coords[xvar][0]).data
+    delta_t = (da.coords[tvar][1] - da.coords[tvar][0]).data
+
+    wvl = 2 * np.pi / k
+    dx = int(np.ceil(window_len * wvl / delta_x))
+    if dx % 2 == 0:
+        dx = dx + 1
+
+    Nt = da.sizes[tvar]
+    Nx = da.sizes[xvar]
+
+    # Define margin and prepare data
+
+    mx = int(np.floor(dx * 0.5))
+
+    data = da.to_numpy()
+    shift = np.zeros_like(data)
+    vphi = np.zeros_like(data)
+
+    # Prepare shift axis
+
+    x_corr = np.linspace(-dx * delta_x, dx * delta_x, 2 * dx + 1)
+
+    # Loop along center of data
+
+    print("\nCalculating the phase...")
+
+    for j in tqdm(np.arange(1, Nt)):
+        for i in np.arange(mx, Nx - mx):
+            window_t = data[j, i - mx : i + mx + 1]
+            window_t_minus = data[j - 1, i - mx : i + mx + 1]
+
+            # calculate correlation, get maximum shift
+            corr = np.correlate(window_t, window_t_minus, mode="full")
+            max_val = np.max(corr)
+            zero_val = corr[dx]
+
+            ind = np.argmax(corr)
+
+            if (max_val == zero_val) & (ind != dx):
+                print("Warning: max and zero value of correlation are the same.")
+
+            shift[j, i] = x_corr[ind]
+
+        shift[j, :] = shift[j, :] + shift[j - 1, :]
+
+    # Deal with margins
+
+    for mat in [shift]:
+        # - left/right
+        for i in np.arange(0, mx):
+            mat[:, i] = mat[:, mx]
+            mat[:, -(i + 1)] = mat[:, -(mx + 1)]
+
+    # Calculate phase velocity
+
+    print("\nCalculating the phase velocity...")
+
+    # TODO: check that the gradient gets us the phase velocity
+
+    vphi = np.gradient(shift, delta_t, axis=0)
+
+    # Create Dataset object
+
+    res = xr.Dataset(
+        {
+            "vphi": (da.dims, vphi),
+            "shift": (da.dims, shift),
+        },
+        coords=da.coords,
+    )
+
+    res["vphi"] = res["vphi"].assign_attrs({"long_name": r"$v_\phi$", "units": "$c$"})
+    res["shift"] = res["shift"].assign_attrs(
+        {"long_name": r"$\delta \xi$", "units": "$k_p^{-1}$"}
+    )
+
+    print("\nDone!")
+
+    return res
+
+
 @stopwatch
 def ave_vphi_from_waterfall(
     da: xr.DataArray,
@@ -216,29 +332,3 @@ def ave_vphi_from_waterfall(
     print("\nDone!")
 
     return res
-
-
-# def ave_vphi_validate(
-#     da: xr.DataArray,
-#     dcells: int | tuple | dict = 11,
-#     xvar: str = "x1",
-#     yvar: str = "t",
-# ):
-#     match dcells:
-#         case int():
-#             dx = dcells
-#             dt = dcells
-#         case tuple():
-#             dx = dcells[1]
-#             dt = dcells[0]
-#         case dict():
-#             dx = dcells[xvar]
-#             dt = dcells[yvar]
-#         case _:
-#             raise TypeError(
-#                 '"dcells" keyword must be either of type int, tuple or dict'
-#             )
-
-#     print(f"Number of cells in each direction:\n  {dx = }, {dt = }")
-
-#     roll = da.rolling({xvar: dx, yvar: dt}, center=True)
