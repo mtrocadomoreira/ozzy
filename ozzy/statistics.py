@@ -3,7 +3,7 @@ import os
 import numpy as np
 import xarray as xr
 
-from .new_dataset import new_dataset
+from .new_dataobj import new_dataset
 from .utils import stopwatch
 
 

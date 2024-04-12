@@ -1,3 +1,4 @@
+import dask.array as daskarr
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -92,43 +93,120 @@ class Gatekeeper(type):
 
 
 # -----------------------------------------------------------------------
-# Define Ozzy accessor class
+# Define Ozzy accessor classes
 # -----------------------------------------------------------------------
 
 
+def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m"):
+    # HACK: make this function pint-compatible
+    if not any([units == opt for opt in ["m", "cm"]]):
+        raise KeyError('Error: "units" keyword must be either "m" or "cm"')
+
+    # Assumes n0 is in cm^(-3), returns skin depth in meters
+    skdepth = 3e8 / 5.64e4 / np.sqrt(n0)
+    if units == "cm":
+        skdepth = skdepth * 100.0
+
+    if coord not in instance._obj.coords:
+        print(
+            "\nWARNING: Could not find coordinate in dataset. No changes made to dataset."
+        )
+        new_inst = instance._obj
+    else:
+        newcoord = coord + "_" + units
+        new_inst = instance._obj.assign_coords(
+            {newcoord: skdepth * instance._obj.coords[coord]}
+        )
+        new_inst[newcoord] = new_inst[newcoord].assign_attrs(
+            long_name="$" + coord + "$", units=r"$\mathrm{" + units + "}$"
+        )
+
+    return new_inst
+
+
+def _save(instance, path):
+    instance._obj.to_netcdf(path, engine="h5netcdf", compute=True, invalid_netcdf=True)
+    print('     -> Saved file "' + path + '" ')
+
+
+def _get_kaxis(axis):
+    nx = axis.size
+    dx = (axis[-1] - axis[0]) / nx
+    kaxis = 2 * np.pi * np.fft.fftshift(np.fft.fftfreq(nx, dx))
+    return kaxis
+
+
+# TODO: check whether FFT is working correctly
+def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
+    # determine which axes should be used
+    if dims is not None:
+        try:
+            axes = [da.get_axis_num(dim) for dim in dims]
+        except KeyError:
+            raise KeyError(
+                f"One or more of the dimensions specified in 'dims' keyword ({dims}) was not found in the DataArray."
+            )
+
+    # Get k axes and their metadata
+
+    for ax in axes:
+        dim = da.dims[ax]
+        if dim not in da.coords:
+            raise KeyError(
+                f"Dimension {dim} was not found in coordinates of DataArray. Please provide a coordinate for this dimension."
+            )
+        kaxis = _get_kaxis(da.coords[dim].to_numpy())
+        da = da.assign_coords({dim: kaxis})
+
+        da.coords[dim].attrs["long_name"] = (
+            r"$k(" + da.coords[dim].attrs["long_name"].strip("$") + r")$"
+        )
+        da.coords[dim].attrs["units"] = (
+            r"$\left(" + da.coords[dim].attrs["units"].strip("$") + "\right)^{-1}$"
+        )
+
+    # Calculate FFT
+
+    fftdata = abs(np.fft.fftshift(np.fft.fftn(da.data, axes=axes, **kwargs), axes=axes))
+
+    # Define new DataArray object
+
+    dout = da.copy(data=daskarr.array(fftdata, chunks=da.chunks))
+
+    return dout
+
+
 @xr.register_dataset_accessor("ozzy")
-class OzzyAccessor(*mixins, metaclass=Gatekeeper):
+class OzzyDatasetAccessor(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
+    @stopwatch
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
-        # HACK: make this function pint-compatible
-        if not any([units == opt for opt in ["m", "cm"]]):
-            raise KeyError('Error: "units" keyword must be either "m" or "cm"')
-
-        # Assumes n0 is in cm^(-3), returns skin depth in meters
-        skdepth = 3e8 / 5.64e4 / np.sqrt(n0)
-        if units == "cm":
-            skdepth = skdepth * 100.0
-
-        if coord not in self._obj.coords:
-            print(
-                "\nWARNING: Could not find coordinate in dataset. No changes made to dataset."
-            )
-            newds = self._obj
-        else:
-            newcoord = coord + "_" + units
-            newds = self._obj.assign_coords(
-                {newcoord: skdepth * self._obj.coords[coord]}
-            )
-            newds[newcoord] = newds[newcoord].assign_attrs(
-                long_name="$" + coord + "$", units=r"$\mathrm{" + units + "}$"
-            )
-
-        return newds
+        return _coord_to_physical_distance(self, coord, n0, units)
 
     @stopwatch
     def save(self, path):
-        self._obj.to_netcdf(path, engine="h5netcdf", compute=True, invalid_netcdf=True)
+        _save(self, path)
 
-        print('     -> Saved file "' + path + '" ')
+    @stopwatch
+    def fft(self, data_var: str, **kwargs):
+        return _fft(self._obj[data_var], **kwargs)
+
+
+@xr.register_dataarray_accessor("ozzy")
+class OzzyDataArrayAccessor(*mixins, metaclass=Gatekeeper):
+    def __init__(self, xarray_obj):
+        self._obj = xarray_obj
+
+    @stopwatch
+    def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
+        return _coord_to_physical_distance(self, coord, n0, units)
+
+    @stopwatch
+    def save(self, path):
+        _save(self, path)
+
+    @stopwatch
+    def fft(self, axes=None, dims: list[str] | None = None, **kwargs):
+        return _fft(self._obj, axes, dims, **kwargs)

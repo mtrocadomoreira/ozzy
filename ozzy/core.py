@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from .backend import Backend
-from .new_dataset import new_dataset as new_dataset_func
+from .new_dataobj import new_dataarray, new_dataset
 from .ozzy_accessor import *  # noqa: F403
 from .utils import (
     find_runs,
@@ -20,8 +20,12 @@ from .utils import (
 # TODO: add progress bars
 
 
-def new_dataset(*args, **kwargs):
-    return new_dataset_func(*args, **kwargs)
+def Dataset(*args, **kwargs):
+    return new_dataset(*args, **kwargs)
+
+
+def DataArray(*args, **kwargs):
+    return new_dataarray(*args, **kwargs)
 
 
 def open(file_type, path, axes_lims=None):

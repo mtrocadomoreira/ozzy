@@ -3,7 +3,7 @@ import os
 import dask
 import xarray as xr
 
-from ..new_dataset import new_dataset
+from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch
 
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from ..new_dataset import new_dataset
+from ..new_dataobj import new_dataset
 from ..utils import get_regex_snippet, print_file_item, stopwatch
 
 # HACK: do this in a more pythonic way (blueprint for new backend)
