@@ -1,6 +1,23 @@
+"""
+Core functions for the Ozzy library.
+
+This module contains the main entry points for working with Ozzy, including
+functions to create new DataArray and Dataset objects, and to open data files
+of various types.
+
+The `open()` function is the primary way to load data into Ozzy, and supports
+a variety of file types. The `open_series()` function can be used to load a
+series of files, and `open_compare()` can be used to compare data across
+multiple file types and runs.
+
+These functions handle the low-level details of parsing the data files and
+creating the appropriate Ozzy data objects.
+"""
+
 import os
 
 import pandas as pd
+import xarray as xr
 
 from .backend import Backend
 from .new_dataobj import new_dataarray, new_dataset
@@ -18,17 +35,137 @@ from .utils import (
 # -----------------------------------------------------------------------
 
 # TODO: add progress bars
+# TODO: add examples to docstrings
 
 
-def Dataset(*args, **kwargs):
+def Dataset(
+    pic_data_type: str | list[str] | None = None,
+    data_origin: str | list[str] | None = None,
+    *args,
+    **kwargs,
+) -> xr.Dataset:
+    """
+    Create a new [xarray.Dataset][] object with added Ozzy functionality.
+
+    !!! info
+
+        This function should be used instead of `xarray.Dataset()` to create a new Dataset object, since it sets attributes that enable access to Ozzy-specific methods.
+
+    Parameters
+    ----------
+    pic_data_type : str | list[str] | None, optional
+        Type of data contained in the Dataset. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis).
+    data_origin : str | list[str] | None, optional
+         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+    *args
+        Positional arguments passed to [xarray.Dataset][].
+    **kwargs
+        Keyword arguments passed to [xarray.Dataset][].
+
+    Returns
+    -------
+    xarray.Dataset
+        The newly created Dataset object.
+
+    Examples
+    --------
+    ??? example "Example 1"
+
+        ```python
+        >>> This is an example
+        3
+        ```
+
+        And this is some explaining
+    """
     return new_dataset(*args, **kwargs)
 
 
-def DataArray(*args, **kwargs):
+def DataArray(
+    pic_data_type: str | list[str] | None = None,
+    data_origin: str | list[str] | None = None,
+    *args,
+    **kwargs,
+):
+    """
+    Create a new [xarray.DataArray][] object with added Ozzy functionality.
+
+    !!! info
+
+        This function should be used instead of `xarray.DataArray()` to create a new DataArray object, since it sets attributes that enable access to Ozzy-specific methods.
+
+    Parameters
+    ----------
+    pic_data_type : str | None, optional
+        Type of data in the DataArray. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis).
+    data_origin : str | None, optional
+         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+    *args
+        Positional arguments passed to [xarray.DataArray][].
+    **kwargs
+        Keyword arguments passed to [xarray.DataArray][].
+
+    Returns
+    -------
+    xarray.DataArray
+        The newly created DataArray object.
+
+    Examples
+    --------
+    ??? example "Example 1"
+
+        ```python
+        >>> This is an example
+        3
+        ```
+
+        And this is some explaining
+    """
     return new_dataarray(*args, **kwargs)
 
 
-def open(file_type, path, axes_lims=None):
+@stopwatch
+def open(
+    file_type: str,
+    path: str | list[str],
+    axes_lims: dict[str, tuple[float, float]] | None = None,
+) -> xr.Dataset | xr.DataArray:
+    """
+    !!! warning
+
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et euismod
+        nulla. Curabitur feugiat, tortor non consequat finibus, justo purus auctor
+        massa, nec semper lorem quam in massa.
+
+    Open a data file and return an Ozzy data object. Here is a footnote [^1].
+
+    [^1]: Here is my footnote.
+
+    Parameters
+    ----------
+    file_type : str
+        The type of data file to open. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+    path : str | list[str]
+        The path to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
+    axes_lims : dict[str, tuple[float, float]] | None, optional
+        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+
+    Returns
+    -------
+    xarray.Dataset | xarray.DataArray
+        The Ozzy data object containing the data from the opened file(s).
+
+
+    Examples
+    --------
+    >>> np.add(1, 2)
+    3
+
+    Comment explaining the second example.
+
+    >>> np.add([1, 2], [3, 4])
+    array([4, 6])
+    """
     filelist = prep_file_input(path)
 
     # initialize the backend object (it deals with the error handling)
@@ -39,8 +176,28 @@ def open(file_type, path, axes_lims=None):
     return ods
 
 
+# TODO: check whether as_series parameter is even used by any backend
+# TODO: check whether open_series is redundant
+# TODO: check whether there is a better docstring format that makes default values clearer
+
+
 @stopwatch
 def open_series(file_type, files, axes_lims=None, nfiles=None):
+    """
+    Open a series of data files and return an Ozzy data object (xarray.DataArray or xarray.Dataset).
+
+    Parameters:
+        file_type (str): The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
+        files (str or list): The path(s) to the data file(s) to open. Can be a single
+            path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
+        axes_lims (dict, optional): A dictionary specifying the limits for each
+            axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+        nfiles (int, optional): The maximum number of files to open. If not provided, all files will be opened.
+
+    Returns:
+        xarray.DataArray or xarray.Dataset: The Ozzy data object containing the data from the
+            opened file(s).
+    """
     filelist = prep_file_input(files)
 
     bknd = Backend(file_type, axes_lims, as_series=True)
@@ -50,8 +207,40 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
     return ods
 
 
+# TODO: check whether this really accepts a list of file_types
+# TODO: check whether 'runs' and 'path' parameters also accept a list of strings
+
+
 @stopwatch
-def open_compare(file_types, path=os.getcwd(), runs="*", quants="*", axes_lims=None):
+def open_compare(
+    file_types: str | list[str],
+    path: str = os.getcwd(),
+    runs: str = "*",
+    quants: str = "*",
+    axes_lims: dict[str, tuple[float, float]] | None = None,
+) -> pd.DataFrame:
+    """
+    Open and compare data files of different types and from different runs.
+
+    Parameters
+    ----------
+    file_types : str | list[str]
+        The type(s) of data files to open. Current options are: `'ozzy'`, `'osiris'`, or `'lcode'`.
+    path : str, optional
+        The path to the directory containing the run folders. Default is the current working directory.
+    runs : str, optional
+        A string or pattern to match the run folder names. Default is '*' to match all folders.
+    quants : str, optional
+        A string or pattern to match the quantity names. Default is '*' to match all quantities.
+    axes_lims : dict[str, tuple[float, float]] | None, optional
+        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the data objects for each run and quantity, with runs as rows and quantities as columns.
+    """
+
     # Make sure file_type is a list
     if isinstance(file_types, str):
         file_types = [file_types]

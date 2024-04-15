@@ -8,6 +8,8 @@ from pathlib import PurePath
 
 import numpy as np
 
+# TODO: write docstrings
+
 # Decorators
 
 

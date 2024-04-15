@@ -13,8 +13,8 @@ def new_dataset(
 
 
 def new_dataarray(
-    pic_data_type: str | list[str] | None = None,
-    data_origin: str | list[str] | None = None,
+    pic_data_type: str | None = None,
+    data_origin: str | None = None,
     *args,
     **kwargs,
 ) -> xr.DataArray:

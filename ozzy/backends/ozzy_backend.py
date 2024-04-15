@@ -10,6 +10,8 @@ general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
 
+# TODO: write docstrings
+
 
 def config_ozzy(ds):
     if ("t" in ds.coords) & ("t" not in ds.dims):

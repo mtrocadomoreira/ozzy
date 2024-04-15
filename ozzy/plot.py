@@ -7,6 +7,8 @@ import xarray as xr
 
 from . import tol_colors as tc
 
+# TODO: write docstrings
+
 font_dirs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "fonts")
 font_files = fm.findSystemFonts(fontpaths=font_dirs)
 for font_file in font_files:

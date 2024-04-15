@@ -96,6 +96,10 @@ class Gatekeeper(type):
 # Define Ozzy accessor classes
 # -----------------------------------------------------------------------
 
+# TODO: add working examples to docstrings
+# TODO: get latex to work or eliminate latex from docstrings
+# TODO: change apparent names of classes rendered by mkdocstrings
+
 
 def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m"):
     # HACK: make this function pint-compatible
@@ -130,6 +134,23 @@ def _save(instance, path):
 
 
 def _get_kaxis(axis):
+    """Helper function to get the Fourier-transformed axis values for a given axis defined in real space.
+
+    Parameters
+    ----------
+    axis : numpy.ndarray
+        The real-space axis values.
+
+    Returns
+    -------
+    numpy.ndarray
+        The Fourier-transformed axis values.
+
+    Examples
+    --------
+    >>> x = np.linspace(0, 10, 100)
+    >>> kx = ozzy.ozzy_accessor._get_kaxis(x)
+    """
     nx = axis.size
     dx = (axis[-1] - axis[0]) / nx
     kaxis = 2 * np.pi * np.fft.fftshift(np.fft.fftfreq(nx, dx))
@@ -183,14 +204,71 @@ class OzzyDatasetAccessor(*mixins, metaclass=Gatekeeper):
 
     @stopwatch
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
+        """Convert coordinate to physical units based on the plasma density `n0`.
+
+        Parameters
+        ----------
+        coord : str
+            Name of coordinate to convert.
+        n0 : float
+            Plasma electron density in $\mathrm{cm}^{-3}$.
+        units : str, optional
+            Units of returned physical distance. Either `'m'` for meters or `'cm'` for centimeters.
+            Default is `'m'`.
+
+        Returns
+        -------
+        xarray.Dataset
+            A new Dataset with the additional converted coordinate.
+
+        Examples
+        --------
+        >>> ds = ozzy.Dataset({'z': [0, 1, 2]})
+        >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
+        >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+        """
         return _coord_to_physical_distance(self, coord, n0, units)
 
     @stopwatch
     def save(self, path):
+        """Save data object to an HDF5 (default) or NetCDF file.
+
+        Parameters
+        ----------
+        path : str
+            The path to save the file to. Specify the file ending as `'.h5'` for HDF5 or `'.nc'` for NetCDF.
+
+        Examples
+        --------
+        >>> ds = ozzy.Dataset(...)
+        >>> ds.ozzy.save('data.h5')
+        """
         _save(self, path)
 
     @stopwatch
     def fft(self, data_var: str, **kwargs):
+        """Take FFT of variable in Dataset along specified axes.
+
+        Parameters
+        ----------
+        data_var : str
+            The data variable to take FFT of.
+        axes : list of ints, optional
+            The integer indices of the axes to take FFT along.
+        dims : list of str, optional
+            The names of the dimensions to take FFT along. Overrides `axes`.
+        **kwargs
+            Additional keyword arguments passed to `[numpy.fft.fftn][]`.
+
+        Returns
+        -------
+        xarray.DataArray
+            The FFT result as a new DataArray.
+
+        Examples
+        --------
+
+        """
         return _fft(self._obj[data_var], **kwargs)
 
 
@@ -201,12 +279,66 @@ class OzzyDataArrayAccessor(*mixins, metaclass=Gatekeeper):
 
     @stopwatch
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
+        """Convert coordinate to physical units based on the plasma density $n_0$.
+
+        Parameters
+        ----------
+        coord : str
+            Name of coordinate to convert.
+        n0 : float
+            Plasma electron density in $\mathrm{cm}^{-3}$.
+        units : str, optional
+            Units of returned physical distance. Either `'m'` for meters or `'cm'` for centimeters.
+            Default is `'m'`.
+
+        Returns
+        -------
+        xarray.DataArray
+            A new DataArray with the additional converted coordinate.
+
+        Examples
+        --------
+
+        """
         return _coord_to_physical_distance(self, coord, n0, units)
 
     @stopwatch
     def save(self, path):
+        """Save data object to an HDF5 (default) or NetCDF file.
+
+        Parameters
+        ----------
+        path : str
+            The path to save the file to. Specify the file ending as `'.h5'` for HDF5 or `'.nc'` for NetCDF.
+
+        Examples
+        --------
+        >>> ds = ozzy.DataArray(...)
+        >>> ds.ozzy.save('data.h5')
+        """
         _save(self, path)
 
     @stopwatch
     def fft(self, axes=None, dims: list[str] | None = None, **kwargs):
+        """Take FFT of DataArray along specified axes.
+
+        Parameters
+        ----------
+        axes : list of ints, optional
+            The integer indices of the axes to take FFT along.
+        dims : list of str, optional
+            The names of the dimensions to take FFT along. Overrides `axes`.
+        **kwargs
+            Additional keyword arguments passed to `[numpy.fft.fftn][]`.
+
+        Returns
+        -------
+        xarray.DataArray
+            The FFT result as a new DataArray.
+
+        Examples
+        --------
+        >>> da = xr.DataArray(...)
+        >>> da_fft = da.ozzy.fft(dims=['x', 'z'])
+        """
         return _fft(self._obj, axes, dims, **kwargs)

@@ -15,6 +15,7 @@ from ..utils import get_regex_snippet, print_file_item, stopwatch
 # HACK: do this in a more pythonic way (blueprint for new backend)
 # These three variables must be defined in each backend module
 # The function read() must also be defined in each backend module
+# TODO: write docstrings
 
 general_regex_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
 general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]

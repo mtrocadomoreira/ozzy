@@ -14,6 +14,7 @@ general_file_endings = ["h5"]
 quants_ignore = None
 
 # TODO: make compatible with part data (and different data types in general)
+# TODO: write docstrings
 
 
 def config_osiris(ds):

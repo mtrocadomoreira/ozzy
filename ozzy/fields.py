@@ -4,6 +4,8 @@ from tqdm import tqdm
 
 from .utils import stopwatch
 
+# TODO: write docstrings
+
 
 def _xcorr_axis(nx, deltax):
     return np.linspace(-nx * deltax, nx * deltax, 2 * nx + 1)
