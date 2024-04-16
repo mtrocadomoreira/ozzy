@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import xarray as xr
 
@@ -104,8 +102,6 @@ def charge_in_field_quadrants(
     raw_ds,
     fields_ds,
     time_dim="t",
-    savepath=os.getcwd(),
-    outfile="charge_in_field_quadrants.nc",
     weight_var="q",
     n0=None,
     xi_var=None,
@@ -185,15 +181,6 @@ def charge_in_field_quadrants(
 
     for var in charge_ds.data_vars:
         charge_ds[var].attrs["units"] = "a.u."
-
-    # Save data
-
-    print("\nSaving data...")
-
-    filepath = os.path.join(savepath, outfile)
-    charge_ds.ozzy.save(filepath)
-
-    print("\nDone!")
 
     return
 

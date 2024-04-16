@@ -6,6 +6,7 @@ import time
 from datetime import timedelta
 from pathlib import PurePath
 
+import h5py
 import numpy as np
 
 # TODO: write docstrings
@@ -133,6 +134,16 @@ def find_runs(path, runs_pattern):
         dirs_dict[k] = dirs[i]
 
     return dirs_dict
+
+
+def check_h5_availability(path):
+    try:
+        with h5py.File(path, "a") as _:
+            pass
+    except OSError:
+        raise OSError(
+            "Output file is in use and cannot be overwritten. Make sure the file is not open in a different application or change the output file name."
+        )
 
 
 # Data manipulation
