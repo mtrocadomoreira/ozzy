@@ -186,8 +186,8 @@ def charge_in_field_quadrants(
 
 
 def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
-    # CAVEAT: assumes that second element of spatial_dims is the vertical dimension
-    # Check that datasets do not have time dimension
+    # BUG: (warning) assumes that second element of spatial_dims is the vertical dimension
+    # TODO: Check that datasets do not have time dimension
 
     t_in_fields = "t" in fields_ds.dims
     t_in_parts = "t" in raw_ds.dims
