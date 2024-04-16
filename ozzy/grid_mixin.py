@@ -19,7 +19,7 @@ class GridMixin:
 
     def get_bin_edges(self, time_dim: str = "t"):
         bin_edges = []
-        for axis in self._obj.get_space_dims(time_dim):
-            axis_arr = np.array(self[axis])
+        for axis in self._obj.ozzy.get_space_dims(time_dim):
+            axis_arr = np.array(self._obj[axis])
             bin_edges.append(bins_from_axis(axis_arr))
         return bin_edges

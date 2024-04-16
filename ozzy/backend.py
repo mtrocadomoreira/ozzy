@@ -16,9 +16,9 @@ def list_avail_backends():
 
 
 class Backend:
-    def __init__(self, file_type, axes_lims=None, *args, **kwargs):
+    def __init__(self, file_type, *args, **kwargs):  # axes_lims=None
         self.name = file_type
-        self.axes_lims = axes_lims
+        # self.axes_lims = axes_lims
 
         match file_type:
             case "osiris":

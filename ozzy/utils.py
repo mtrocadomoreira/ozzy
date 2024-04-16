@@ -74,9 +74,9 @@ def get_user_methods(clss):
 
 def prep_file_input(files):
     if isinstance(files, str):
-        filelist = [os.path.expanduser(files)]
+        filelist = [os.path.abspath(os.path.expanduser(files))]
     else:
-        filelist = [os.path.expanduser(f) for f in files]
+        filelist = [os.path.abspath(os.path.expanduser(f)) for f in files]
     return filelist
 
 
@@ -133,10 +133,6 @@ def find_runs(path, runs_pattern):
         dirs_dict[k] = dirs[i]
 
     return dirs_dict
-
-
-def find_quants():
-    return
 
 
 # Data manipulation

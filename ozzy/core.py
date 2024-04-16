@@ -39,9 +39,9 @@ from .utils import (
 
 
 def Dataset(
+    *args,
     pic_data_type: str | list[str] | None = None,
     data_origin: str | list[str] | None = None,
-    *args,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -53,12 +53,12 @@ def Dataset(
 
     Parameters
     ----------
-    pic_data_type : str | list[str] | None, optional
-        Type of data contained in the Dataset. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis).
-    data_origin : str | list[str] | None, optional
-         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
     *args
         Positional arguments passed to [xarray.Dataset][].
+    pic_data_type : str | list[str] | None, optional
+        Type of data contained in the Dataset. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis). If given, this overwrites the corresponding attribute in any data objects passed as positional arguments (*args).
+    data_origin : str | list[str] | None, optional
+         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
     **kwargs
         Keyword arguments passed to [xarray.Dataset][].
 
@@ -78,7 +78,9 @@ def Dataset(
 
         And this is some explaining
     """
-    return new_dataset(*args, **kwargs)
+    return new_dataset(
+        *args, pic_data_type=pic_data_type, data_origin=data_origin, **kwargs
+    )
 
 
 def DataArray(
@@ -96,12 +98,12 @@ def DataArray(
 
     Parameters
     ----------
-    pic_data_type : str | None, optional
-        Type of data in the DataArray. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis).
-    data_origin : str | None, optional
-         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
     *args
         Positional arguments passed to [xarray.DataArray][].
+    pic_data_type : str | None, optional
+        Type of data in the DataArray. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis). If given, this overwrites the corresponding attribute in any data objects passed as positional arguments (*args).
+    data_origin : str | None, optional
+         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
     **kwargs
         Keyword arguments passed to [xarray.DataArray][].
 
@@ -179,6 +181,7 @@ def open(
 # TODO: check whether as_series parameter is even used by any backend
 # TODO: check whether open_series is redundant
 # TODO: check whether there is a better docstring format that makes default values clearer
+# TODO: think about adding 'load_quant_files' to open and open_series
 
 
 @stopwatch
@@ -200,9 +203,26 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
     """
     filelist = prep_file_input(files)
 
-    bknd = Backend(file_type, axes_lims, as_series=True)
+    bknd = Backend(file_type, as_series=True)
 
-    ods = bknd.parse_data(filelist[:nfiles])
+    # TODO: make this a separate function
+    filedirs = [os.path.dirname(file) for file in filelist]
+    files = [os.path.basename(file) for file in filelist]
+    common_dir = os.path.commonpath(filedirs)
+    subdirs = [os.path.relpath(filedir, common_dir) for filedir in filedirs]
+    dirs_runs = {subdir: subdir for subdir in subdirs}
+
+    quant_files = bknd._load_quant_files(
+        path=common_dir, dirs_runs=dirs_runs, quants=files
+    )
+
+    ds = []
+    for q, flist in quant_files.items():
+        ds.append(bknd.parse_data(flist[:nfiles], axes_lims=axes_lims))
+
+    ods = xr.merge(ds)
+
+    # ods = bknd.parse_data(filelist[:nfiles])
 
     return ods
 

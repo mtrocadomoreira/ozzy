@@ -10,10 +10,8 @@ from .utils import stopwatch
 
 
 def _check_raw_and_grid(raw_ds, grid_ds):
-    if (
-        "part"
-        not in raw_ds.attrs["pic_data_type"] | "grid"
-        not in grid_ds.attrs["pic_data_type"]
+    if ("part" not in raw_ds.attrs["pic_data_type"]) | (
+        "grid" not in grid_ds.attrs["pic_data_type"]
     ):
         raise ValueError(
             "First argument must be a dataset containing particle data and second argument must be a dataset containing grid data"
@@ -24,7 +22,7 @@ def _check_n0_input(n0, xi_var):
     if (n0 is not None) & (xi_var is None):
         raise ValueError("Name of xi variable must be provided when n0 is provided")
     elif (n0 is not None) & (xi_var is not None):
-        raise Warning("Assuming the xi axis is in normalized units.")
+        print("WARNING: Assuming the xi axis is in normalized units.")
 
 
 def _define_q_units(n0, xi_var, dens_ds):
@@ -116,7 +114,7 @@ def charge_in_field_quadrants(
 
     _check_raw_and_grid(raw_ds, fields_ds)
 
-    axes_ds = new_dataset(fields_ds.coords)
+    axes_ds = new_dataset(fields_ds.coords, pic_data_type="grid")
 
     # Bin particles
 
@@ -178,10 +176,10 @@ def charge_in_field_quadrants(
     charge_ds = xr.merge(summed)
 
     charge_ds[w_prll.name].attrs["long_name"] = (
-        r"$W$ in " + fields_ds[fld_vars[0].attrs["long_name"]]
+        r"$W$ in " + fields_ds[fld_vars[0]].attrs["long_name"]
     )
     charge_ds[w_perp.name].attrs["long_name"] = (
-        r"$W$ in " + fields_ds[fld_vars[1].attrs["long_name"]]
+        r"$W$ in " + fields_ds[fld_vars[1]].attrs["long_name"]
     )
     charge_ds[w_both.name].attrs["long_name"] = r"$W_\mathrm{tot}$"
 

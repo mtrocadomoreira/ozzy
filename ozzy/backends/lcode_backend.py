@@ -10,7 +10,7 @@ import pandas as pd
 import xarray as xr
 
 from ..new_dataobj import new_dataset
-from ..utils import get_regex_snippet, print_file_item, stopwatch
+from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwatch
 
 # HACK: do this in a more pythonic way (blueprint for new backend)
 # These three variables must be defined in each backend module
@@ -145,9 +145,8 @@ def set_default_coord_metadata(ods):
             for k in set_meta.keys():
                 if k not in ods.coords[var].attrs:
                     set_meta[k] = True
-                else:
-                    if len(ods.coords[var].attrs[k]) == 0:
-                        set_meta[k] = True
+                elif len(ods.coords[var].attrs[k]) == 0:
+                    set_meta[k] = True
 
             if any(set_meta.values()):
                 for k, v in set_meta.items():
@@ -167,6 +166,11 @@ def get_file_type(file: str):
     if match is None:
         row = None
     return row
+
+
+def get_quant_name_from_regex(file_info, file):
+    match = re.fullmatch(file_info.regex, os.path.basename(file))
+    return match.group(1)
 
 
 def dd_read_table(file: str, sep=r"\s+", header=None):
@@ -238,7 +242,9 @@ def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
     return ds
 
 
-def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
+def read_grid_single(
+    file: str, quant_name: str, axes_lims: dict[str, tuple[float, float]] | None
+) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
@@ -246,10 +252,20 @@ def read_grid_single(file: str, quant_name: str) -> xr.Dataset:
     ndims = ddf.ndim
     assert ndims == 2
 
-    ds = new_dataset(data_vars={quant_name: (["x2", "x1"], ddf)}).expand_dims(
-        dim={"t": 1}, axis=ndims
-    )
+    nx2, nx1 = ddf.shape
+
+    ds = new_dataset(
+        data_vars={quant_name: (["x2", "x1"], ddf)},
+    ).expand_dims(dim={"t": 1}, axis=ndims)
     ds.attrs["ndims"] = ndims
+
+    if axes_lims is not None:
+        ds = ds.assign_coords(
+            {
+                "x1": ("x1", axis_from_extent(nx1, axes_lims["x1"])),
+                "x2": ("x2", axis_from_extent(nx2, axes_lims["x2"])),
+            }
+        )
 
     return ds
 
@@ -274,14 +290,13 @@ def set_quant_metadata(ds, file_info):
 
 
 def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
-    print("     Reading files...")
     ds_t = []
     for file in files:
         print_file_item(file)
         ds_tmp = parser_func(file, **kwargs)
         ds_tmp = lcode_append_time(ds_tmp, file)
         ds_t.append(ds_tmp)
-    print("\n   Concatenating along time...")
+    print("  Concatenating along time...")
     ds = lcode_concat_time(ds_t)
 
     # Get name of quantity and define appropriate metadata
@@ -332,7 +347,9 @@ def read_extrema(files: list[str] | str, file_info):
     return ds
 
 
-def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
+def read(
+    files: list[str], axes_lims: dict[str, tuple[float, float]] | None = None, **kwargs
+):
     if len(files) == 0:
         ds = new_dataset()
     else:
@@ -348,7 +365,13 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     print(
                         "\nWARNING: axis extents were not specified. Dataset object(s) will not have any coordinates.\n"
                     )
-                ds = read_agg(files, file_info, read_grid_single, **kwargs)
+                ds = read_agg(
+                    files,
+                    file_info,
+                    read_grid_single,
+                    quant_name=get_quant_name_from_regex(file_info, files[0]),
+                    axes_lims=axes_lims,
+                )
                 pic_data_type = "grid"
 
             case "lineout":
@@ -357,7 +380,7 @@ def read(files: list[str], axes_lims: dict[str, tuple[float, float]], **kwargs):
                     file_info,
                     read_lineout_single,
                     post_func=read_lineout_post,
-                    **kwargs,
+                    quant_name=get_quant_name_from_regex(file_info, files[0]),
                 )
                 pic_data_type = "grid"
 
