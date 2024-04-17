@@ -27,6 +27,7 @@ theme:
 
   features:
     - content.code.copy
+    - content.tooltips
     - navigation.instant
     - navigation.instant.progress
     - navigation.tabs
@@ -39,12 +40,23 @@ theme:
 
 markdown_extensions:
   - admonition
+  - footnotes
+  - abbr
+  - pymdownx.snippets
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.arithmatex:
       generic: true
+  - attr_list
+  - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 # extra:
 #   social:
@@ -60,7 +72,7 @@ plugins:
       enable_inventory: true
       handlers:
         python:
-          # paths: [src]
+          paths: [ozzy]
           options:
             show_source: false
             show_root_heading: true
@@ -87,15 +99,28 @@ extra_javascript:
 # Page tree
 nav:
   - Home: index.md
-  - User Guide: user-guide/getting_started.md
+  - User Guide:
+    - user-guide/index.md
+    - Installation: user-guide/installation.md
+    - Getting started: user-guide/getting-started.md
+    - Key Concepts: user-guide/key-concepts.md
+    - Reading files: user-guide/reading-files.md
+    - Plotting: user-guide/plotting.md
+    - Analysis: user-guide/analysis.md
+    - Notes on speed: user-guide/speed.md
+    - See also: user-guide/see-also.md
   - Code Reference: 
-      - reference/index.md
-      - Core functions: reference/ozzy-core.md
-      - Data objects and methods: reference/ozzy-data-obj.md
-      - Backends: reference/backend.md
-      - Plotting
+    - reference/index.md
+    - Core: reference/core.md
+    - Data Objects: reference/data-objects.md
+    - Backends: reference/backends.md
+    - ozzy.plot: reference/plot.md
+    - ozzy.statistics: reference/statistics.md
+    - ozzy.fields: reference/fields.md
+  - Developer Guide:
+    - dev-guide/index.md
   - About: 
-      - about/about.md
+      - about/index.md
       - License: about/license.md
 #     - Installation: getting-started.md
 #     - Creating your site: creating-your-site.md

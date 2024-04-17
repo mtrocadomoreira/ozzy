@@ -1,46 +1,86 @@
-# Welcome to Ozzy
+# Welcome to __ozzy__
+
+__*PIC simulation data analysis for the lazy and impatient*__
 
 Ozzy is a data viz and data wrangling tool geared towards particle-in-cell (PIC) simulations and the plasma physics community. Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible.
 
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
-## Why Ozzy?
+[Get started](user-guide/installation){ .md-button }
 
-* **Generality**
+## Why ozzy?
 
-    Read and plot simulation data written by multiple PIC simulation codes. Write the backend to parse a particular type of simulation data once and move on.
+<div class="grid cards" markdown>
 
-* **Think like a physicist, not like a software engineer**
+-   :material-chart-box-multiple:{ .lg .middle } __Any simulation code__
 
-    Refer to labeled dimensions and dataset variables instead of having to wonder which numerical index corresponds to the $x$ dimension of that array again.
+    ---
 
-* **Let the code stay organized so you don't have to**
+    Read and plot simulation data written by any PIC simulation codes. Write the backend to parse the data once and move on.
 
-    Where the data goes, the metadata goes. So you don't have to wonder what that array was again.
+    [:octicons-arrow-right-24: Reading files](user-guide/reading-files)
 
-* **No file size too large**
-  
-    Let the chunking and lazy-loading of large data files be handled automatically by the [Dask](https://www.dask.org/) package.
+-   :material-axis-arrow:{ .lg .middle } __Labeled dimensions__
 
-* **Fast and furious**
+    ---
 
-    Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more options to make your code even faster.
+    Think like a physicist, not like a software engineer. You'll never have to wonder which numerical index corresponds to the $x$ dimension of that array again.
 
-* **Flexibility**
+    <!-- Refer to labeled dimensions and dataset variables instead of having to wonder which numerical index corresponds to the $x$ dimension of that array again. -->
 
-    Easily manipulate your data as trusty old [NumPy](https://numpy.org/) arrays if that calls to you.
+    [:octicons-arrow-right-24: Indexing](user-guide/key-concepts)
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+-   :material-chart-box-plus-outline:{ .lg .middle } __Keep the metadata__
 
-## Getting started
+    ---
 
-* how does xarray work (datasets, dataarrays, etc)
-* how do pandas dataframes work
+    Let the code stay organized so you don't have to. So you don't have to wonder what that array was again.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts)
+
+-   :material-arm-flex:{ .lg .middle } __No file size too large__
+
+    ---
+
+    Let the chunking and lazy-loading of large data files be handled automatically by [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/).
+
+    [:octicons-arrow-right-24: Array chunks](user-guide/key-concepts)
+
+-   :material-lightning-bolt:{ .lg .middle } __Fast and furious__
+
+    ---
+    Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your code even faster.
+
+    [:octicons-arrow-right-24: Notes on speed](user-guide/speed)
+
+-   :material-yoga:{ .lg .middle } __Stay flexible__
+
+    ---
+
+    Easily manipulate your data as trusty old [NumPy](https://numpy.org/) arrays whenever convenient.
+
+    [:octicons-arrow-right-24: Data analysis](user-guide/analysis)
+
+-   :material-flower-tulip:{ .lg .middle } __Beautiful plots with one line of code__
+
+    ---
+
+    Ozzy lays the groundwork using each dataset's metadata.
+
+    [:octicons-arrow-right-24: Plotting](user-guide/plotting)
+
+-   :material-scale-balance:{ .lg .middle } __Open Source, MIT__
+
+    ---
+
+    Ozzy is licensed under MIT and available on [GitHub](https://github.com/mtrocadomoreira/ozzy).
+
+    [:octicons-arrow-right-24: License](about/license)
+
+</div>
+
+
+
 
 ## Project layout
 
