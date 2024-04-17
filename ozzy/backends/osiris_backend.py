@@ -111,7 +111,7 @@ def config_osiris(ds):
 
 
 @stopwatch
-def read(files):
+def read(files, **kwargs):
     for f in files:
         print_file_item(f)
 

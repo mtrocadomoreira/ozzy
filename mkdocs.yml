@@ -112,7 +112,10 @@ nav:
   - Code Reference: 
     - reference/index.md
     - Core: reference/core.md
-    - Data Objects: reference/data-objects.md
+    - Data Objects:
+      - reference/data-objects/index.md
+      - Data-type-specific methods: reference/data-objects/data-type-methods.md
+      - Backend-specific methods: reference/data-objects/backend-methods.md
     - Backends: reference/backends.md
     - ozzy.plot: reference/plot.md
     - ozzy.statistics: reference/statistics.md

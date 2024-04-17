@@ -81,6 +81,12 @@ def prep_file_input(files):
     return filelist
 
 
+def force_str_to_list(var):
+    if isinstance(var, str):
+        var = [var]
+    return var
+
+
 def get_abs_filepaths(path, run_dir, quant_files):
     filepaths_to_read = []
     for file in quant_files:
@@ -96,7 +102,7 @@ def find_runs(path, runs_pattern):
     dirs = []
     run_names = []
 
-    runs_list = prep_file_input(runs_pattern)
+    runs_list = force_str_to_list(runs_pattern)
 
     # Try to find directories matching runs_pattern
 

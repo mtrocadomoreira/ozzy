@@ -6,7 +6,9 @@ import xarray as xr
 from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch
 
-general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+general_regex_pattern = (
+    r"([\w-]*?)[-_]?(\d*)[-_]?([\w]*?)\.(h5|hdf)"  # r"([\w-]+)-(\d{6})\.(h5|hdf)"
+)
 general_file_endings = ["h5"]
 quants_ignore = None
 
@@ -22,7 +24,7 @@ def config_ozzy(ds):
 
 
 @stopwatch
-def read(files):
+def read(files, **kwargs):
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:

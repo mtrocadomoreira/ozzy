@@ -19,9 +19,9 @@ import os
 import pandas as pd
 import xarray as xr
 
+from .accessors import *  # noqa: F403
 from .backend import Backend
 from .new_dataobj import new_dataarray, new_dataset
-from .ozzy_accessor import *  # noqa: F403
 from .utils import (
     find_runs,
     get_abs_filepaths,
@@ -171,9 +171,9 @@ def open(
     filelist = prep_file_input(path)
 
     # initialize the backend object (it deals with the error handling)
-    bknd = Backend(file_type, axes_lims, as_series=False)
+    bknd = Backend(file_type, as_series=False)
 
-    ods = bknd.parse_data(filelist)
+    ods = bknd.parse_data(filelist, axes_lims=axes_lims)
 
     return ods
 
@@ -229,6 +229,8 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
 
 # TODO: check whether this really accepts a list of file_types
 # TODO: check whether 'runs' and 'path' parameters also accept a list of strings
+
+# HACK: maybe it's more correct to hide backend-specific arguments such as "axes_lims" in the general open functions, and simply pass everything on as **kwargs. The only downside is that these arguments will not show up in the documentation other than as an intentional note. But the Backend class and everything downstream should not have to know what each different backend module requires as extra parameters, which is the current status.
 
 
 @stopwatch

@@ -182,12 +182,11 @@ def charge_in_field_quadrants(
     for var in charge_ds.data_vars:
         charge_ds[var].attrs["units"] = "a.u."
 
-    return
+    return charge_ds
 
 
 def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
     # BUG: (warning) assumes that second element of spatial_dims is the vertical dimension
-    # TODO: Check that datasets do not have time dimension
 
     t_in_fields = "t" in fields_ds.dims
     t_in_parts = "t" in raw_ds.dims
@@ -205,15 +204,21 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
         dx = axis[1] - axis[0]
         raw_ds[dim + "_i"] = np.floor(abs(raw_ds[dim]) / dx)
 
+    # Drop nans
+
+    raw_ds = raw_ds.dropna(dim="pid", subset=[dim + "_i" for dim in spatial_dims])
+
+    # Get flat indices
+
     arr_shape = fields_ds[list(fields_ds)[0]].to_numpy().shape
-    raw_ds["x_ij"] = np.ravel_multi_index(
+    inds_flat = np.ravel_multi_index(
         (
-            raw_ds[spatial_dims[1] + "_i"].astype(int),
-            raw_ds[spatial_dims[0] + "_i"].astype(int),
+            raw_ds[spatial_dims[1] + "_i"].data.astype(int),
+            raw_ds[spatial_dims[0] + "_i"].data.astype(int),
         ),
         arr_shape,
     )
-
+    raw_ds = raw_ds.assign(x_ij=xr.DataArray(inds_flat, dims="pid"))
     raw_ds = raw_ds.drop_vars([dim + "_i" for dim in spatial_dims])
 
     # Read field values
@@ -225,5 +230,7 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
             attrs=fields_ds[fvar].attrs,
         )
         raw_ds[fvar] = da_tmp
+
+    raw_ds = raw_ds.drop_vars("x_ij")
 
     return raw_ds

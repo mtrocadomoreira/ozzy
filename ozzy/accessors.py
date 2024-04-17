@@ -149,7 +149,7 @@ def _get_kaxis(axis):
     Examples
     --------
     >>> x = np.linspace(0, 10, 100)
-    >>> kx = ozzy.ozzy_accessor._get_kaxis(x)
+    >>> kx = ozzy.accessors._get_kaxis(x)
     """
     nx = axis.size
     dx = (axis[-1] - axis[0]) / nx
@@ -198,7 +198,7 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
 
 
 @xr.register_dataset_accessor("ozzy")
-class OzzyDatasetAccessor(*mixins, metaclass=Gatekeeper):
+class OzzyDataset(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
@@ -279,7 +279,7 @@ class OzzyDatasetAccessor(*mixins, metaclass=Gatekeeper):
 
 
 @xr.register_dataarray_accessor("ozzy")
-class OzzyDataArrayAccessor(*mixins, metaclass=Gatekeeper):
+class OzzyDataArray(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 

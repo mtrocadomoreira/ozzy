@@ -53,7 +53,9 @@ class Backend:
                 term = []
                 for fend in self._file_endings:
                     term.append("**/" + q + "*." + fend)
-                searchterms = searchterms + term
+            else:
+                term = ["**/" + q]
+            searchterms = searchterms + term
 
         # Search files matching mattern
         filenames = []
