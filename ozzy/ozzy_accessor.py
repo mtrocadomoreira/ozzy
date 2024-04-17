@@ -223,9 +223,15 @@ class OzzyDatasetAccessor(*mixins, metaclass=Gatekeeper):
 
         Examples
         --------
-        >>> ds = ozzy.Dataset({'z': [0, 1, 2]})
-        >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
-        >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+
+        ??? example "Example 1"
+
+            ```python
+            >>> import ozzy as oz
+            >>> ds = oz.Dataset({'z': [0, 1, 2]})
+            >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
+            >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+            ```
         """
         return _coord_to_physical_distance(self, coord, n0, units)
 
@@ -299,6 +305,14 @@ class OzzyDataArrayAccessor(*mixins, metaclass=Gatekeeper):
         Examples
         --------
 
+        ??? example "Example 1"
+
+            ```python
+            >>> import ozzy as oz
+            >>> ds = oz.Dataset({'z': [0, 1, 2]})
+            >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
+            >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+            ```
         """
         return _coord_to_physical_distance(self, coord, n0, units)
 
