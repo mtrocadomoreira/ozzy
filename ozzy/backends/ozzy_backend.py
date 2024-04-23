@@ -30,10 +30,10 @@ def read(files, **kwargs):
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:
                 ds = xr.open_mfdataset(files, chunks="auto", engine="h5netcdf")
-                (print_file_item(file) for file in files)
+                [print_file_item(file) for file in files]
             except ValueError:
                 ds_t = []
-                (print_file_item(file) for file in files)
+                [print_file_item(file) for file in files]
                 for file in tqdm(files):
                     ds_tmp = xr.open_dataset(file, engine="h5netcdf", chunks="auto")
                     ds_t.append(config_ozzy(ds_tmp))

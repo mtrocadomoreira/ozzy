@@ -292,7 +292,7 @@ def set_quant_metadata(ds, file_info):
 
 def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     ds_t = []
-    (print_file_item(file) for file in files)
+    [print_file_item(file) for file in files]
     for file in tqdm(files):
         ds_tmp = parser_func(file, **kwargs)
         ds_tmp = lcode_append_time(ds_tmp, file)

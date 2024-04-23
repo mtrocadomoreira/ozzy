@@ -269,7 +269,7 @@ def open_compare(
 
     print(f"\nScanning directory:\n {path}")
     dirs_runs = find_runs(path, runs)
-    print(f"Found {len(dirs_runs)} run(s):")
+    print(f"\nFound {len(dirs_runs)} run(s):")
     [print_file_item(item) for item in dirs_runs.keys()]
 
     # Search for quantities and read data
@@ -277,8 +277,8 @@ def open_compare(
     bknds = [Backend(ftype, axes_lims) for ftype in file_types]
     for bk in bknds:
         files_quants = bk._load_quant_files(path, dirs_runs, quants)
-        print(f"\nFound {len(files_quants)} quantities with '{bk.name}' backend:")
-        (print_file_item(item) for item in files_quants.keys())
+        print(f"Found {len(files_quants)} quantities with '{bk.name}' backend:")
+        [print_file_item(item) for item in files_quants.keys()]
 
     # Read all data
 

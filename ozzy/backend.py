@@ -76,7 +76,9 @@ class Backend:
         # Build output dictionary
         quants_dict = collections.defaultdict(list)
         for m, f in matches:
-            label = m.group(1).strip("_-")
+            label = (
+                m.group(1).strip("_-") if m.group(1) != "" else m.group(3).strip("_-")
+            )
             if f not in quants_dict[label]:
                 quants_dict[label].append(f)
 
