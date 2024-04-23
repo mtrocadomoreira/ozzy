@@ -150,6 +150,10 @@ def check_h5_availability(path):
         raise OSError(
             "Output file is in use and cannot be overwritten. Make sure the file is not open in a different application or change the output file name."
         )
+    except BlockingIOError:
+        raise BlockingIOError(
+            "Output file is in use and cannot be overwritten. Make sure the file is not open in a different application or change the output file name."
+        )
 
 
 # Data manipulation

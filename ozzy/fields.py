@@ -26,17 +26,21 @@ def _shift_from_xcorr(
             )
         xcorr_axis = _xcorr_axis(nx, deltax)
 
+    if nx is None:
+        nx = arr1.size
+
     # Calculate correlation, get maximum shift
     corr = np.correlate(arr1, arr2, mode="full")
     max_val = np.max(corr)
-    zero_val = corr[corr.size]
+    zero_val = corr[arr1.size]
 
     ind = np.argmax(corr)
 
     if (max_val == zero_val) & (ind != nx):
         print(
-            "WARNING: max and zero value of cross correlation are the same. May be finding a shift when there is none."
+            f"WARNING: max and zero value of cross correlation are the same: {max_val}, {zero_val}. Setting the shift to zero instead."
         )
+        ind = nx
     return xcorr_axis[ind]
 
 

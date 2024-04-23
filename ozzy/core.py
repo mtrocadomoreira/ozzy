@@ -34,7 +34,6 @@ from .utils import (
 # Core functions
 # -----------------------------------------------------------------------
 
-# TODO: add progress bars
 # TODO: add examples to docstrings
 
 
@@ -180,7 +179,6 @@ def open(
 
 # TODO: check whether as_series parameter is even used by any backend
 # TODO: check whether open_series is redundant
-# TODO: check whether there is a better docstring format that makes default values clearer
 # TODO: think about adding 'load_quant_files' to open and open_series
 
 
@@ -221,8 +219,6 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
         ds.append(bknd.parse_data(flist[:nfiles], axes_lims=axes_lims))
 
     ods = xr.merge(ds)
-
-    # ods = bknd.parse_data(filelist[:nfiles])
 
     return ods
 

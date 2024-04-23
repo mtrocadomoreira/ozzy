@@ -112,8 +112,7 @@ def config_osiris(ds):
 
 @stopwatch
 def read(files, **kwargs):
-    for f in files:
-        print_file_item(f)
+    (print_file_item(file) for file in files)
 
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):

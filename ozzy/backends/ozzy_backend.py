@@ -2,6 +2,7 @@ import os
 
 import dask
 import xarray as xr
+from tqdm import tqdm
 
 from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch
@@ -32,8 +33,8 @@ def read(files, **kwargs):
                 (print_file_item(file) for file in files)
             except ValueError:
                 ds_t = []
-                for file in files:
-                    print_file_item(file)
+                (print_file_item(file) for file in files)
+                for file in tqdm(files):
                     ds_tmp = xr.open_dataset(file, engine="h5netcdf", chunks="auto")
                     ds_t.append(config_ozzy(ds_tmp))
                 print("\nConcatenating along time... (this may take a while)")

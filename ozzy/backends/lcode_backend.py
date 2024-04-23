@@ -8,6 +8,7 @@ import dask.dataframe as dd
 import numpy as np
 import pandas as pd
 import xarray as xr
+from tqdm import tqdm
 
 from ..new_dataobj import new_dataset
 from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwatch
@@ -291,8 +292,8 @@ def set_quant_metadata(ds, file_info):
 
 def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     ds_t = []
-    for file in files:
-        print_file_item(file)
+    (print_file_item(file) for file in files)
+    for file in tqdm(files):
         ds_tmp = parser_func(file, **kwargs)
         ds_tmp = lcode_append_time(ds_tmp, file)
         ds_t.append(ds_tmp)
