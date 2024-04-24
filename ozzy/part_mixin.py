@@ -11,7 +11,7 @@ from .utils import axis_from_extent, bins_from_axis
 
 class PartMixin:
     def sample_particles(self, n):
-        dvar = list(set(list(self)) - {"pid", "t", "q"})[0]
+        dvar = list(set(list(self._obj)) - {"pid", "t", "q"})[0]
 
         if "t" in self._obj.dims:
             surviving = self._obj[dvar].isel(t=-1).notnull().compute()
