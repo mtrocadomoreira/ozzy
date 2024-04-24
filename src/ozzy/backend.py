@@ -1,3 +1,5 @@
+"""This is my docstring"""
+
 import collections
 import glob
 import os

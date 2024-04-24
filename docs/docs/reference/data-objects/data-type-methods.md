@@ -1,19 +1,18 @@
 # Data-type-specific methods
 
-These methods can be accessed via the standard accessor way, i.e.:
+<!-- TODO: fix this link -->
 
-`>>> xarray.Dataset.ozzy.<method>`
+These methods can be accessed via the standard [accessor](reference/data-objects/) way, i.e.:
 
-`>>> xarray.DataArray.ozzy.<method>`
+```python
+xarray.Dataset.ozzy.<method>
+```
+or 
+```python
+xarray.DataArray.ozzy.<method>
+```
 
-## Grid data - `'grid'`
+## ::: ozzy.grid_mixin
 
-Accessible if `data_obj.attrs['pic_data_type'] == 'grid'`, where `data_obj` can be an `xarray.Dataset` or `xarray.DataArray`.
 
-::: ozzy.grid_mixin
-
-## Particle data - `'part'`
-
-Accessible if `data_obj.attrs['pic_data_type'] == 'part' `, where `data_obj` can be an `xarray.Dataset` or `xarray.DataArray`.
-
-::: ozzy.part_mixin
+## ::: ozzy.part_mixin

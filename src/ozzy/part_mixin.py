@@ -10,7 +10,36 @@ from .utils import axis_from_extent, bins_from_axis
 
 
 class PartMixin:
+    """Mixin class for operations on particle-like data objects.
+
+    The methods in this class are accessible to a data object[^1] when `data_obj.attrs['pic_data_type']` is `'part'`.
+
+    [^1]: A data object (`data_obj`) may be a [Dataset][xarray.Dataset] or [DataArray][xarray.DataArray].
+
+    Attributes
+    ----------
+    _obj : xarray.Dataset
+        The particle dataset object.
+
+    """
+
     def sample_particles(self, n):
+        """Downsample the particle dataset by randomly sampling particles.
+
+        Parameters
+        ----------
+        n : int
+            Number of particles to sample.
+
+        Returns
+        -------
+        xarray.Dataset
+            Dataset with sampled particles.
+
+        Examples
+        --------
+        >>> ds_small = ds.sample_particles(1000)
+        """
         dvar = list(set(list(self._obj)) - {"pid", "t", "q"})[0]
 
         if "t" in self._obj.dims:
@@ -41,6 +70,35 @@ class PartMixin:
         expand_time=True,
         axisym=False,
     ):
+        """Calculate mean and standard deviation of variables.
+
+        Bins the particle data onto the grid specified by `axes_ds`
+        and calculates the mean and standard deviation for each bin.
+
+        Parameters
+        ----------
+        vars : str or list of str
+            Variables to calculate statistics for.
+        axes_ds : xarray.Dataset
+            Dataset defining the grid to bin onto.
+        savepath : str, optional
+            Directory to save output file. Default is current working dir.
+        outfile : str, optional
+            Filename for output file. By default it is generated automatically.
+        expand_time : bool, optional
+            If True, statistics are calculated separately for each timestep.
+            Default is True.
+        axisym : bool, optional
+            If True, azimuthal symmetry is assumed. Default is False.
+
+        Returns
+        -------
+        None
+
+        Examples
+        --------
+        >>> ds.mean_std('density', grid_ds, 'results/', 'density_stats.nc')
+        """
         # BUG: this will probably fail because axes_ds might be a DataArray
         if "grid" not in axes_ds.attrs["pic_data_type"]:
             raise ValueError("axes_ds must be grid data")
@@ -147,6 +205,32 @@ class PartMixin:
         extents: dict[str, tuple[float, float]] | None = None,
         nbins: int | dict[str, int] = 200,
     ):
+        """Generate a phase space grid from particle data.
+
+        Creates a gridded dataset by depositing particle quantities onto
+        a 2D phase space.
+
+        Parameters
+        ----------
+        vars : list of str
+            Variables to deposit onto phase space.
+        extents : dict, optional
+            Minimum and maximum extent for each variable.
+            If not specified, extents are calculated from data.
+        nbins : int or dict, optional
+            Number of bins for each variable.
+            If int, same number of bins used for all variables.
+            Default is 200 bins.
+
+        Returns
+        -------
+        xarray.Dataset
+            Dataset with deposited particle data on phase space grid.
+
+        Examples
+        --------
+        >>> ps = ds.get_phase_space(['x', 'vx'], nbins=100)
+        """
         if extents is None:
             extents = {}
             for v in vars:
