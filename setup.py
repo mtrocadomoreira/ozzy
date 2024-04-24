@@ -17,6 +17,7 @@ setup(
     description="PIC simulation data analysis for the lazy and impatient",
     url="https://github.com/mtrocadomoreira/ozzy",
     author="Mariana Moreira",
+    package_dir={"": "src"},
     packages=find_packages(),  # __init__.py folders search
     install_requires=requirements,
     include_package_data=True,

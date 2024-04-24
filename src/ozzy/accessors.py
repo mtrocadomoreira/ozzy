@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .backend import Backend, list_avail_backends
+from .backend import Backend, _list_avail_backends
 from .grid_mixin import GridMixin
 from .part_mixin import PartMixin
 from .utils import get_user_methods, stopwatch
@@ -14,7 +14,7 @@ xr.set_options(keep_attrs=True)
 # Get information about all mixin classes
 # -----------------------------------------------------------------------
 
-backend_names = list_avail_backends()
+backend_names = _list_avail_backends()
 
 func_table = {"func_name": [], "var": [], "value": []}
 
@@ -204,7 +204,7 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
 
     @stopwatch
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
-        """Convert coordinate to physical units based on the plasma density `n0`.
+        r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
         Parameters
         ----------
@@ -214,7 +214,6 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
             Plasma electron density in $\mathrm{cm}^{-3}$.
         units : str, optional
             Units of returned physical distance. Either `'m'` for meters or `'cm'` for centimeters.
-            Default is `'m'`.
 
         Returns
         -------
@@ -252,16 +251,16 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         _save(self, path)
 
     @stopwatch
-    def fft(self, data_var: str, **kwargs):
+    def fft(self, data_var: str, axes=None, dims: list[str] | None = None, **kwargs):
         """Take FFT of variable in Dataset along specified axes.
 
         Parameters
         ----------
         data_var : str
             The data variable to take FFT of.
-        axes : list of ints, optional
+        axes : list[int], optional
             The integer indices of the axes to take FFT along.
-        dims : list of str, optional
+        dims : list[str], optional
             The names of the dimensions to take FFT along. Overrides `axes`.
         **kwargs
             Additional keyword arguments passed to `[numpy.fft.fftn][]`.
@@ -275,7 +274,7 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         --------
 
         """
-        return _fft(self._obj[data_var], **kwargs)
+        return _fft(self._obj[data_var], axes, dims, **kwargs)
 
 
 @xr.register_dataarray_accessor("ozzy")
@@ -284,7 +283,7 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         self._obj = xarray_obj
 
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
-        """Convert coordinate to physical units based on the plasma density $n_0$.
+        r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
         Parameters
         ----------
@@ -337,9 +336,9 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
 
         Parameters
         ----------
-        axes : list of ints, optional
+        axes : list[int], optional
             The integer indices of the axes to take FFT along.
-        dims : list of str, optional
+        dims : list[str], optional
             The names of the dimensions to take FFT along. Overrides `axes`.
         **kwargs
             Additional keyword arguments passed to `[numpy.fft.fftn][]`.

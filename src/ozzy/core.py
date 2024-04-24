@@ -20,7 +20,7 @@ import pandas as pd
 import xarray as xr
 
 from .accessors import *  # noqa: F403
-from .backend import Backend
+from .backend import Backend, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
 from .utils import (
     find_runs,
@@ -123,6 +123,27 @@ def DataArray(
         And this is some explaining
     """
     return new_dataarray(*args, **kwargs)
+
+
+def list_avail_backends():
+    """List available backend options for reading simulation data.
+
+    Returns
+    -------
+    list[str]
+        Available backend names.
+
+    Examples
+    --------
+    ??? example "Show available file backends"
+
+        ```python
+        >>> backends = list_avail_backends()
+        >>> print(backends)
+        ['osiris', 'lcode', 'ozzy']
+        ```
+    """
+    return _list_avail_backends()
 
 
 @stopwatch

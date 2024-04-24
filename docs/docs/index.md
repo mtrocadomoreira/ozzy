@@ -6,7 +6,7 @@ Ozzy is a data viz and data wrangling tool geared towards particle-in-cell (PIC)
 
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
-[Get started](user-guide/installation){ .md-button }
+[Get started](user-guide/installation.md){ .md-button }
 
 ## Why ozzy?
 
@@ -18,7 +18,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Read and plot simulation data written by any PIC simulation codes. Write the backend to parse the data once and move on.
 
-    [:octicons-arrow-right-24: Reading files](user-guide/reading-files)
+    [:octicons-arrow-right-24: Reading files](user-guide/reading-files.md)
 
 -   :material-axis-arrow:{ .lg .middle } __Labeled dimensions__
 
@@ -28,7 +28,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     <!-- Refer to labeled dimensions and dataset variables instead of having to wonder which numerical index corresponds to the $x$ dimension of that array again. -->
 
-    [:octicons-arrow-right-24: Indexing](user-guide/key-concepts)
+    [:octicons-arrow-right-24: Indexing](user-guide/key-concepts.md)
 
 -   :material-chart-box-plus-outline:{ .lg .middle } __Keep the metadata__
 
@@ -36,7 +36,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Let the code stay organized so you don't have to. So you don't have to wonder what that array was again.
 
-    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts)
+    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts.md)
 
 -   :material-arm-flex:{ .lg .middle } __No file size too large__
 
@@ -44,14 +44,14 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Let the chunking and lazy-loading of large data files be handled automatically by [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/).
 
-    [:octicons-arrow-right-24: Array chunks](user-guide/key-concepts)
+    [:octicons-arrow-right-24: Array chunks](user-guide/key-concepts.md)
 
 -   :material-lightning-bolt:{ .lg .middle } __Fast and furious__
 
     ---
     Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your code even faster.
 
-    [:octicons-arrow-right-24: Notes on speed](user-guide/speed)
+    [:octicons-arrow-right-24: Notes on speed](user-guide/speed.md)
 
 -   :material-yoga:{ .lg .middle } __Stay flexible__
 
@@ -59,7 +59,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Easily manipulate your data as trusty old [NumPy](https://numpy.org/) arrays whenever convenient.
 
-    [:octicons-arrow-right-24: Data analysis](user-guide/analysis)
+    [:octicons-arrow-right-24: Data analysis](user-guide/analysis.md)
 
 -   :material-flower-tulip:{ .lg .middle } __Beautiful plots with one line of code__
 
@@ -67,7 +67,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Ozzy lays the groundwork using each dataset's metadata.
 
-    [:octicons-arrow-right-24: Plotting](user-guide/plotting)
+    [:octicons-arrow-right-24: Plotting](user-guide/plotting.md)
 
 -   :material-scale-balance:{ .lg .middle } __Open Source, MIT__
 
@@ -75,7 +75,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Ozzy is licensed under MIT and available on [GitHub](https://github.com/mtrocadomoreira/ozzy).
 
-    [:octicons-arrow-right-24: License](about/license)
+    [:octicons-arrow-right-24: License](about/license.md)
 
 </div>
 

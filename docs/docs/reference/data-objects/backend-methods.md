@@ -4,14 +4,14 @@
 
 ## Ozzy - `'ozzy'`
 
-<!-- ::: ozzy.backends.ozzy_backend -->
+::: ozzy.backends.ozzy_backend
 
 ## OSIRIS - `'osiris'`
 
-<!-- ::: ozzy.backends.osiris_backend -->
+::: ozzy.backends.osiris_backend
 
 ## LCODE - `'lcode'`
 
-<!-- ::: ozzy.backends.lcode_backend -->
+::: ozzy.backends.lcode_backend
 
 

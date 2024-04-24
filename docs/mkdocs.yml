@@ -72,11 +72,23 @@ plugins:
       enable_inventory: true
       handlers:
         python:
-          paths: [ozzy]
+          paths: ['..src']
           options:
             show_source: false
-            show_root_heading: true
+            show_root_heading: false
             docstring_style: numpy
+            parameter_headings: true
+            show_inheritance_diagram: true
+            show_root_toc_entry: false
+            show_root_full_path: true
+            show_root_members_full_path: false
+            show_category_heading: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            inherited_members: true
+            docstring_section_style: table
+            separate_signature: true
           import:
           - https://docs.xarray.dev/en/stable/objects.inv
           - https://docs.dask.org/en/stable/objects.inv
