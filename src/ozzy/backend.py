@@ -106,7 +106,7 @@ class Backend:
         Examples
         --------
 
-        ??? example "Find quantity files in a directory"
+        ???+ example "Find quantity files in a directory"
 
             ```python
             >>> dirs_runs = {'run1': 'output'}

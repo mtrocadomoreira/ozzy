@@ -1,7 +1,7 @@
 
 # Data Objects
 
-Ozzy is implemented according to the "accessor" model[^1] made available by [xarray](https://xarray.dev/). This means that all the Ozzy functionality built on top of xarray data objects can be accessed via 
+Ozzy is implemented according to the "accessor" model[^1] made available by [xarray](https://xarray.dev/). This means that all the Ozzy functionality built on top of xarray data objects (a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray]) can be accessed via 
 ```python
 xarray.Dataset.ozzy.<method>
 ```
@@ -28,7 +28,7 @@ Ozzy's custom methods are defined in two accessor classes:
 * `ozzy.accessors.OzzyDataset`
 * `ozzy.accessors.OzzyDataArray`
 
-Strictly speaking, the path to each of those methods should be `ozzy.accessors.OzzyDataset.<method>`, for example. However, this documentation page presents the methods as if they were under `xarray.Dataset.ozzy.<method>`, which is effectively how the user can access them.
+Strictly speaking, the path to each method should be `ozzy.accessors.OzzyDataset.<method>`, for example. However, this documentation page presents the methods as if they were under `xarray.Dataset.ozzy.<method>`, which is effectively how the user can access them.
 
 ???+ note "Note for developers"
 

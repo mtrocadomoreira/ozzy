@@ -16,14 +16,9 @@ class PartMixin:
 
     [^1]: A data object (`data_obj`) may be a [Dataset][xarray.Dataset] or [DataArray][xarray.DataArray].
 
-    Attributes
-    ----------
-    _obj : xarray.Dataset
-        The particle dataset object.
-
     """
 
-    def sample_particles(self, n):
+    def sample_particles(self, n) -> xr.Dataset:
         """Downsample the particle dataset by randomly sampling particles.
 
         Parameters
@@ -97,7 +92,7 @@ class PartMixin:
 
         Examples
         --------
-        >>> ds.mean_std('density', grid_ds, 'results/', 'density_stats.nc')
+        >>> ds.ozzy.mean_std('density', grid_ds, 'results/', 'density_stats.nc')
         """
         # BUG: this will probably fail because axes_ds might be a DataArray
         if "grid" not in axes_ds.attrs["pic_data_type"]:

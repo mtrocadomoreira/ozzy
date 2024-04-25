@@ -202,7 +202,6 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    @stopwatch
     def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
         r"""Convert coordinate to physical units based on the plasma density $n_0$.
 

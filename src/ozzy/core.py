@@ -2,8 +2,7 @@
 Core functions for the Ozzy library.
 
 This module contains the main entry points for working with Ozzy, including
-functions to create new DataArray and Dataset objects, and to open data files
-of various types.
+functions to create new [DataArray][xarray.DataArray] and [Dataset][xarray.Dataset] objects, and to open data files of various types.
 
 The `open()` function is the primary way to load data into Ozzy, and supports
 a variety of file types. The `open_series()` function can be used to load a
@@ -46,7 +45,7 @@ def Dataset(
     """
     Create a new [xarray.Dataset][] object with added Ozzy functionality.
 
-    !!! info
+    !!! warning
 
         This function should be used instead of `xarray.Dataset()` to create a new Dataset object, since it sets attributes that enable access to Ozzy-specific methods.
 
@@ -68,7 +67,7 @@ def Dataset(
 
     Examples
     --------
-    ??? example "Example 1"
+    ???+ example "Example 1"
 
         ```python
         >>> This is an example
@@ -91,7 +90,7 @@ def DataArray(
     """
     Create a new [xarray.DataArray][] object with added Ozzy functionality.
 
-    !!! info
+    !!! warning
 
         This function should be used instead of `xarray.DataArray()` to create a new DataArray object, since it sets attributes that enable access to Ozzy-specific methods.
 
@@ -113,7 +112,7 @@ def DataArray(
 
     Examples
     --------
-    ??? example "Example 1"
+    ???+ example "Example 1"
 
         ```python
         >>> This is an example
@@ -135,7 +134,7 @@ def list_avail_backends():
 
     Examples
     --------
-    ??? example "Show available file backends"
+    ???+ example "Show available file backends"
 
         ```python
         >>> backends = list_avail_backends()
@@ -153,15 +152,7 @@ def open(
     axes_lims: dict[str, tuple[float, float]] | None = None,
 ) -> xr.Dataset | xr.DataArray:
     """
-    !!! warning
-
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla et euismod
-        nulla. Curabitur feugiat, tortor non consequat finibus, justo purus auctor
-        massa, nec semper lorem quam in massa.
-
-    Open a data file and return an Ozzy data object. Here is a footnote [^1].
-
-    [^1]: Here is my footnote.
+    Open a data file and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
 
     Parameters
     ----------
@@ -180,13 +171,7 @@ def open(
 
     Examples
     --------
-    >>> np.add(1, 2)
-    3
 
-    Comment explaining the second example.
-
-    >>> np.add([1, 2], [3, 4])
-    array([4, 6])
     """
     filelist = prep_file_input(path)
 
@@ -206,19 +191,23 @@ def open(
 @stopwatch
 def open_series(file_type, files, axes_lims=None, nfiles=None):
     """
-    Open a series of data files and return an Ozzy data object (xarray.DataArray or xarray.Dataset).
+    Open a series of data files and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
 
-    Parameters:
-        file_type (str): The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
-        files (str or list): The path(s) to the data file(s) to open. Can be a single
-            path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
-        axes_lims (dict, optional): A dictionary specifying the limits for each
-            axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
-        nfiles (int, optional): The maximum number of files to open. If not provided, all files will be opened.
+    Parameters
+    ----------
+    file_type : str
+        The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
+    files : str | list
+        The path(s) to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
+    axes_lims : dict, optional
+        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+    nfiles : int, optional
+        The maximum number of files to open. If not provided, all files will be opened.
 
-    Returns:
-        xarray.DataArray or xarray.Dataset: The Ozzy data object containing the data from the
-            opened file(s).
+    Returns
+    -------
+    xarray.DataArray | xarray.Dataset
+        The Ozzy data object containing the data from the opened file(s).
     """
     filelist = prep_file_input(files)
 

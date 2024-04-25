@@ -17,11 +17,9 @@ class GridMixin:
     """
 
     def coords_from_extent(self, mapping: dict[str, tuple[float, float]]):
-        """Add coordinates to DataArray/Dataset based on axis extents.
+        """Add coordinates to [DataArray][xarray.DataArray] | [Dataset][xarray.Dataset] based on axis extents.
 
-        For each axis name and extent tuple in the mapping, calculate
-        the coordinate values along that axis and add to the
-        DataArray/Dataset.
+        For each axis name and extent tuple in the mapping, get the axis values and assign them to a new coordinate in the data object.
 
         Parameters
         ----------
@@ -35,11 +33,15 @@ class GridMixin:
 
         Examples
         --------
-        ```python
-        da = xr.DataArray(np.zeros((4,3)), dims=['x', 'y'])
-        mapping = {'x': (0, 1), 'y': (-1, 2)}
-        da = GridMixin(da).coords_from_extent(mapping)
-        ```
+
+        ???+ example "Example 1"
+
+            ```python
+            import ozzy as oz
+            da = oz.DataArray(np.zeros((4,3)), dims=['x', 'y'], pic_data_type='grid')
+            mapping = {'x': (0, 1), 'y': (-1, 2)}
+            da = da.ozzy.coords_from_extent(mapping)
+            ```
         """
         for k, v in mapping.items():
             nx = self._obj.sizes[k]
@@ -63,17 +65,22 @@ class GridMixin:
 
         Examples
         --------
-        ```python
-        ds = xr.Dataset(...)
-        spatial_dims = GridMixin(ds).get_space_dims()
-        ```
+
+        ???+ example "Example 1"
+
+            ```python
+            import ozzy as oz
+            ds = oz.Dataset(...)
+            spatial_dims = ds.ozzy.get_space_dims('t')
+            print(spatial_dims)
+            ```
         """
         return list(set(list(self._obj.coords)) - {time_dim})
 
     def get_bin_edges(self, time_dim: str = "t"):
         """Get bin edges along each spatial axis.
 
-        Calculates bin edges from coordinate values.
+        Calculates bin edges from coordinate values. This is useful for binning operations (see example below).
 
         Parameters
         ----------
@@ -87,10 +94,14 @@ class GridMixin:
 
         Examples
         --------
-        ```python
-        da = xr.DataArray(...)
-        bin_edges = GridMixin(da).get_bin_edges()
-        ```
+
+        ???+ example "Using numpy.histogramdd"
+
+            ```python
+            import numpy as np
+            bin_edges = axes_ds.ozzy.get_bin_edges('t')
+            dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds_i[wvar])
+            ```
         """
         bin_edges = []
         for axis in self._obj.ozzy.get_space_dims(time_dim):
