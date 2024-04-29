@@ -1,6 +1,11 @@
 site_name: Ozzy Documentation
+copyright: Copyright &copy; 2024 Mariana Moreira
+# copyright: >
+#   Copyright &copy; 2024 Mariana Moreira –
+#   <a href="#__consent">Change cookie settings</a>
 theme:
   name: material
+  custom_dir: overrides
   icon:
     repo: fontawesome/brands/github
   palette: 
@@ -10,16 +15,16 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
-      primary: teal
-      accent: pink
+      primary: custom
+      accent: custom
 
     # Palette toggle for light mode
     - scheme: default
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
-      primary: teal
-      accent: pink
+      primary: custom
+      accent: custom
 
   font:
     text: Atkinson Hyperlegible
@@ -62,11 +67,46 @@ markdown_extensions:
 #   social:
 #     - icon: fontawesome/brands/github
 #       link: https://github.com/mtrocadomoreira/ozzy
+extra:
+  status:
+    in-progress: Page under development
+  # consent:
+  #   title: Cookie consent
+  #   description: >- 
+  #     We use cookies to recognize your repeated visits and preferences, as well
+  #     as to measure the effectiveness of our documentation and whether users
+  #     find what they're searching for. With your consent, you're helping us to
+  #     make our documentation better.
+  #   actions:
+  #    - accept
+  #    - manage
+  #    - reject
+  # analytics:
+  #   provider: google
+  #   property: ozzy-documentation
+  #     feedback:
+  #     title: Was this page helpful?
+  #     ratings:
+  #       - icon: material/emoticon-happy-outline
+  #         name: This page was helpful
+  #         data: 1
+  #         note: >-
+  #           Thanks for your feedback!
+  #       - icon: material/emoticon-sad-outline
+  #         name: This page could be improved
+  #         data: 0
+  #         note: >- 
+  #           Thanks for your feedback! Help us improve this page by
+  #           using our <a href="..." target="_blank" rel="noopener">feedback form</a>.
+
+extra_css:
+  - stylesheets/extra.css
 
 repo_url: https://github.com/mtrocadomoreira/ozzy
 
 plugins:
   - search
+  - privacy
   - mkdocstrings:
       default_handler: python
       enable_inventory: true
