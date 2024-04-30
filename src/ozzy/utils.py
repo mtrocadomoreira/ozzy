@@ -168,6 +168,8 @@ def check_h5_availability(path):
 def axis_from_extent(nx: int, lims: tuple[float, float]):
     if nx == 0:
         raise ZeroDivisionError("Number of cells in axis cannot be zero.")
+    if lims[1] <= lims[0]:
+        raise TypeError("Second elements of 'lims' must be larger than first element.")
     dx = (lims[1] - lims[0]) / nx
     ax = np.linspace(lims[0], lims[1] - dx, num=nx) + 0.5 * dx
     return ax
