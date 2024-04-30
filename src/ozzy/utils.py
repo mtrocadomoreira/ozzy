@@ -39,7 +39,13 @@ def print_file_item(file):
 
 def unpack_str(attr):
     if isinstance(attr, np.ndarray):
-        result = attr[0]
+        match len(attr.shape):
+            case 0:
+                result = str(attr)
+            case 1:
+                result = attr[0]
+            case 2:
+                result = attr[0, 0]
     else:
         result = attr
     return result
