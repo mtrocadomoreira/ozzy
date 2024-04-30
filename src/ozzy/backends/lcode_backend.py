@@ -348,6 +348,27 @@ def read_extrema(files: list[str] | str, file_info):
     return ds
 
 
+def read_plzshape(files: list[str] | str, file_info):
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        ddf = dd_read_table(files)
+
+    ds = new_dataset(
+        data_vars={
+            "np": ("t", ddf[:, 1]),
+        },
+        coords={"t_offs": ("t", ddf[:, 0])},
+    )
+
+    ds["np"] = ds["np"].assign_attrs(
+        long_name="Longitudinal plasma density profile", units=r"$n_0$"
+    )
+    ds["t_offs"] = ds["t_offs"].assign_attrs(
+        long_name=r"$t - \Delta t / 2$", units=r"$\omega_p^{-1}$"
+    )
+
+    return ds
+
+
 def read(
     files: list[str], axes_lims: dict[str, tuple[float, float]] | None = None, **kwargs
 ):
@@ -393,7 +414,11 @@ def read(
                 ds = read_extrema(files, file_info)
                 pic_data_type = "grid"
 
-            case "info" | "plzshape" | "beamfile" | "notimplemented":
+            case "plzshape":
+                ds = read_plzshape(files, file_info)
+                pic_data_type = "grid"
+
+            case "info" | "beamfile" | "notimplemented":
                 raise NotImplementedError(
                     "Backend for this type of file has not been implemented yet. Exiting."
                 )
