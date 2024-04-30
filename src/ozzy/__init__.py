@@ -2,7 +2,7 @@ from .core import *
 
 __all__ = [
     "accessors",
-    "backend",
+    "backend_interface",
     "core",
     "fields",
     "grid_mixin",

@@ -9,6 +9,7 @@ requirements = [
     "h5netcdf",
     "dask",
     "matplotlib",
+    "cmcrameri",
 ]  # This could be retrieved from requirements.txt
 # Package (minimal) configuration
 setup(

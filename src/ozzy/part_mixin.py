@@ -12,9 +12,9 @@ from .utils import axis_from_extent, bins_from_axis
 class PartMixin:
     """Mixin class for operations on particle-like data objects.
 
-    The methods in this class are accessible to a data object[^1] when `data_obj.attrs['pic_data_type']` is `'part'`.
+    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['pic_data_type'] == 'part'`.
 
-    [^1]: A data object (`data_obj`) may be a [Dataset][xarray.Dataset] or [DataArray][xarray.DataArray].
+    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
 
     """
 

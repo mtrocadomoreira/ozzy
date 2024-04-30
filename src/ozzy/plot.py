@@ -1,5 +1,6 @@
 import os
 
+import cmcrameri  # noqa
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -60,7 +61,9 @@ ozzy_color_wheel = list(tc.tol_cset("bright"))
 
 # plt.rc('axes', prop_cycle=plt.cycler('color', list(tc.tol_cset('bright'))))
 
-xr.set_options(cmap_divergent="RdBu_r", cmap_sequential="iridescent")
+xr.set_options(
+    cmap_divergent="cmc.vik", cmap_sequential="cmc.lipari"
+)  # "RdBu_r", "iridescent"
 
 
 def densplot(ds, ax=None, **kwargs):

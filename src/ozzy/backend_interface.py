@@ -1,5 +1,3 @@
-"""This is my docstring"""
-
 import collections
 import glob
 import os
@@ -18,7 +16,7 @@ def _list_avail_backends():
 
 
 class Backend:
-    """Backend base class for reading simulation data.
+    """Interface class for reading simulation data. Upon initialization, the Backend instance imports a specific submodule for a given data format and defines its data-parsing methods accordingly.
 
     Attributes
     ----------
@@ -41,7 +39,7 @@ class Backend:
     Examples
     --------
 
-    ??? example "Creating a new Backend instance and reading files"
+    ??? example "Create a new Backend instance and read files"
 
         ```python
         >>> backend = Backend('osiris')
@@ -85,18 +83,21 @@ class Backend:
         path : str
             Base path to search in.
         dirs_runs : dict
-            Mapping of run names to their directories.
-
-            !!! info
-
-                This variable can be obtained by running [` ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
-
-                ```python
-                >>> dirs_runs = ozzy.find_runs(path='sim_dir', runs_pattern='param_scan_*')
-                ```
+            Mapping of run names to their directories (see info below).
 
         quants : list of str, optional
             Quantities to search for. Looks for all quantities (`'*'`) if not given.
+
+        Tip
+        ----
+
+        The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
+
+        ```python
+        path_sim = 'sim_dir'
+        rundirs = ozzy.find_runs(path=path_sim, runs_pattern='param_scan_*')
+        quant_files = ozzy.find_quants(path=path_sim, dirs_runs=rundirs, quants='ez')
+        ```
 
         Returns
         -------
@@ -167,6 +168,7 @@ class Backend:
 
         return quants_dict
 
+    # TODO: make this function show up in documentation
     def _load_quant_files(self, *args, **kwargs):
         """Load quantity files by calling `find_quants() and storing them in the `_quant_files` attribute.
 
@@ -197,7 +199,7 @@ class Backend:
 
         Returns
         -------
-        [xarray.Dataset]
+        xarray.Dataset
             Parsed data. Includes the following Dataset attributes: `'file_backend'`, `'source'`, `'file_prefix'`, `'pic_data_type'` and `'data_origin'`.
 
         Examples

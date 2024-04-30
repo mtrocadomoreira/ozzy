@@ -1,12 +1,16 @@
-# Welcome to __ozzy__
+# Welcome to
 
-__*PIC simulation data analysis for the lazy and impatient*__
+<figure markdown="span">
+  ![ozzy logo](assets/ozzy_logo.svg#only-light){ width="280" }
+  ![ozzy logo](assets/ozzy_logo_dark.svg#only-dark){ width="280" }
+  <figcaption>PIC simulation data analysis for the lazy and impatient</figcaption>
+</figure>
 
-Ozzy is a data viz and data wrangling tool geared towards particle-in-cell (PIC) simulations and the plasma physics community. Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible.
+Ozzy is a data visualization and data wrangling tool geared towards particle-in-cell (PIC) simulations and the plasma physics community. Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible.
 
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
-[Get started](user-guide/installation.md){ .md-button }
+[Get started](user-guide/installation.md){ .md-button .md-button--primary}
 
 ## Why ozzy?
 

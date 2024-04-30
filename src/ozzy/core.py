@@ -12,18 +12,18 @@
 # TODO: finish copyright notice with correct license info and place it in every source code file
 
 """
-Core functions for the Ozzy library.
+Core functions of the ozzy library.
 
-This module contains the main entry points for working with Ozzy, including
+This module contains the main entry points for working with ozzy, including
 functions to create new [DataArray][xarray.DataArray] and [Dataset][xarray.Dataset] objects, and to open data files of various types.
 
-The `open()` function is the primary way to load data into Ozzy, and supports
+The `open()` function is the primary way to load data into ozzy, and supports
 a variety of file types. The `open_series()` function can be used to load a
 series of files, and `open_compare()` can be used to compare data across
 multiple file types and runs.
 
 These functions handle the low-level details of parsing the data files and
-creating the appropriate Ozzy data objects.
+creating the appropriate ozzy data objects.
 """
 
 import os
@@ -32,7 +32,7 @@ import pandas as pd
 import xarray as xr
 
 from .accessors import *  # noqa: F403
-from .backend import Backend, _list_avail_backends
+from .backend_interface import Backend, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
 from .utils import (
     find_runs,
@@ -56,11 +56,11 @@ def Dataset(
     **kwargs,
 ) -> xr.Dataset:
     """
-    Create a new [xarray.Dataset][] object with added Ozzy functionality.
+    Create a new [Dataset][xarray.Dataset] object with added Ozzy functionality. See [xarray.Dataset][] for more information on `*args` and `**kwargs`.
 
     !!! warning
 
-        This function should be used instead of `xarray.Dataset()` to create a new Dataset object, since it sets attributes that enable access to Ozzy-specific methods.
+        This function should be used instead of `xarray.Dataset()` to create a new Dataset object, since it sets attributes that enable access to ozzy-specific methods.
 
     Parameters
     ----------
@@ -95,17 +95,17 @@ def Dataset(
 
 
 def DataArray(
+    *args,
     pic_data_type: str | list[str] | None = None,
     data_origin: str | list[str] | None = None,
-    *args,
     **kwargs,
 ):
     """
-    Create a new [xarray.DataArray][] object with added Ozzy functionality.
+    Create a new [DataArray][xarray.DataArray] object with added Ozzy functionality. See [xarray.DataArray][] for more information on `*args` and `**kwargs`.
 
     !!! warning
 
-        This function should be used instead of `xarray.DataArray()` to create a new DataArray object, since it sets attributes that enable access to Ozzy-specific methods.
+        This function should be used instead of `xarray.DataArray()` to create a new DataArray object, since it sets attributes that enable access to ozzy-specific methods.
 
     Parameters
     ----------
@@ -134,7 +134,9 @@ def DataArray(
 
         And this is some explaining
     """
-    return new_dataarray(*args, **kwargs)
+    return new_dataarray(
+        *args, pic_data_type=pic_data_type, data_origin=data_origin, **kwargs
+    )
 
 
 def list_avail_backends():

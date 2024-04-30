@@ -2,16 +2,19 @@
 
 <!-- TODO: fix this link -->
 
-These methods can be accessed via the standard [accessor](reference/data-objects/) way, i.e.:
+These methods can be accessed via the standard [accessor](index.md) way, i.e.:
 
-```python
-xarray.Dataset.ozzy.<method>
-```
-or 
-```python
-xarray.DataArray.ozzy.<method>
-```
+=== "DataArray"
 
+    ```python
+    xarray.DataArray.ozzy.<method>
+    ```
+
+=== "Dataset"
+
+    ```python
+    xarray.Dataset.ozzy.<method>
+    ```
 ## ::: ozzy.grid_mixin
 
 

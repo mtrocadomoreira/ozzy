@@ -6,6 +6,7 @@ copyright: Copyright &copy; 2024 Mariana Moreira
 theme:
   name: material
   custom_dir: overrides
+  logo: assets/ozzy_icon_dark.svg
   icon:
     repo: fontawesome/brands/github
   palette: 
@@ -33,6 +34,7 @@ theme:
   features:
     - content.code.copy
     - content.tooltips
+    - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
     - navigation.tabs
@@ -62,6 +64,9 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
 
 # extra:
 #   social:
@@ -129,6 +134,7 @@ plugins:
             inherited_members: true
             docstring_section_style: table
             separate_signature: true
+            heading_level: 3
           import:
           - https://docs.xarray.dev/en/stable/objects.inv
           - https://docs.dask.org/en/stable/objects.inv
@@ -163,8 +169,8 @@ nav:
     - See also: user-guide/see-also.md
   - Code Reference: 
     - reference/index.md
-    - Core: reference/core.md
-    - Data Objects:
+    - ozzy: reference/core.md
+    - Data object methods:
       - reference/data-objects/index.md
       - Data-type-specific methods: reference/data-objects/data-type-methods.md
       - Backend-specific methods: reference/data-objects/backend-methods.md
@@ -172,6 +178,7 @@ nav:
     - ozzy.plot: reference/plot.md
     - ozzy.statistics: reference/statistics.md
     - ozzy.fields: reference/fields.md
+    - ozzy.utils: reference/utils.md
   - Developer Guide:
     - dev-guide/index.md
   - About: 

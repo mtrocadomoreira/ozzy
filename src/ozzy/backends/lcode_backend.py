@@ -413,7 +413,41 @@ def read(
 
 # Defines specific methods for data from this code
 class Methods:
+    """Mixin class for operations exclusively on [LCODE](https://lcode.info/) data.
+
+    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['data_origin'] == 'lcode'`.
+
+    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
+    """
+
     def convert_q(self, dxi, q_var="q", n0=None):
+        """Convert the charge density variable to physical units.
+
+        Parameters
+        ----------
+        dxi : array_like
+            The grid spacing in the x direction.
+        q_var : str, default 'q'
+            Name of the charge density variable.
+        n0 : float, optional
+            The reference density, in $\mathrm{cm}^{-3}$. If not provided, `dxi` is assumed
+            to be in $\mathrm{cm}$.
+
+        Returns
+        -------
+        None
+            The dataset is modified in place.
+
+        Notes
+        -----
+        The physical units are obtained by multiplying the charge density in normalized units (..., see LCODE manual) by ...:
+
+        Examples
+        --------
+        >>> convert_q(dxi=0.1, q_var='rho')
+        >>> convert_q(dxi=10, n0=1e10, q_var='charge')
+
+        """
         # expects n0 in 1/cm^3
         # TODO: make this compatible with pint
 

@@ -1,54 +1,20 @@
+.md-typeset a {
+  color: var(--md-typeset-color);
+  accent-color: var(--md-typeset-a-color);
+  text-decoration: solid underline hsla(4, 100%, 72%, 0.45) 2px;
+  text-underline-offset: 4px;
+}
+
 :root {
 
     /* Primary color shades */
-    --md-primary-fg-color:               hsl(14, 53%, 56%);
-    --md-primary-fg-color--light:        hsl(14, 53%, 56%);
-    --md-primary-fg-color--dark:         hsl(172, 60%, 47%);
-    --md-primary-bg-color:               hsla(0, 0%, 100%, 1);
-    --md-primary-bg-color--light:        #EDEBC7; /* hsla(0, 0%, 100%, 0.7); */
-    /* --md-primary-bg-color--light:        hsl(345, 25%, 56%); */
-  
-    /* Accent color shades */
-    --md-accent-fg-color:                hsla(#{hex2hsl($clr-indigo-a200)}, 1);
-    --md-accent-fg-color--transparent:   hsla(#{hex2hsl($clr-indigo-a200)}, 0.1);
-    --md-accent-bg-color:                hsla(0, 0%, 100%, 1);
-    --md-accent-bg-color--light:         hsla(0, 0%, 100%, 0.7);
+    --md-primary-fg-color:               hsl(245, 66%, 22%); /* Primary color (header bg, links in text */ /* hsl(172, 60%, 47%); */
+    --md-primary-bg-color:               hsla(0, 0%, 100%, 1);  /* Text in header */
+    --md-primary-bg-color--light:        hsla(0, 0%, 100%, 0.7); /* "Search" */
 
     /* Accent color shades */
-    --md-accent-fg-color:                hsl(172, 60%, 47%);
-    --md-accent-fg-color--transparent:   hsla(#{hex2hsl($clr-indigo-a200)}, 0.1);
-    --md-accent-bg-color:                hsla(0, 0%, 100%, 1);
-    --md-accent-bg-color--light:         hsla(0, 0%, 100%, 0.7);
-
-    /* Color hue in the range [0,360] - change this variable to alter the tone */
-    /* of the theme, e.g. to make it more redish or greenish */
-    /* --md-hue: 225deg; */
-  
-    /* Default color shades */
-    --md-default-fg-color:               hsla(0, 0%, 0%, 0.87);
-    --md-default-fg-color--light:        hsla(0, 0%, 0%, 0.54);
-    --md-default-fg-color--lighter:      hsla(0, 0%, 0%, 0.32);
-    --md-default-fg-color--lightest:     hsla(0, 0%, 0%, 0.07);
-    --md-default-bg-color:               #ebead8; /* hsla(0, 0%, 100%, 1); */
-    --md-default-bg-color--light:        hsla(0, 0%, 100%, 0.7);
-    --md-default-bg-color--lighter:      hsla(0, 0%, 100%, 0.3);
-    --md-default-bg-color--lightest:     hsla(0, 0%, 100%, 0.12);
-  
-    /* Code color shades */
-    --md-code-fg-color:                  hsla(200, 18%, 26%, 1);
-    --md-code-bg-color:                  hsla(200, 0%, 96%, 1);
-  
-    /* Typeset `del` and `ins` color shades */
-    --md-typeset-del-color:              hsla(6, 90%, 60%, 0.15);
-    --md-typeset-ins-color:              hsla(150, 90%, 44%, 0.15);
-  
-    /* Typeset `kbd` color shades */
-    --md-typeset-kbd-color:              hsla(0, 0%, 98%, 1);
-    --md-typeset-kbd-accent-color:       hsla(0, 100%, 100%, 1);
-    --md-typeset-kbd-border-color:       hsla(0, 0%, 72%, 1);
-  
-    /* Typeset `mark` color shades */
-    --md-typeset-mark-color:             hsla(#{hex2hsl($clr-yellow-a200)}, 0.5);
+    --md-accent-fg-color:                hsl(4, 100%, 72%); /* Secondary color (accents in text links) */
+    --md-accent-bg-color:                hsla(0, 0%, 100%, 1); /* accented button text */
   
     /* Footer color shades */
     --md-footer-fg-color:                hsla(0, 0%, 100%, 1);
@@ -57,28 +23,34 @@
     --md-footer-bg-color:                hsla(0, 0%, 0%, 0.87);
     --md-footer-bg-color--dark:          hsla(0, 0%, 0%, 0.32);
   
-    /* Shadow depth 1 */
-    --md-shadow-z1:
-      0 #{px2rem(4px)} #{px2rem(10px)} hsla(0, 0%, 0%, 0.05),
-      0 0              #{px2rem(1px)}  hsla(0, 0%, 0%, 0.1);
-  
-    /* Shadow depth 2 */
-    --md-shadow-z2:
-      0 #{px2rem(4px)} #{px2rem(10px)} hsla(0, 0%, 0%, 0.1),
-      0 0              #{px2rem(1px)}  hsla(0, 0%, 0%, 0.25);
-  
-    /* Shadow depth 3 */
-    --md-shadow-z3:
-      0 #{px2rem(4px)} #{px2rem(10px)} hsla(0, 0%, 0%, 0.2),
-      0 0              #{px2rem(1px)}  hsla(0, 0%, 0%, 0.35);
-  }
-
-[data-md-color-scheme="test"] {
---md-primary-fg-color:        #EE0F0F;
---md-primary-fg-color--light: #ECB7B7;
---md-primary-fg-color--dark:  #90030C;
 }
 
 [data-md-color-scheme="slate"] {
---md-hue: 180; 
+  --md-hue: 245; /* 180; */
+  --md-primary-fg-color:               hsl(245, 28%, 35%);
+  --md-typeset-a-color:                hsl(4, 100%, 72%); /* Secondary color (accents in text links) */
+
+  /* Form button */
+  .md-button {
+    color: var(--md-typeset-color);
+    text-decoration: none;
+
+    /* Primary button
+    &--primary {
+      color: hsla(var(--md-hue), 0%, 100%, 1);
+      background-color: var(--md-typeset-a-color);
+      border-color: var(--md-typeset-a-color);
+    } */
+  }
+
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color:               hsl(7, 35%, 95%) ; /* Text bg, hsl(51, 52%, 95%) */ 
+  --md-code-fg-color:                  hsla(200, 18%, 26%, 1); /* Code text */
+  --md-code-bg-color:                  hsl(7, 25%, 91%) ; /* Code bg */
+  --md-typeset-a-color:                hsl(4, 100%, 72%);
+  .md-button {
+    text-decoration: none;
+  }
 }

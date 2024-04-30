@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .backend import Backend, _list_avail_backends
+from .backend_interface import Backend, _list_avail_backends
 from .grid_mixin import GridMixin
 from .part_mixin import PartMixin
 from .utils import get_user_methods, stopwatch
@@ -129,6 +129,11 @@ def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m
 
 
 def _save(instance, path):
+    dobj = instance._obj
+    for metadata in ["pic_data_type", "data_origin"]:
+        if dobj.attrs[metadata] is None:
+            dobj.attrs[metadata] = ""
+
     instance._obj.to_netcdf(path, engine="h5netcdf", compute=True, invalid_netcdf=True)
     print('     -> Saved file "' + path + '" ')
 
@@ -225,10 +230,10 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         ??? example "Example 1"
 
             ```python
-            >>> import ozzy as oz
-            >>> ds = oz.Dataset({'z': [0, 1, 2]})
-            >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
-            >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+            import ozzy as oz
+            ds = oz.Dataset({'z': [0, 1, 2]})
+            ds_m = ds.ozzy.coord_to_physical_distance('z', 1e18) # z in meters
+            ds_cm = ds.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
             ```
         """
         return _coord_to_physical_distance(self, coord, n0, units)
@@ -305,10 +310,10 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         ??? example "Example 1"
 
             ```python
-            >>> import ozzy as oz
-            >>> ds = oz.Dataset({'z': [0, 1, 2]})
-            >>> ds_m = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18) # z in meters
-            >>> ds_cm = ds.ozzy.coord_to_physical_distance(ds, 'z', 1e18, units='cm') # z in cm
+            import ozzy as oz
+            da = oz.DataArray(data=[3,4,5], coords={'z': [0,1,2]}, dims='z')
+            da_m = da.ozzy.coord_to_physical_distance('z', 1e18) # z in meters
+            da_cm = da.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
             ```
         """
         return _coord_to_physical_distance(self, coord, n0, units)

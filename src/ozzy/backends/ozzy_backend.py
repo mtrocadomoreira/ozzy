@@ -45,6 +45,10 @@ def read(files, **kwargs):
                 files_prefix=os.path.commonprefix([os.path.basename(f) for f in files]),
             )
 
+            for metadata in ["pic_data_type", "data_origin"]:
+                if ds.attrs[metadata] == "":
+                    ds.attrs[metadata] = None
+
     except OSError:
         ds = new_dataset()
 
@@ -52,4 +56,15 @@ def read(files, **kwargs):
 
 
 # Defines specific methods for data from this code
-class Methods: ...
+class Methods:
+    """Mixin class for operations exclusively on ozzy data.
+
+    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['data_origin'] == 'ozzy'`.
+
+    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
+
+    This class is currently empty.
+
+    """
+
+    ...
