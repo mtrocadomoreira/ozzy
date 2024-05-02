@@ -46,8 +46,9 @@ def read(files, **kwargs):
             )
 
             for metadata in ["pic_data_type", "data_origin"]:
-                if ds.attrs[metadata] == "":
-                    ds.attrs[metadata] = None
+                if metadata in ds.attrs:
+                    if ds.attrs[metadata] == "":
+                        ds.attrs[metadata] = None
 
     except OSError:
         ds = new_dataset()

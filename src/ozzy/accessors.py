@@ -121,10 +121,12 @@ def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m
         new_inst = instance._obj.assign_coords(
             {newcoord: skdepth * instance._obj.coords[coord]}
         )
-        new_inst[newcoord] = new_inst[newcoord].assign_attrs(
-            long_name=new_inst[coord].attrs["long_name"],
-            units=r"$\mathrm{" + units + "}$",
-        )
+        new_inst[newcoord].attrs["units"] = r"$\mathrm{" + units + "}$"
+
+        if "long_name" in new_inst[coord].attrs:
+            new_inst[newcoord].attrs["long_name"] = new_inst[coord].attrs["long_name"]
+        else:
+            new_inst[newcoord].attrs["long_name"] = coord
 
     return new_inst
 

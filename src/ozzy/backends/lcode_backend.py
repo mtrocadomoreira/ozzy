@@ -469,8 +469,8 @@ class Methods:
 
         Examples
         --------
-        >>> convert_q(dxi=0.1, q_var='rho')
-        >>> convert_q(dxi=10, n0=1e10, q_var='charge')
+        >>> convert_q(dxi=0.05, q_var='rho')
+        >>> convert_q(dxi=0.01, n0=1e10, q_var='charge')
 
         """
         # expects n0 in 1/cm^3
