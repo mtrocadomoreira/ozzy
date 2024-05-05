@@ -18,7 +18,7 @@ from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwa
 # The function read() must also be defined in each backend module
 # TODO: write docstrings
 
-general_regex_pattern = r"([\w-]*?)(\d{5}|\d{6}\.\d{3})?[m|w]?\.([a-z]{3})"
+general_regex_pattern = r"([\w-]*?)(\d{5,6}|\d{5,6}\.\d{3})*?[m|w]?\.([a-z]{3})"
 general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
 quants_ignore = ["xi"]
 
@@ -180,7 +180,7 @@ def dd_read_table(file: str, sep=r"\s+", header=None):
 
 
 def lcode_append_time(ds, file_string: str):
-    thistime = float(get_regex_snippet(r"\d{5}", os.path.basename(file_string)))
+    thistime = float(get_regex_snippet(r"\d{5,6}", os.path.basename(file_string)))
     ds_out = ds.assign_coords({"t": [thistime]})
     ds_out.coords["t"].attrs["long_name"] = r"$t$"
     ds_out.coords["t"].attrs["units"] = r"$\omega_p^{-1}$"
