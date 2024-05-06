@@ -12,11 +12,11 @@ d([rzmaRZMA])\d{5}\.swp;notimplemented;single;;
 s?\d{5}\.pls;notimplemented;single;;
 (u|v)\d{5}\.det;notimplemented;single;;
 tb\d{5}\.swp;parts;single;parts;
-tb-?.*\d{5}\.swp;parts;single;species;
+tb-?.*\d{5,6}\.swp;parts;single;species;
 pl\d{5}\.swp;notimplemented;single;;
 fl\d{5}\.swp;notimplemented;single;;
 ls(\d{6}\.\d{3})\.swp;notimplemented;single;;
 (r|f)\d{5}\.det;notimplemented;single;;
 ([a-z][a-z])\d{5}\.det;notimplemented;single;;xi\d{5}\.det
 (xi_([a-zA-Z2]{2,3}))_\d{5,6}\.swp;lineout;single;lineout;xi_\d{5,6}\.swp
-(([a-z]|\d)[a-z])\d{5}[m|w]?\.swp;grid;single;2d;
+(([a-z]|\d)[a-z])\d{5,6}[m|w]?\.swp;grid;single;2d;
