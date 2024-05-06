@@ -182,6 +182,9 @@ def charge_in_field_quadrants(
     for var in charge_ds.data_vars:
         charge_ds[var].attrs["units"] = "a.u."
 
+    charge_ds.attrs["pic_data_type"] = "grid"
+    charge_ds.attrs["data_origin"] = "ozzy"
+
     return charge_ds
 
 
