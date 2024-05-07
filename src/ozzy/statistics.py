@@ -121,7 +121,7 @@ def charge_in_field_quadrants(
 
     _check_n0_input(n0, xi_var)
 
-    # units_str = _define_q_units(n0, xi_var, parts)
+    units_str = _define_q_units(n0, xi_var, parts)
 
     # Select subsets of the fields
 
@@ -187,9 +187,10 @@ def charge_in_field_quadrants(
     # )
     # charge_ds[w_both.name].attrs["long_name"] = r"$W_\mathrm{tot}$"
     charge_ds[q_quad.name].attrs["long_name"] = r"$Q$"
+    charge_ds[q_quad.name].attrs["long_name"] = units_str
 
-    for var in charge_ds.data_vars:
-        charge_ds[var].attrs["units"] = "a.u."
+    # for var in charge_ds.data_vars:
+    #     charge_ds[var].attrs["units"] = "a.u."
 
     charge_ds.attrs["pic_data_type"] = "grid"
     charge_ds.attrs["data_origin"] = "ozzy"
