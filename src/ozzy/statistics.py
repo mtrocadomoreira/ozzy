@@ -148,36 +148,45 @@ def charge_in_field_quadrants(
     for case, cond in conditions.items():
         print("     - case: " + case)
 
-        fld1_sel = fields_ds[fld_vars[0]].where(cond.compute(), drop=True)
-        fld2_sel = fields_ds[fld_vars[1]].where(cond.compute(), drop=True)
+        # fld1_sel = fields_ds[fld_vars[0]].where(cond.compute(), drop=True)
+        # fld2_sel = fields_ds[fld_vars[1]].where(cond.compute(), drop=True)
 
-        w_prll = abs(fld1_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
-        w_perp = abs(fld2_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
-        w_both = w_prll + w_perp
+        # w_prll = abs(fld1_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
+        # w_perp = abs(fld2_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
+        # w_both = w_prll + w_perp
+
+        nb_sel = parts["nb"].where(cond.compute(), drop=True)
+        q_quad = nb_sel.sum(dim=spatial_dims, skipna=True)
 
         # Set metadata
 
-        ndims = w_prll.ndim
+        # ndims = w_prll.ndim
 
-        w_prll = w_prll.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
-        w_perp = w_perp.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
-        w_both = w_both.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
+        # w_prll = w_prll.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
+        # w_perp = w_perp.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
+        # w_both = w_both.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
 
-        w_prll.name = "W in " + fld_vars[0]
-        w_perp.name = "W in " + fld_vars[1]
-        w_both.name = "Wtot"
+        # w_prll.name = "W in " + fld_vars[0]
+        # w_perp.name = "W in " + fld_vars[1]
+        # w_both.name = "Wtot"
 
-        summed = summed + [w_prll, w_perp, w_both]
+        # summed = summed + [w_prll, w_perp, w_both]
+
+        ndims = q_quad.ndim
+        q_quad = q_quad.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
+        q_quad.name = "Q"
+        summed = summed + [q_quad]
 
     charge_ds = xr.merge(summed)
 
-    charge_ds[w_prll.name].attrs["long_name"] = (
-        r"$W$ in " + fields_ds[fld_vars[0]].attrs["long_name"]
-    )
-    charge_ds[w_perp.name].attrs["long_name"] = (
-        r"$W$ in " + fields_ds[fld_vars[1]].attrs["long_name"]
-    )
-    charge_ds[w_both.name].attrs["long_name"] = r"$W_\mathrm{tot}$"
+    # charge_ds[w_prll.name].attrs["long_name"] = (
+    #     r"$W$ in " + fields_ds[fld_vars[0]].attrs["long_name"]
+    # )
+    # charge_ds[w_perp.name].attrs["long_name"] = (
+    #     r"$W$ in " + fields_ds[fld_vars[1]].attrs["long_name"]
+    # )
+    # charge_ds[w_both.name].attrs["long_name"] = r"$W_\mathrm{tot}$"
+    charge_ds[q_quad.name].attrs["long_name"] = r"$Q$"
 
     for var in charge_ds.data_vars:
         charge_ds[var].attrs["units"] = "a.u."
