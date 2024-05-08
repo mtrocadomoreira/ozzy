@@ -476,9 +476,6 @@ class Methods:
         # expects n0 in 1/cm^3
         # TODO: make this compatible with pint
 
-        if self._obj.pic_data_type != "part":
-            raise ValueError("This method can only be used on particle data")
-
         print("\n   Converting charge...")
 
         re = 2.8179403227e-13  # in cm
