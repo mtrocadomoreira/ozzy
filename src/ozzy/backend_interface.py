@@ -214,16 +214,17 @@ class Backend:
         print("\nReading the following files:")
         ods = self.parse(files, *args, **kwargs)
 
-        # Set metadata
-        ods = ods.assign_attrs(
-            {
-                "file_backend": self.name,
-                "source": os.path.commonpath(files),
-                "file_prefix": os.path.commonprefix(
-                    [os.path.basename(f) for f in files]
-                ),
-                "data_origin": self.name,
-            }
-        )
+        if len(files) > 0:
+            # Set metadata
+            ods = ods.assign_attrs(
+                {
+                    "file_backend": self.name,
+                    "source": os.path.commonpath(files),
+                    "file_prefix": os.path.commonprefix(
+                        [os.path.basename(f) for f in files]
+                    ),
+                    "data_origin": self.name,
+                }
+            )
 
         return ods
