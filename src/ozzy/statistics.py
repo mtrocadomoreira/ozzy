@@ -32,6 +32,7 @@ def _define_q_units(n0, xi_var, dens_ds):
                 dxi = dens_ds[xi_var].to_numpy()[1] - dens_ds[xi_var].to_numpy()[0]
                 dens_ds.ozzy.convert_q(dxi, q_var="nb", n0=n0)
                 units_str = r"$e \: k_p^2$"
+        # TODO: add charge unit calculation for other codes
         case _:
             units_str = "a.u."
     return units_str
