@@ -42,6 +42,12 @@ ozparams = {
     "axes.linewidth": "0.75",
     "xtick.major.width": "0.75",
     "ytick.major.width": "0.75",
+    "xtick.minor.width": "0.5",
+    "ytick.minor.width": "0.5",
+    "xtick.minor.size": "3.5",
+    "ytick.minor.size": "3.5",
+    "xtick.minor.visible": True,
+    "ytick.minor.visible": True,
     "lines.linewidth": "0.75",
     "figure.figsize": ("8.0", "4.8"),
     "figure.dpi": "300",
@@ -57,7 +63,7 @@ sns.set_theme(
     rc=ozparams,  # font_scale=1,
 )  # palette=sns.husl_palette(l=.4)
 
-ozzy_color_wheel = list(tc.tol_cset("bright"))
+ozzy_color_wheel = list(tc.tol_cset("muted"))
 
 # plt.rc('axes', prop_cycle=plt.cycler('color', list(tc.tol_cset('bright'))))
 
