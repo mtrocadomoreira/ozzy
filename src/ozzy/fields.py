@@ -37,11 +37,11 @@ def _shift_from_xcorr(
 
     ind = np.argmax(corr)
 
-    if (max_val == zero_val) & (ind != nx):
+    if (max_val == zero_val) & (ind != (nx - 1)):
         # print(
         #     f"WARNING: max and zero value of cross correlation are the same: {max_val}, {zero_val}. Setting the shift to zero instead."
         # )
-        ind = nx
+        ind = nx - 1
 
     # f1, ax = plt.subplots()
     # plt.plot(xcorr_axis[0:nx], arr1)
