@@ -29,14 +29,14 @@ Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[
         -> 'save' took: 0:00:00.212650
     ```
 
-Ozzy's custom methods are defined in two accessor classes:
+??? note "Note for developers"
 
-* `ozzy.accessors.OzzyDataset`
-* `ozzy.accessors.OzzyDataArray`
+    Ozzy's custom methods are defined in two accessor classes:
 
-Strictly speaking, the path to each method should be for example `ozzy.accessors.[OzzyDataset|OzzyDataArray].<method>`. However, this documentation page presents the methods as if they were under `xarray.[Dataset|DataArray].ozzy.<method>`, which is effectively how the user can access them.
+    * `ozzy.accessors.OzzyDataset`
+    * `ozzy.accessors.OzzyDataArray`
 
-???+ note "Note for developers"
+    Strictly speaking, the path to each method should be for example `ozzy.accessors.[OzzyDataset|OzzyDataArray].<method>`. However, this documentation page presents the methods as if they were under `xarray.[Dataset|DataArray].ozzy.<method>`, which is effectively how the user can access them.
 
     The methods in each accessor class can access the actual data object via `<data_obj>.ozzy._obj`. This is only relevant when defining new methods in the accessor classes.
 

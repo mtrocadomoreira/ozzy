@@ -58,14 +58,9 @@ def read(files, **kwargs):
 
 # Defines specific methods for data from this code
 class Methods:
-    """Mixin class for operations exclusively on ozzy data.
-
-    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['data_origin'] == 'ozzy'`.
-
-    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
+    """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'ozzy'`.
 
     This class is currently empty.
-
     """
 
     ...

@@ -97,7 +97,6 @@ class Gatekeeper(type):
 # -----------------------------------------------------------------------
 
 # TODO: add working examples to docstrings
-# TODO: get latex to work or eliminate latex from docstrings
 # TODO: change apparent names of classes rendered by mkdocstrings
 
 

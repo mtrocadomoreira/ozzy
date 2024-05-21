@@ -22,8 +22,6 @@ a variety of file types. The `open_series()` function can be used to load a
 series of files, and `open_compare()` can be used to compare data across
 multiple file types and runs.
 
-These functions handle the low-level details of parsing the data files and
-creating the appropriate ozzy data objects.
 """
 
 import os
@@ -80,14 +78,39 @@ def Dataset(
 
     Examples
     --------
-    ???+ example "Example 1"
+    ???+ example "Empty Dataset"
 
         ```python
-        >>> This is an example
-        3
+        >>> import ozzy as oz
+        >>> ds = oz.Dataset()
+        >>> ds
+        <xarray.Dataset> Size: 0B
+        Dimensions:  ()
+        Data variables:
+            *empty*
+        Attributes:
+            pic_data_type:  None
+            data_origin:    None
         ```
 
-        And this is some explaining
+    ???+ example "Dummy Dataset"
+
+        ```python
+        >>> import ozzy as oz
+        >>> import numpy as np
+        >>> ds = oz.Dataset({'var1': (['t','x'], np.random.rand(10,30))}, coords={'x': np.linspace(-5,0,30)}, pic_data_type='grid', data_origin='ozzy')
+        >>> ds
+        <xarray.Dataset> Size: 3kB
+        Dimensions:  (t: 10, x: 30)
+        Coordinates:
+        * x        (x) float64 240B -5.0 -4.828 -4.655 -4.483 ... -0.3448 -0.1724 0.0
+        Dimensions without coordinates: t
+        Data variables:
+            var1     (t, x) float64 2kB 0.9172 0.3752 0.1873 ... 0.5211 0.8016 0.335
+        Attributes:
+            pic_data_type:  grid
+            data_origin:    ozzy
+        ```
     """
     return new_dataset(
         *args, pic_data_type=pic_data_type, data_origin=data_origin, **kwargs
@@ -125,21 +148,48 @@ def DataArray(
 
     Examples
     --------
-    ???+ example "Example 1"
+    ???+ example "Empty DataArray"
 
         ```python
-        >>> This is an example
-        3
+        >>> import ozzy as oz
+        >>> da = oz.DataArray()
+        >>> da
+        <xarray.DataArray ()> Size: 8B
+        array(nan)
+        Attributes:
+            pic_data_type:  None
+            data_origin:    None
+        >>> da.size, da.shape
+        (1, ())
         ```
 
-        And this is some explaining
+        A DataArray cannot be empty, so it is initialized as a NaN variable (zero array dimensions).
+
+    ???+ example "Dummy DataArray"
+
+        ```python
+        >>> import ozzy as oz
+        >>> import numpy as np
+        >>> da = oz.DataArray(np.random.rand(10,30), dims=['t','x'], coords={'x': np.linspace(-5,0,30)}, name='var1', pic_data_type='grid', data_origin='ozzy')
+        >>> da
+        <xarray.DataArray 'var1' (t: 10, x: 30)> Size: 2kB
+        array([[0.64317574, 0.24791049, 0.54208619, 0.27064002, 0.65152958,
+        ...
+                0.28523593, 0.76475677, 0.86068012, 0.03214018, 0.55055121]])
+        Coordinates:
+        * x        (x) float64 240B -5.0 -4.828 -4.655 -4.483 ... -0.3448 -0.1724 0.0
+        Dimensions without coordinates: t
+        Attributes:
+            pic_data_type:  grid
+            data_origin:    ozzy
+        ```
     """
     return new_dataarray(
         *args, pic_data_type=pic_data_type, data_origin=data_origin, **kwargs
     )
 
 
-def list_avail_backends():
+def available_backends():
     """List available backend options for reading simulation data.
 
     Returns
@@ -152,7 +202,8 @@ def list_avail_backends():
     ???+ example "Show available file backends"
 
         ```python
-        >>> backends = list_avail_backends()
+        >>> import ozzy as oz
+        >>> backends = oz.available_backends()
         >>> print(backends)
         ['osiris', 'lcode', 'ozzy']
         ```
@@ -186,6 +237,24 @@ def open(
 
     Examples
     --------
+
+    ???+ example "Read Osiris field data"
+
+        ```python
+        >>> import ozzy as oz
+        >>> ds = oz.open('osiris', 'path/to/file/e1-000020.h5')
+        >>> ds
+        ```
+
+    ???+ example "Read LCODE field data"
+
+        LCODE simulation files do not contain any axis information, so we must supply the simulation window size in order to define the axis coordinates (this is optional).
+
+        ```python
+        >>> import ozzy as oz
+        >>> ds = oz.open('lcode', 'path/to/file/ez02500.swp', axes_lims = {'x1': (-100,0.0), 'x2': (0.0, 6.0)})
+        >>> ds
+        ```
 
     """
     filelist = prep_file_input(path)
@@ -223,6 +292,36 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
     -------
     xarray.DataArray | xarray.Dataset
         The Ozzy data object containing the data from the opened file(s).
+
+
+    Examples
+    --------
+
+    ???+ example "Open time series of data"
+
+        Let's say we are located in the following directory, which contains a time series of ozzy data in HDF5 format:
+        ```text
+        .
+        └── my_data/
+            ├── Ez_0001.h5
+            ├── Ez_0002.h5
+            ├── Ez_0003.h5
+            ├── ...
+            └── Ez_0050.h5
+        ```
+
+        We want to open only the first three files. We can use the `glob` package to return a list of the file locations:
+
+        ```python
+        >>> import ozzy as oz
+        >>> import glob
+        >>> files = glob.glob('my_data/*.h5')
+        >>> ds = oz.open_series('ozzy', files, nfiles=3)
+        >>> ds
+        ```
+
+        The three files have been put together in a single dataset with a new time dimension.
+
     """
     filelist = prep_file_input(files)
 
@@ -282,6 +381,44 @@ def open_compare(
     -------
     pandas.DataFrame
         A DataFrame containing the data objects for each run and quantity, with runs as rows and quantities as columns.
+
+    Examples
+    --------
+
+    ???+ example "Opening files across different folders"
+
+        Let's say we have the following directory:
+        ```text
+        .
+        └── parameter_scans/
+            ├── run_a/
+            │   ├── e1-000000.h5
+            │   ├── e1-000001.h5
+            │   ├── e1-000002.h5
+            │   ├── ...
+            │   └── e1-000100.h5
+            ├── run_b/
+            │   ├── e1-000000.h5
+            │   ├── e1-000001.h5
+            │   ├── e1-000002.h5
+            │   ├── ...
+            │   └── e1-000100.h5
+            └── test_run/
+                └── ...
+        ```
+
+        We want to compare the simulations results for the longitudinal field from two different simulations, `run_a` and `run_b`.
+
+        ```python
+        >>> import ozzy as oz
+        >>> df = oz.open_compare('osiris', path='parameter_scans', runs='run_*', quants='e1')
+        >>> df
+        ```
+        This function returns a [pandas.DataFrame][]. Each dataset can be accessed with a standard Pandas lookup method like [`.at`][pandas.DataFrame.at] or [`.loc`][pandas.DataFrame.loc]:
+        ```python
+        >>> ds = df.at['run_b', 'e1']
+        >>> ds
+        ```
     """
 
     # Make sure file_type is a list

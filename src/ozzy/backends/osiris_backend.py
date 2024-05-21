@@ -136,14 +136,9 @@ def read(files, **kwargs):
 
 # Defines specific methods for data from this code
 class Methods:
-    """Mixin class for operations exclusively on [Osiris](https://osiris-code.github.io/) data.
-
-    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['data_origin'] == 'osiris'`.
-
-    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
+    """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'osiris'`.
 
     This class is currently empty.
-
     """
 
     ...
