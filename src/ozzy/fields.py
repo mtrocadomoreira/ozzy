@@ -29,7 +29,7 @@ def _k_from_fft():
 
 
 @stopwatch
-def vphi_from_sin_fit(
+def vphi_from_fit(
     da: xr.DataArray,
     xvar: str = "x1",
     tvar: str = "t",
