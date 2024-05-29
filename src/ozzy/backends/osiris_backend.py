@@ -100,8 +100,8 @@ def config_osiris(ds):
         {"t": ds.attrs["TIME"], "iter": ds.attrs["ITER"], "move_offset": xmin[0]}
     )
     ds = ds.expand_dims(dim={"t": 1}, axis=ndims)
-    ds.time.attrs["units"] = tex_format(ds.attrs["TIME UNITS"])
-    ds.time.attrs["long_name"] = "Time"
+    ds.t.attrs["units"] = tex_format(ds.attrs["TIME UNITS"])
+    ds.t.attrs["long_name"] = "Time"
     ds.attrs["length_x1"] = length_x1
     ds.attrs["dx"] = dx
     ds.attrs["nx"] = nx
