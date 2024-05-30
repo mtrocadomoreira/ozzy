@@ -167,7 +167,7 @@ cython_debug/
 #.idea/
 
 # VSCode
-# .vscode/
+.vscode/
 
 # Custom
 tests*.ipynb
