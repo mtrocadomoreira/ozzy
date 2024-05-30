@@ -1,3 +1,13 @@
+# *********************************************************
+# Copyright (C) 2024 Mariana Moreira - All Rights Reserved
+# You may use, distribute and modify this code under the
+# terms of the MIT License.
+
+# You should have received a copy of the MIT License with
+# this file. If not, please write to:
+# mtrocadomoreira@gmail.com
+# *********************************************************
+
 import numpy as np
 import xarray as xr
 

@@ -20,7 +20,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     ---
 
-    Read and plot simulation data written by any PIC simulation codes. Write the backend to parse the data once and move on.
+    Read and plot simulation data written by any PIC simulation code. Write the backend to parse the data once and move on.
 
     [:octicons-arrow-right-24: Reading files](user-guide/reading-files.md)
 
@@ -38,7 +38,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     ---
 
-    Let the code stay organized so you don't have to. So you don't have to wonder what that array was again.
+    _Which file was this again?_ Let the code stay organized so you don't have to. Attributes go where the array goes.
 
     [:octicons-arrow-right-24: Data objects](user-guide/key-concepts.md)
 
@@ -46,14 +46,14 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     ---
 
-    Let the chunking and lazy-loading of large data files be handled automatically by [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/).
+    Chunking and lazy-loading of large data files (_ugh, right?_) are handled automatically by [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/).
 
     [:octicons-arrow-right-24: Array chunks](user-guide/key-concepts.md)
 
 -   :material-lightning-bolt:{ .lg .middle } __Fast and furious__
 
     ---
-    Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your code even faster.
+    Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your analysis run even faster.
 
     [:octicons-arrow-right-24: Notes on speed](user-guide/speed.md)
 
@@ -61,7 +61,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     ---
 
-    Easily manipulate your data as trusty old [NumPy](https://numpy.org/) arrays whenever convenient.
+    We embrace [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/), but you don't have to. Easily manipulate your data as trusty [NumPy](https://numpy.org/) arrays whenever convenient.
 
     [:octicons-arrow-right-24: Data analysis](user-guide/analysis.md)
 
@@ -69,7 +69,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     ---
 
-    Ozzy lays the groundwork using each dataset's metadata.
+    Ozzy lays the groundwork using the dataset's metadata.
 
     [:octicons-arrow-right-24: Plotting](user-guide/plotting.md)
 
@@ -83,6 +83,8 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
 </div>
 
+
+## Acknowledgment
 
 
 

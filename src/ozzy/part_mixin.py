@@ -1,3 +1,13 @@
+# *********************************************************
+# Copyright (C) 2024 Mariana Moreira - All Rights Reserved
+# You may use, distribute and modify this code under the
+# terms of the MIT License.
+
+# You should have received a copy of the MIT License with
+# this file. If not, please write to:
+# mtrocadomoreira@gmail.com
+# *********************************************************
+
 import os
 
 import numpy as np
@@ -12,9 +22,7 @@ from .utils import axis_from_extent, bins_from_axis
 class PartMixin:
     """Mixin class for operations on particle-like data objects.
 
-    The methods in this class are accessible to a data object[^1] when `<data_obj>.attrs['pic_data_type'] == 'part'`.
-
-    [^1]: A data object (`<data_obj>`) may be a [Dataset][xarray.Dataset] or a [DataArray][xarray.DataArray].
+    The methods in this class are accessible to a data object when `<data_obj>.attrs['pic_data_type'] == 'part'`.
 
     """
 

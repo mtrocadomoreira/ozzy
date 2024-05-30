@@ -1,15 +1,12 @@
 # *********************************************************
 # Copyright (C) 2024 Mariana Moreira - All Rights Reserved
 # You may use, distribute and modify this code under the
-# terms of the XYZ license, which unfortunately won't be
-# written for another century.
+# terms of the MIT License.
 
-# You should have received a copy of the XYZ license with
+# You should have received a copy of the MIT License with
 # this file. If not, please write to:
 # mtrocadomoreira@gmail.com
 # *********************************************************
-
-# TODO: finish copyright notice with correct license info and place it in every source code file
 
 """
 Core functions of the ozzy library.
@@ -414,7 +411,7 @@ def open_compare(
         >>> df = oz.open_compare('osiris', path='parameter_scans', runs='run_*', quants='e1')
         >>> df
         ```
-        This function returns a [pandas.DataFrame][]. Each dataset can be accessed with a standard Pandas lookup method like [`.at`][pandas.DataFrame.at] or [`.loc`][pandas.DataFrame.loc]:
+        This function returns a [pandas.DataFrame][]. Each dataset can be accessed with a standard Pandas lookup method like [`.at`][pandas.DataFrame.at]/[`.iat`][pandas.DataFrame.iat] or [`.loc`][pandas.DataFrame.loc]/[`.iloc`][pandas.DataFrame.iloc]:
         ```python
         >>> ds = df.at['run_b', 'e1']
         >>> ds
