@@ -51,15 +51,15 @@ All the documentation can be found at ...
 
 ## Acknowledgment
 
-Please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) by default: `vik` (divergent) and `lipari` (sequential). These color maps should be acknowledged if used in a published image, for example with:
+Please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
 
-> The Scientific color map lipari[^1] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^2].
-
-More information here.
+> The Scientific colour map lipari[^1] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^2].
 
 [^1]: F. Crameri, "Scientific colour maps". Zenodo, Oct. 05, 2023. [doi: 10.5281/zenodo.8409685](http://doi.org/10.5281/zenodo.8409685).
 
 [^2]: F. Crameri, G.E. Shephard, and P.J. Heron, "The misuse of colour in science communication". Nat. Commun. **11**, 5444 (2020). [doi: 10.1038/s41467-020-19160-7](https://doi.org/10.1038/s41467-020-19160-7). 
+
+More information about the colour libraries used by ozzy can be found in the ["Plotting" section of the User Guide]().
 
 
 ## License
@@ -68,24 +68,10 @@ Copyright (C) 2024 Mariana Moreira - All Rights Reserved
 
 You may use, distribute and modify this code under the terms of the MIT License.
 
----
+Ozzy bundles [Paul Tol's colour schemes definition](https://personal.sron.nl/~pault/), which is available under a ["3-clause BSD" license](https://opensource.org/license/BSD-3-Clause). The qualitative colour scheme "muted" is used by default in `ozzy.plot`.
 
-- paul tol
-- fonts
+The plotting submodule of ozzy (`ozzy.plot`) also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/), which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/fonts/`). See more details about the bundled fonts and their copyright notices in the ["Fonts" section of the User Guide]().
 
-"copyright statement, the license notice and the license text"
-
-
-Xarray bundles portions of pandas, NumPy and Seaborn, all of which are available under a "3-clause BSD" license:
-
-pandas: setup.py, xarray/util/print_versions.py
-NumPy: xarray/core/npcompat.py
-Seaborn: _determine_cmap_params in xarray/core/plot/utils.py
-Xarray also bundles portions of CPython, which is available under the "Python Software Foundation License" in xarray/core/pycompat.py.
-
-Xarray uses icons from the icomoon package (free version), which is available under the "CC BY 4.0" license.
-
-The full text of these licenses are included in the licenses directory.
 
 
 <picture>
