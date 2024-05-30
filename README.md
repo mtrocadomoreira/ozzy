@@ -1,13 +1,11 @@
 
 <picture>
-<p align="center">
   <source media="(prefers-color-scheme: dark)" srcset="docs/docs/assets/ozzy_logo_dark.svg" >
   <source media="(prefers-color-scheme: light)" srcset="docs/docs/assets/ozzy_logo.svg">
-  <img width="220" title="ozzy logo" alt="ozzy logo" src="docs/docs/assets/ozzy_logo.svg">
-</p>
+    <img width="250" title="ozzy logo" alt="ozzy logo" src="docs/docs/assets/ozzy_logo.svg">
 </picture>
 
-# Ozzy
+# 
 
 Ozzy is a data visualization and data wrangling Python package geared towards **particle-in-cell (PIC) simulations** and the **plasma physics** community.
 
@@ -89,10 +87,10 @@ Xarray uses icons from the icomoon package (free version), which is available un
 
 The full text of these licenses are included in the licenses directory.
 
+
 <picture>
-<p align="center">
   <source media="(prefers-color-scheme: dark)" srcset="docs/docs/assets/ozzy_icon_dark.svg" >
   <source media="(prefers-color-scheme: light)" srcset="docs/docs/assets/ozzy_icon.svg">
   <img width="60" title="ozzy icon" alt="ozzy icon" src="docs/docs/assets/ozzy_icon.svg">
-</p>
 </picture>
+
