@@ -4,8 +4,6 @@ status: in-progress
 
 # Data-type-specific methods
 
-<!-- TODO: fix this link -->
-
 These methods can be accessed via the standard [accessor](index.md) way, i.e.:
 
 === "DataArray"

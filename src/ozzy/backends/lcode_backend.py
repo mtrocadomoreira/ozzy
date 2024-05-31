@@ -770,12 +770,15 @@ def read(
     return ds
 
 
+# TODO: define bohr radius or whatever
+
+
 # Defines specific methods for data from this code
 class Methods:
     """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
 
     def convert_q(self, dxi, q_var="q", n0=None):
-        """Convert the charge density variable to physical units.
+        r"""Convert the charge density variable to physical units.
 
         Parameters
         ----------
@@ -796,11 +799,12 @@ class Methods:
         -----
         The physical units are obtained by multiplying the charge density in normalized units (..., see LCODE manual) by ...:
 
+        The physical charge units are obtained by multiplying the data with the factor $\Delta \xi / (2 r_e)$, where $r_e$ is the classical
+
         Examples
         --------
         >>> convert_q(dxi=0.05, q_var='rho')
         >>> convert_q(dxi=0.01, n0=1e10, q_var='charge')
-
         """
         # expects n0 in 1/cm^3
         # TODO: make this compatible with pint

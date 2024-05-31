@@ -4,9 +4,11 @@ status: in-progress
 
 # Submodules for each backend
 
-each file format requires a submodule with instructions about how to parse the data, and with format-specific methods (see reference/data-objects/backend-methods)
+Each file format requires a submodule containing instructions for parsing the data and the definition of format-specific methods (see [Backend-specific methods](../reference/data-objects/backend-methods.md)).
 
-each submodule must define the following minimal quantities:
+Each file format submodule must contain the following minimal quantities.
 
+::: ozzy.backends.template_backend
+    options:
+        separate_signature: false
 
-template for a new backend
