@@ -24,9 +24,6 @@ from ..new_dataobj import new_dataset
 from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwatch
 
 # HACK: do this in a more pythonic way (blueprint for new backend)
-# These three variables must be defined in each backend module
-# The function read() must also be defined in each backend module
-# TODO: write docstrings
 
 general_regex_pattern = r"([\w-]*?)(\d{5,6}|\d{5,6}\.\d{3})*?[m|w]?\.([a-z]{3})"
 """A regular expression pattern used to match file names in the LCODE data format.
@@ -799,7 +796,10 @@ class Methods:
         -----
         The physical units are obtained by multiplying the charge density in normalized units (..., see LCODE manual) by ...:
 
-        The physical charge units are obtained by multiplying the data with the factor $\Delta \xi / (2 r_e)$, where $r_e$ is the classical
+        The physical charge units are obtained by multiplying the data with the factor $\Delta \xi / (2 r_e)$, where $r_e$ is the classical electron radius, defined as:
+        $$
+        r_e = \frac{1}{4 \pi \varepsilon_0} \frac{e^2}{m_e c^2}
+        $$
 
         Examples
         --------
