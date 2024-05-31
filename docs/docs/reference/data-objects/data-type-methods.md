@@ -21,8 +21,10 @@ These methods can be accessed via the standard [accessor](index.md) way, i.e.:
 ??? note "Note for developers"
     These methods are defined within specific mixin classes: `GridMixin` (`grid_mixin.py`) and `PartMixin` (`part_mixin.py`).
 
+=== "Grid data"
 
-## ::: ozzy.grid_mixin
+    ::: ozzy.grid_mixin
 
+=== "Particle data"
 
-## ::: ozzy.part_mixin
+    ::: ozzy.part_mixin

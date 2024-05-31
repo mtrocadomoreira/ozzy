@@ -1,4 +1,5 @@
 site_name: Ozzy Documentation
+site_url: https://mtrocadomoreira.github.io/ozzy/
 copyright: Copyright &copy; 2024 Mariana Moreira
 # copyright: >
 #   Copyright &copy; 2024 Mariana Moreira –
@@ -7,6 +8,7 @@ theme:
   name: material
   custom_dir: overrides
   logo: assets/ozzy_icon_dark.svg
+  favicon: assets/ozzy_icon.svg
   icon:
     repo: fontawesome/brands/github
   palette: 
@@ -58,7 +60,7 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path:
         - "./"
-      check_paths: true
+      check_paths: false
       url_download: false
       url_max_size: 33554432
       url_timeout: 10
@@ -121,7 +123,7 @@ repo_url: https://github.com/mtrocadomoreira/ozzy
 
 plugins:
   - search
-  - privacy
+ # - privacy # mathjax equations are not rendered correctly when this is active
   - mkdocstrings:
       default_handler: python
       enable_inventory: true
@@ -161,7 +163,6 @@ extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-
 
 # Page tree
 nav:

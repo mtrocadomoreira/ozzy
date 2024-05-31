@@ -8,7 +8,6 @@ You may use, distribute and modify this code under the terms of the MIT License.
     --8<-- "LICENSE"
     ```
 
-
 ## Bundled software components
 
 ### Paul Tol's colour schemes

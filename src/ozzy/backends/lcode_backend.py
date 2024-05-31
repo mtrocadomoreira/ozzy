@@ -767,10 +767,7 @@ def read(
     return ds
 
 
-# TODO: define bohr radius or whatever
-
-
-# Defines specific methods for data from this code
+# TODO: finish example for convert_q
 class Methods:
     """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
 
@@ -794,17 +791,24 @@ class Methods:
 
         Notes
         -----
-        The physical units are obtained by multiplying the charge density in normalized units (..., see LCODE manual) by ...:
+        The charge in physical units ($\mathrm{C}$) is obtained by multiplying the normalized charge with the factor $\Delta \xi / (2 r_e)$, where $\Delta \xi$ is longitudinal cell size and $r_e$ is the classical electron radius, defined as:
 
-        The physical charge units are obtained by multiplying the data with the factor $\Delta \xi / (2 r_e)$, where $r_e$ is the classical electron radius, defined as:
-        $$
+        \[
         r_e = \frac{1}{4 \pi \varepsilon_0} \frac{e^2}{m_e c^2}
-        $$
+        \]
 
         Examples
         --------
-        >>> convert_q(dxi=0.05, q_var='rho')
-        >>> convert_q(dxi=0.01, n0=1e10, q_var='charge')
+
+        ???+ example "Particle data"
+
+            ```python
+            >>> import ozzy as oz
+            >>> ds = oz.open('lcode', [part example])
+            >>> ds = ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
+            >>> print(ds)
+
+            ```
         """
         # expects n0 in 1/cm^3
         # TODO: make this compatible with pint

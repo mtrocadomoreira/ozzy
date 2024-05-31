@@ -25,16 +25,16 @@ The methods described in this section are exclusively applicable to specific dat
     These methods are defined within a mixin class called `Methods` which should be defined in each backend file (e.g. `backends/ozzy_backend.py`).
 
 
-## Ozzy
+=== "Ozzy"
 
-::: ozzy.backends.ozzy_backend.Methods
+    ::: ozzy.backends.ozzy_backend.Methods
 
-## OSIRIS
+=== "OSIRIS"
 
-::: ozzy.backends.osiris_backend.Methods
+    ::: ozzy.backends.osiris_backend.Methods
 
-## LCODE
+=== "LCODE"
 
-::: ozzy.backends.lcode_backend.Methods
+    ::: ozzy.backends.lcode_backend.Methods
 
 
