@@ -54,11 +54,18 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path:
+        - "./../"
+      check_paths: true
+      url_download: false
+      url_max_size: 33554432
+      url_timeout: 10
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.superfences
   - attr_list
   - md_in_html
   - pymdownx.emoji:
