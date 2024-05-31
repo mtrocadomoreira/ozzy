@@ -5,7 +5,7 @@ You may use, distribute and modify this code under the terms of the MIT License.
 
 ???+ abstract "Full license text"
     ``` {.yaml .no-copy}
-    --8<-- "./../LICENSE"
+    --8<-- "LICENSE"
     ```
 
 

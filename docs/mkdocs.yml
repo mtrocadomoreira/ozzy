@@ -57,7 +57,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.snippets:
       base_path:
-        - "./../"
+        - "./../LICENSE"
       check_paths: true
       url_download: false
       url_max_size: 33554432
