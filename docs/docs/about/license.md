@@ -22,7 +22,7 @@ The plotting submodule of ozzy also bundles a few different fonts under the [SIL
 | Font      | Design | Copyright |                           
 | :---------- | :--------- | :-------------- |
 | [Crimson Pro](https://fonts.google.com/specimen/Crimson+Pro) | Jacques Le Bailly | Copyright &copy; 2018 [The Crimson Pro Project Authors](https://github.com/Fonthausen/CrimsonPro) |
-| [Maitree](https://fonts.google.com/specimen/Maitree?query=maitree)       | Cadson Demak | Copyright &copy; 2015, [Cadson Demak](info@cadsondemak.com) |
+| [Maitree](https://fonts.google.com/specimen/Maitree?query=maitree)       | Cadson Demak | Copyright &copy; 2015, [Cadson Demak](mailto:info@cadsondemak.com) |
 | [Noto Serif](https://fonts.google.com/noto/specimen/Noto+Serif?query=noto+serif)    |  | Copyright &copy; 2022 [The Noto Project Authors](https://github.com/notofonts/latin-greek-cyrillic) |
 | [Roboto Serif](https://fonts.google.com/specimen/Roboto+Serif?query=roboto+serif) | Commercial Type, Greg Gazdowicz | Copyright &copy; 2020 [The Roboto Serif Project Authors](https://github.com/googlefonts/RobotoSerif) |
 | [Source Serif 4](https://fonts.google.com/specimen/Source+Serif+4?query=source+serif) | Frank Grießhammer | |

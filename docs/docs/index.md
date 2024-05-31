@@ -100,4 +100,4 @@ In addition, please note that the plotting submodule of ozzy uses two [color map
 
 [^3]: F. Crameri, G.E. Shephard, and P.J. Heron, "The misuse of colour in science communication". Nat. Commun. **11**, 5444 (2020). [doi: 10.1038/s41467-020-19160-7](https://doi.org/10.1038/s41467-020-19160-7). 
 
-See the ["Plotting" section of the User Guide](user-guide/plotting) for more information.
+See the ["Plotting" section of the User Guide](user-guide/plotting.md) for more information.
