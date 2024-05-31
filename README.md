@@ -70,7 +70,7 @@ You may use, distribute and modify this code under the terms of the MIT License.
 
 Ozzy bundles [Paul Tol's colour schemes definition](https://personal.sron.nl/~pault/), which is available under a ["3-clause BSD" license](https://opensource.org/license/BSD-3-Clause). The qualitative colour scheme "muted" is used by default in `ozzy.plot`.
 
-The plotting submodule of ozzy (`ozzy.plot`) also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/), which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/fonts/`). See more details about the bundled fonts and their copyright notices in the ["Fonts" section of the User Guide]().
+The plotting submodule of ozzy (`ozzy.plot`) also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/), which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/ozzy/fonts/`). See more details about the bundled fonts and their copyright notices in the ["Fonts" section of the User Guide]().
 
 
 

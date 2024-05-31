@@ -48,6 +48,7 @@ theme:
 markdown_extensions:
   - admonition
   - footnotes
+  - tables
   - abbr
   - pymdownx.snippets
   - pymdownx.caret

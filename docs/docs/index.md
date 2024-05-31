@@ -86,12 +86,18 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
 ## Acknowledgment
 
+Please consider acknowledging ozzy if you use it to produce images or results published in a scientific publication, for example by including the following text in the acknowledgments or citing ozzy's Zenodo reference[^1]:
 
+> The data and plots in this publication were processed with ozzy[^1], a freely available data visualization and analysis package.
 
-## Project layout
+[^1]: 
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+In addition, please note that the plotting submodule of ozzy uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
 
+> The Scientific colour map lipari[^2] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^3].
+
+[^2]: F. Crameri, "Scientific colour maps". Zenodo, Oct. 05, 2023. [doi: 10.5281/zenodo.8409685](http://doi.org/10.5281/zenodo.8409685).
+
+[^3]: F. Crameri, G.E. Shephard, and P.J. Heron, "The misuse of colour in science communication". Nat. Commun. **11**, 5444 (2020). [doi: 10.1038/s41467-020-19160-7](https://doi.org/10.1038/s41467-020-19160-7). 
+
+See the ["Plotting" section of the User Guide](user-guide/plotting) for more information.
