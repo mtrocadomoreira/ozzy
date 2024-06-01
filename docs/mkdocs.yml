@@ -169,7 +169,9 @@ nav:
   - Home: index.md
   - User Guide:
     - user-guide/index.md
-    - Installation: user-guide/installation.md
+    - Installation:
+      - user-guide/installation/index.md
+      - Virtual environment setup: user-guide/installation/virtual-environments.md
     - Getting started: user-guide/getting-started.md
     - Key Concepts: user-guide/key-concepts.md
     - Reading files: user-guide/reading-files.md

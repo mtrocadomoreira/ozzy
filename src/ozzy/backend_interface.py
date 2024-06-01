@@ -13,7 +13,7 @@ import glob
 import os
 import re
 
-# TODO: write docstrings
+import xarray as xr  # noqa
 
 
 def _list_avail_backends():
@@ -188,10 +188,10 @@ class Backend:
         ??? example "Find quantity files in a directory"
 
             ```python
-            >>> dirs_runs = {'run1': 'output'}
-            >>> backend._load_quant_files('sim_dir', dirs_runs, ['e_field'])
-            >>> print(backend._quant_files)
-            {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
+            dirs_runs = {'run1': 'output'}
+            backend._load_quant_files('sim_dir', dirs_runs, ['e_field'])
+            print(backend._quant_files)
+            # {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
             ```
 
         """
@@ -199,6 +199,7 @@ class Backend:
         self._quant_files = self.find_quants(*args, **kwargs)
         return self._quant_files
 
+    # TODO: example missing here
     def parse_data(self, files, *args, **kwargs) -> xr.Dataset:
         """Read data from files and attach metadata.
 
@@ -214,10 +215,6 @@ class Backend:
 
         Examples
         --------
-        >>> files = ['file1.h5', 'file2.h5']
-        >>> data = backend.parse_data(files)
-        >>> print(data.attrs)
-        ...
 
         """
         # TODO: improve the example above
