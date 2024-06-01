@@ -12,7 +12,7 @@ Ozzy is a data visualization and data wrangling Python package geared towards **
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
 > [!WARNING]
-> The documentation for the first version of ozzy is still in development. The documentation website is not online yet.
+> The documentation for the first version of ozzy is still in development. The package is not available on PyPI, conda-forge or Zenodo yet, and some links may be broken.
 
 ### **Why ozzy?**
 
@@ -39,38 +39,60 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
 ## Installation
 
+> [!IMPORTANT]
+> Ozzy requires Python >= 3.10.
+
+A detailed guide is available in the ["Installation" page of the documentation](https://mtrocadomoreira.github.io/ozzy/user-guide/installation/).
+
+We highly recommend installing ozzy in its own virtual environment.
+
+### conda (recommended)
+
+```bash
+conda install ozzy
+```
+
 ### pip
 
-### conda
+```bash
+python3 -m pip install ozzy
+```
 
-Head to the documentation page to see some examples of how to get started.
+
+Head to the documentation page to see some [examples of how to get started](https://mtrocadomoreira.github.io/ozzy/user-guide/getting-started/).
 
 ## Documentation
 
-All the documentation can be found at ...
+All the documentation can be found at [https://mtrocadomoreira.github.io/ozzy](https://mtrocadomoreira.github.io/ozzy).
 
 ## Acknowledgment
 
-Please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
+Please consider acknowledging ozzy if you use it to produce images or results published in a scientific publication, for example by including the following text in the acknowledgments and/or citing ozzy's Zenodo reference[^1]:
 
-> The Scientific colour map lipari[^1] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^2].
+> The data and plots in this publication were processed with ozzy[^1], a freely available data visualization and analysis package.
 
-[^1]: F. Crameri, "Scientific colour maps". Zenodo, Oct. 05, 2023. [doi: 10.5281/zenodo.8409685](http://doi.org/10.5281/zenodo.8409685).
+[^1]: 
 
-[^2]: F. Crameri, G.E. Shephard, and P.J. Heron, "The misuse of colour in science communication". Nat. Commun. **11**, 5444 (2020). [doi: 10.1038/s41467-020-19160-7](https://doi.org/10.1038/s41467-020-19160-7). 
+In addition, please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
+
+> The Scientific colour map lipari[^2] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^3].
+
+[^2]: F. Crameri, "Scientific colour maps". Zenodo, Oct. 05, 2023. [doi: 10.5281/zenodo.8409685](http://doi.org/10.5281/zenodo.8409685).
+
+[^3]: F. Crameri, G.E. Shephard, and P.J. Heron, "The misuse of colour in science communication". Nat. Commun. **11**, 5444 (2020). [doi: 10.1038/s41467-020-19160-7](https://doi.org/10.1038/s41467-020-19160-7). 
 
 More information about the colour libraries used by ozzy can be found in the ["Plotting" section of the User Guide]().
 
 
 ## License
 
-Copyright (C) 2024 Mariana Moreira - All Rights Reserved 
+Copyright &copy; 2024 Mariana Moreira - All Rights Reserved 
 
 You may use, distribute and modify this code under the terms of the MIT License.
 
 Ozzy bundles [Paul Tol's colour schemes definition](https://personal.sron.nl/~pault/), which is available under a ["3-clause BSD" license](https://opensource.org/license/BSD-3-Clause). The qualitative colour scheme "muted" is used by default in `ozzy.plot`.
 
-The plotting submodule of ozzy (`ozzy.plot`) also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/), which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/ozzy/fonts/`). See more details about the bundled fonts and their copyright notices in the ["Fonts" section of the User Guide]().
+The plotting submodule of ozzy (`ozzy.plot`) also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/), which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/ozzy/fonts/`). See more details about the bundled fonts and their copyright notices in the ["License" section of the documentation](https://mtrocadomoreira.github.io/ozzy/about/license/#fonts).
 
 
 
