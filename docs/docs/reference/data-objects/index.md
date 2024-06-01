@@ -25,11 +25,11 @@ Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[
     Saving a [Dataset][xarray.Dataset] object:
 
     ```python
-    >>> import ozzy as oz
-    >>> ds = oz.Dataset()
-    >>> ds.ozzy.save('test.h5')
-         -> Saved file "test.h5" 
-        -> 'save' took: 0:00:00.212650
+    import ozzy as oz
+    ds = oz.Dataset()
+    ds.ozzy.save('test.h5')
+    #  -> Saved file "test.h5" 
+    # -> 'save' took: 0:00:00.212650
     ```
 
 ??? note "Note for developers"
@@ -46,17 +46,20 @@ Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[
     !!! example
 
         ```python
-        >>> import xarray as xr
-        >>> import ozzy as oz
-        >>> ds = xr.Dataset()
-        >>> assert ds == ds.ozzy._obj
-        True
+        import xarray as xr
+        import ozzy as oz
+        ds = xr.Dataset()
+        assert ds == ds.ozzy._obj
+        # True
         ```
 
-## xarray.Dataset.ozzy
+## Methods
 
-### ::: ozzy.accessors.OzzyDataset
+=== "xarray.DataArray.ozzy"
 
-## xarray.DataArray.ozzy
+    ::: ozzy.accessors.OzzyDataArray
 
-### ::: ozzy.accessors.OzzyDataArray
+=== "xarray.Dataset.ozzy"
+
+    ::: ozzy.accessors.OzzyDataset
+

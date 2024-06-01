@@ -107,7 +107,6 @@ class Gatekeeper(type):
 # -----------------------------------------------------------------------
 
 # TODO: add working examples to docstrings
-# TODO: change apparent names of classes rendered by mkdocstrings
 
 
 def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m"):
@@ -220,7 +219,9 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
+    def coord_to_physical_distance(
+        self, coord: str, n0: float, units: str = "m"
+    ) -> xr.Dataset:
         r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
         Parameters
@@ -268,7 +269,9 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         _save(self, path)
 
     @stopwatch
-    def fft(self, data_var: str, axes=None, dims: list[str] | None = None, **kwargs):
+    def fft(
+        self, data_var: str, axes=None, dims: list[str] | None = None, **kwargs
+    ) -> xr.DataArray:
         """Take FFT of variable in Dataset along specified axes.
 
         Parameters
@@ -280,7 +283,7 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         dims : list[str], optional
             The names of the dimensions to take FFT along. Overrides `axes`.
         **kwargs
-            Additional keyword arguments passed to `[numpy.fft.fftn][]`.
+            Additional keyword arguments passed to [`numpy.fft.fftn`][numpy.fft.fftn].
 
         Returns
         -------
@@ -299,7 +302,9 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    def coord_to_physical_distance(self, coord: str, n0: float, units: str = "m"):
+    def coord_to_physical_distance(
+        self, coord: str, n0: float, units: str = "m"
+    ) -> xr.DataArray:
         r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
         Parameters
@@ -348,7 +353,7 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         _save(self, path)
 
     @stopwatch
-    def fft(self, axes=None, dims: list[str] | None = None, **kwargs):
+    def fft(self, axes=None, dims: list[str] | None = None, **kwargs) -> xr.DataArray:
         """Take FFT of DataArray along specified axes.
 
         Parameters
@@ -358,7 +363,7 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         dims : list[str], optional
             The names of the dimensions to take FFT along. Overrides `axes`.
         **kwargs
-            Additional keyword arguments passed to `[numpy.fft.fftn][]`.
+            Additional keyword arguments passed to [`numpy.fft.fftn`][numpy.fft.fftn].
 
         Returns
         -------

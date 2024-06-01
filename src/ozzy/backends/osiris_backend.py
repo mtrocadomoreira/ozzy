@@ -16,15 +16,11 @@ import xarray as xr
 from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch, tex_format, unpack_str
 
-# These three variables must be defined in each backend module
-# The function read() and the Methods class must also be defined in each backend module
-
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
 
 # TODO: make compatible with part data (and different data types in general)
-# TODO: write docstrings
 
 
 def config_osiris(ds):

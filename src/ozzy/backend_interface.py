@@ -52,9 +52,9 @@ class Backend:
     ??? example "Create a new Backend instance and read files"
 
         ```python
-        >>> backend = Backend('osiris')
-        >>> files = backend.find_quants(path='sim_dir', dirs_runs={'run1': 'run1_dir'}, quants=['e2', 'b3'])
-        >>> data = backend.parse_data(files)
+        backend = Backend('osiris')
+        files = backend.find_quants(path='sim_dir', dirs_runs={'run1': 'run1_dir'}, quants=['e2', 'b3'])
+        data = backend.parse_data(files)
         ```
 
     """
@@ -120,10 +120,10 @@ class Backend:
         ???+ example "Find quantity files in a directory"
 
             ```python
-            >>> dirs_runs = {'run1': 'output'}
-            >>> files = backend.find_quants('sim_dir', dirs_runs, ['e_field'])
-            >>> print(files)
-            {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
+            dirs_runs = {'run1': 'output'}
+            files = backend.find_quants('sim_dir', dirs_runs, ['e_field'])
+            print(files)
+            # {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
             ```
 
         """
@@ -199,7 +199,7 @@ class Backend:
         self._quant_files = self.find_quants(*args, **kwargs)
         return self._quant_files
 
-    def parse_data(self, files, *args, **kwargs):
+    def parse_data(self, files, *args, **kwargs) -> xr.Dataset:
         """Read data from files and attach metadata.
 
         Parameters

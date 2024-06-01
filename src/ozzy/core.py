@@ -150,7 +150,7 @@ def DataArray(
         ```python
         import ozzy as oz
         da = oz.DataArray()
-        da
+        print(da)
         # <xarray.DataArray ()> Size: 8B
         # array(nan)
         # Attributes:
@@ -199,10 +199,10 @@ def available_backends():
     ???+ example "Show available file backends"
 
         ```python
-        >>> import ozzy as oz
-        >>> backends = oz.available_backends()
-        >>> print(backends)
-        ['osiris', 'lcode', 'ozzy']
+        import ozzy as oz
+        backends = oz.available_backends()
+        print(backends)
+        # ['osiris', 'lcode', 'ozzy']
         ```
     """
     return _list_avail_backends()
