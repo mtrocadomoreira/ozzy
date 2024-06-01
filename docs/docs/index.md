@@ -10,7 +10,7 @@ Ozzy is a data visualization and data wrangling tool geared towards particle-in-
 
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
-[Get started](user-guide/installation.md){ .md-button .md-button--primary}
+[Get started](user-guide/installation/index.md){ .md-button .md-button--primary}
 
 ## Why ozzy?
 

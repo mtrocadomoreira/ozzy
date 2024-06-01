@@ -18,7 +18,7 @@ import xarray as xr
 
 from . import tol_colors as tc
 
-# TODO: write docstrings
+# TODO: write documentation
 
 
 def cmap_exists(name):

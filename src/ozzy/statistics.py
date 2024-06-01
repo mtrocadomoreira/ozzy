@@ -14,10 +14,25 @@ import xarray as xr
 from .new_dataobj import new_dataset
 from .utils import stopwatch
 
-# TODO: write docstrings
+# TODO: edit docstrings
 
 
 def _check_raw_and_grid(raw_ds, grid_ds):
+    """
+    Check if the input datasets contain particle and grid data, respectively.
+
+    Parameters
+    ----------
+    raw_ds : xarray.Dataset
+        Dataset containing particle data.
+    grid_ds : xarray.Dataset
+        Dataset containing grid data.
+
+    Raises
+    ------
+    ValueError
+        If the input datasets do not contain particle and grid data, respectively.
+    """
     if ("part" not in raw_ds.attrs["pic_data_type"]) | (
         "grid" not in grid_ds.attrs["pic_data_type"]
     ):
@@ -27,6 +42,25 @@ def _check_raw_and_grid(raw_ds, grid_ds):
 
 
 def _check_n0_input(n0, xi_var):
+    """
+    Check if the `xi_var` is provided when `n0` is provided.
+
+    Parameters
+    ----------
+    n0 : float or None
+        Reference density value.
+    xi_var : str or None
+        Name of the variable representing the xi axis.
+
+    Raises
+    ------
+    ValueError
+        If `n0` is provided but `xi_var` is not.
+
+    Notes
+    -----
+    If `n0` and `xi_var` are both provided, a warning is printed assuming the xi axis is in normalized units.
+    """
     if (n0 is not None) & (xi_var is None):
         raise ValueError("Name of xi variable must be provided when n0 is provided")
     elif (n0 is not None) & (xi_var is not None):
@@ -34,6 +68,23 @@ def _check_n0_input(n0, xi_var):
 
 
 def _define_q_units(n0, xi_var, dens_ds):
+    """
+    Define the units for the charge density based on the data origin and input parameters.
+
+    Parameters
+    ----------
+    n0 : float or None
+        Reference density value.
+    xi_var : str or None
+        Name of the variable representing the xi axis.
+    dens_ds : xarray.Dataset
+        Dataset containing density data.
+
+    Returns
+    -------
+    units_str : str
+        String representing the units for the charge density.
+    """
     match dens_ds.attrs["data_origin"]:
         case "lcode":
             if n0 is None:
@@ -58,6 +109,45 @@ def parts_into_grid(
     n0: float | None = None,
     xi_var: str | None = None,
 ):
+    """
+    Bin particle data into a grid.
+
+    Parameters
+    ----------
+    raw_ds : xarray.Dataset
+        Dataset containing particle data.
+    axes_ds : xarray.Dataset
+        Dataset containing grid axes information.
+    time_dim : str, optional
+        Name of the time dimension in the input datasets. Default is `'t'`.
+    weight_var : str, optional
+        Name of the variable representing particle weights. Default is `'q'`.
+    r_var : str or None, optional
+        Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable. Default is None.
+    n0 : float or None, optional
+        Reference density value. If provided, the charge density is converted to physical units. Default is None.
+    xi_var : str or None, optional
+        Name of the variable representing the xi axis. Required if `n0` is provided.
+
+    Returns
+    -------
+    parts : xarray.Dataset
+        Dataset containing the binned particle data on the grid.
+
+    Raises
+    ------
+    KeyError
+        If no spatial dimensions are found in the input `axes_ds`.
+    ValueError
+        If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
+    >>> axes_ds = xr.Dataset({'x': ..., 'y': ...})
+    >>> binned_parts = parts_into_grid(raw_ds, axes_ds)
+    """
     _check_raw_and_grid(raw_ds, axes_ds)
 
     _check_n0_input(n0, xi_var)
@@ -117,6 +207,42 @@ def charge_in_field_quadrants(
     n0=None,
     xi_var=None,
 ):
+    """
+    Calculate the charge density in different quadrants of the field space.
+
+    Parameters
+    ----------
+    raw_ds : xarray.Dataset
+        Dataset containing particle data.
+    fields_ds : xarray.Dataset
+        Dataset containing field data.
+    time_dim : str, optional
+        Name of the time dimension in the input datasets. Default is `'t'`.
+    weight_var : str, optional
+        Name of the variable representing particle weights. Default is `'q'`.
+    n0 : float or None, optional
+        Reference density value. If provided, the charge density is converted to physical units. Default is None.
+    xi_var : str or None, optional
+        Name of the variable representing the xi axis. Required if `n0` is provided.
+
+    Returns
+    -------
+    charge_ds : xarray.Dataset
+        Dataset containing the charge density in different quadrants of the field space.
+
+    Raises
+    ------
+    ValueError
+        If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
+    >>> fields_ds = xr.Dataset({'Ex': ..., 'Ey': ...})
+    >>> charge_quadrants = charge_in_field_quadrants(raw_ds, fields_ds)
+    """
+
     # Check type of input
 
     _check_raw_and_grid(raw_ds, fields_ds)
@@ -159,29 +285,10 @@ def charge_in_field_quadrants(
     for case, cond in conditions.items():
         print("     - case: " + case)
 
-        # fld1_sel = fields_ds[fld_vars[0]].where(cond.compute(), drop=True)
-        # fld2_sel = fields_ds[fld_vars[1]].where(cond.compute(), drop=True)
-
-        # w_prll = abs(fld1_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
-        # w_perp = abs(fld2_sel * parts["nb"]).sum(dim=spatial_dims, skipna=True)
-        # w_both = w_prll + w_perp
-
         nb_sel = parts["nb"].where(cond.compute(), drop=True)
         q_quad = nb_sel.sum(dim=spatial_dims, skipna=True)
 
         # Set metadata
-
-        # ndims = w_prll.ndim
-
-        # w_prll = w_prll.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
-        # w_perp = w_perp.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
-        # w_both = w_both.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
-
-        # w_prll.name = "W in " + fld_vars[0]
-        # w_perp.name = "W in " + fld_vars[1]
-        # w_both.name = "Wtot"
-
-        # summed = summed + [w_prll, w_perp, w_both]
 
         ndims = q_quad.ndim
         q_quad = q_quad.expand_dims(dim=newdims[case], axis=[ndims, ndims + 1])
@@ -190,18 +297,8 @@ def charge_in_field_quadrants(
 
     charge_ds = xr.merge(summed)
 
-    # charge_ds[w_prll.name].attrs["long_name"] = (
-    #     r"$W$ in " + fields_ds[fld_vars[0]].attrs["long_name"]
-    # )
-    # charge_ds[w_perp.name].attrs["long_name"] = (
-    #     r"$W$ in " + fields_ds[fld_vars[1]].attrs["long_name"]
-    # )
-    # charge_ds[w_both.name].attrs["long_name"] = r"$W_\mathrm{tot}$"
     charge_ds[q_quad.name].attrs["long_name"] = r"$Q$"
     charge_ds[q_quad.name].attrs["long_name"] = units_str
-
-    # for var in charge_ds.data_vars:
-    #     charge_ds[var].attrs["units"] = "a.u."
 
     charge_ds.attrs["pic_data_type"] = "grid"
     charge_ds.attrs["data_origin"] = "ozzy"
@@ -210,6 +307,40 @@ def charge_in_field_quadrants(
 
 
 def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
+    """
+    Interpolate field values at particle positions.
+
+    Parameters
+    ----------
+    raw_ds : xarray.Dataset
+        Dataset containing particle data.
+    fields_ds : xarray.Dataset
+        Dataset containing field data.
+    spatial_dims : list of str, optional
+        List of spatial dimension names in the input datasets. Default is `['x1', 'x2']`.
+
+    Returns
+    -------
+    raw_ds : xarray.Dataset
+        Dataset containing particle data with interpolated field values.
+
+    Raises
+    ------
+    ValueError
+        If the input datasets contain a time dimension, or if the input datasets do not contain particle and grid data, respectively.
+
+    Warning
+    -------
+    This function assumes that the second element of `spatial_dims` is the vertical dimension.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
+    >>> fields_ds = xr.Dataset({'Ex': ..., 'Ey': ...})
+    >>> particle_fields = field_space(raw_ds, fields_ds)
+    """
+
     # BUG: (warning) assumes that second element of spatial_dims is the vertical dimension
 
     t_in_fields = "t" in fields_ds.dims

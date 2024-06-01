@@ -152,10 +152,10 @@ plugins:
           - https://docs.dask.org/en/stable/objects.inv
           - https://numpy.org/doc/stable/objects.inv
           - https://pandas.pydata.org/docs/objects.inv
-  # - git-revision-date-localized:
-  #   enabled: !ENV [CI, false]
-  #   enable_creation_date: true
-  #   fallback_to_build_date: true
+  - git-revision-date-localized:
+      enabled: !ENV [CI, false]
+      enable_creation_date: true
+      fallback_to_build_date: true
   # - privacy:
   #   enabled: !ENV [CI, false]
 
@@ -197,8 +197,8 @@ nav:
     - ozzy.statistics: reference/statistics.md
     - ozzy.fields: reference/fields.md
     - ozzy.utils: reference/utils.md
-  - Developer Guide:
-    - dev-guide/index.md
+  # - Developer Guide:
+  #   - dev-guide/index.md
   - About: 
       - about/index.md
       - License: about/license.md

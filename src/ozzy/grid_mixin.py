@@ -12,8 +12,6 @@ import numpy as np
 
 from .utils import axis_from_extent, bins_from_axis
 
-# TODO: write docstrings
-
 # TODO: mean_rms_grid
 
 

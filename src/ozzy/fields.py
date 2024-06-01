@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 from .utils import stopwatch
 
-# TODO: write docstrings
+# TODO: edit docstrings
 
 # --- Helper functions ---
 
@@ -24,6 +24,42 @@ from .utils import stopwatch
 def _coarsen_into_blocks(
     da: xr.DataArray, var: str, ncells: int, boundary: str = "trim", side: str = "right"
 ):
+    """
+    Coarsen a xarray.DataArray into blocks along a specified dimension.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The input xarray.DataArray to be coarsened.
+    var : str
+        The name of the dimension along which to coarsen the data.
+    ncells : int
+        The number of cells to coarsen over.
+    boundary : str, optional
+        How to handle boundaries. One of `'trim'`, `'pad'`, or `'drop'`. Default is `'trim'`.
+    side : str, optional
+        Which side to trim or pad on. One of `'left'` or `'right'`. Default is `'right'`.
+
+    Returns
+    -------
+    xarray.DataArray
+        The coarsened xarray.DataArray with a new dimension `'window'` representing the blocks.
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> da = xr.DataArray(np.random.rand(10, 20), dims=('x', 'y'))
+    >>> da_blocks = _coarsen_into_blocks(da, 'x', 2)
+    >>> print(da_blocks)
+    <xarray.DataArray (window: 5, x_window: 2, y: 20)>
+    array([[[0.97876793, 0.50170379, ..., 0.63642584, 0.92491362],
+            [0.22611329, 0.51015634, ..., 0.9770265 , 0.94467706]],
+           [[0.82265108, 0.66233855, ..., 0.28416621, 0.96093203],
+            [0.35831461, 0.67536946, ..., 0.73078818, 0.59865027]],
+           ...,
+           [[0.57375793, 0.03718399, ..., 0.19866444, 0.83261985],
+            [0.13949275, 0.59865447, ..., 0.94888057, 0.38344152]]])
+    """
     da_blocks = da.coarsen({var: ncells}, boundary=boundary, side=side)
     da_blocks = da_blocks.construct({var: ("window", var + "_window")})
 
@@ -49,6 +85,49 @@ def vphi_from_fit(
     boundary: str = "trim",
     quasistatic_fixed_z: bool = False,
 ):
+    """
+    Calculate the phase velocity (vphi) from a xarray.DataArray by fitting a sinusoidal function to blocks of data.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The input xarray.DataArray containing the data to be analyzed.
+    xvar : str, optional
+        The name of the spatial dimension along which to perform the fit. Default is `'x1'`.
+    tvar : str, optional
+        The name of the time dimension. Default is `'t'`.
+    window_len : float, optional
+        The length of the window (in units of the spatial dimension) over which to perform the fit. Default is `1.0`.
+    k : float or str, optional
+        The wavenumber to use in the fit. If `'fft'`, the wavenumber will be calculated from the FFT of the data. Default is `1.0`.
+    x_zero : float, optional
+        The value of the spatial dimension at which the sinusoidal function is zero. Default is `0.0`.
+    boundary : str, optional
+        How to handle boundaries when coarsening the data into blocks. One of `'trim'`, `'pad'`, or `'drop'`. Default is `'trim'`.
+    quasistatic_fixed_z : bool, optional
+        If True, the phase velocity is calculated assuming a quasistatic approximation with a fixed z-dimension. Default is False.
+
+    Returns
+    -------
+    xarray.Dataset
+        A dataset containing the calculated phase velocity (`vphi`), phase (`phi`), and phase error (`phi_err`).
+
+    Examples
+    --------
+    >>> import xarray as xr
+    >>> da = xr.DataArray(np.random.rand(10, 20), dims=('t', 'x1'))
+    >>> res = vphi_from_fit(da)
+    >>> print(res)
+    <xarray.Dataset>
+    Dimensions:  (t: 10, x1: 10)
+    Coordinates:
+      * t        (t) int64 0 1 2 3 4 5 6 7 8 9
+      * x1       (x1) float64 ...
+    Data variables:
+        vphi     (t, x1) float64 ...
+        phi      (t, x1) float64 ...
+        phi_err  (t, x1) float64 ...
+    """
     # Sort out input arguments
 
     k_fft = False

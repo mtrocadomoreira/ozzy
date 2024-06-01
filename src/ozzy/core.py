@@ -41,8 +41,6 @@ from .utils import (
 # Core functions
 # -----------------------------------------------------------------------
 
-# TODO: add examples to docstrings
-
 
 def Dataset(
     *args,
@@ -260,11 +258,6 @@ def open(
     ods = bknd.parse_data(filelist, axes_lims=axes_lims)
 
     return ods
-
-
-# TODO: check whether as_series parameter is even used by any backend
-# TODO: check whether open_series is redundant
-# TODO: think about adding 'load_quant_files' to open and open_series
 
 
 @stopwatch

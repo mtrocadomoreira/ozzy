@@ -18,6 +18,8 @@ from .new_dataobj import new_dataset
 from .statistics import parts_into_grid
 from .utils import axis_from_extent, bins_from_axis
 
+# TODO: write examples
+
 
 class PartMixin:
     """Mixin class for operations on particle-like data objects.

@@ -217,7 +217,6 @@ class Backend:
         --------
 
         """
-        # TODO: improve the example above
         print("\nReading the following files:")
         ods = self.parse(files, *args, **kwargs)
 
