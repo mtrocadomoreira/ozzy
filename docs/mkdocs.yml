@@ -153,7 +153,7 @@ plugins:
           - https://numpy.org/doc/stable/objects.inv
           - https://pandas.pydata.org/docs/objects.inv
   - git-revision-date-localized:
-      enabled: !ENV [CI, false]
+      enabled: true #!ENV [CI, false]
       enable_creation_date: true
       fallback_to_build_date: true
   # - privacy:
