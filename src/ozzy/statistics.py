@@ -113,7 +113,7 @@ def parts_into_grid(
     n0: float | None = None,
     xi_var: str | None = None,
 ):
-    """
+    r"""
     Bin particle data into a grid (charge density distribution).
 
     Parameters
@@ -212,7 +212,7 @@ def charge_in_field_quadrants(
     n0=None,
     xi_var=None,
 ):
-    """
+    r"""
     Calculate the amount of charge in different quadrants of the "field space". By quadrants we mean the four possible combinations of positive/negative longitudinal fields and positive/negative transverse fields.
 
 

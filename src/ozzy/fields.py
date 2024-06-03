@@ -91,7 +91,7 @@ def vphi_from_fit(
     boundary: str = "trim",
     quasistatic_fixed_z: bool = False,
 ):
-    """
+    r"""
     Measure the phase ($\phi$) and phase velocity ($v_\phi$) from stacked lineouts of a wave (waterfall data) by fitting a sinusoidal function to blocks of data.
 
     Parameters
@@ -253,9 +253,9 @@ def vphi_from_fit(
     for var in res.coords:
         res[var].attrs = da[var].attrs
 
-    res["vphi"] = res["vphi"].assign_attrs({"long_name": r"$v_\phi$", "units": "$c$"})
+    res["vphi"] = res["vphi"].assign_attrs({"long_name": r"$v_\phi$", "units": r"$c$"})
     res["phi"] = res["phi"].assign_attrs(
-        {"long_name": r"$\phi$", "units": "$\mathrm{rad}$"}
+        {"long_name": r"$\phi$", "units": r"$\mathrm{rad}$"}
     )
 
     print("\nDone!")

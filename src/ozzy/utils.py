@@ -145,7 +145,7 @@ def unpack_str(attr):
 
 
 def tex_format(str: str) -> str:
-    """
+    r"""
     Format a string for TeX by enclosing it with '$' symbols.
 
     Parameters
@@ -179,7 +179,7 @@ def tex_format(str: str) -> str:
 
 
 def get_regex_snippet(pattern: str, string: str) -> str:
-    """
+    r"""
     Extract a regex pattern from a string using [re.search()](https://docs.python.org/3/library/re.html#re.search).
 
     !!! tip
