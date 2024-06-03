@@ -52,6 +52,9 @@ markdown_extensions:
   - footnotes
   - tables
   - abbr
+  - toc:
+      permalink: §
+      permalink_title: Link to this section
   - pymdownx.snippets
   - pymdownx.caret
   - pymdownx.mark
