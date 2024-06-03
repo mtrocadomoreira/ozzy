@@ -8,6 +8,10 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
+"""
+This submodule provides utility functions for other parts of ozzy, from simple formatting operations to more complicated file-finding tasks.
+"""
+
 import functools
 import glob
 import os
@@ -18,8 +22,6 @@ from pathlib import PurePath
 
 import h5py
 import numpy as np
-
-# TODO: edit docstrings
 
 # Decorators
 
@@ -40,13 +42,21 @@ def stopwatch(method):
 
     Examples
     --------
-    >>> @stopwatch
-    ... def my_function(a, b):
-    ...     return a + b
-    ...
-    >>> my_function(2, 3)
-    -> 'my_function' took: 0:00:00.000001
-    5
+
+    ???+ example "Get execution time whenever a function is called"
+
+        ```python
+        from ozzy.utils import stopwatch
+
+        @stopwatch
+        def my_function(a, b):
+            return a + b
+
+        my_function(2, 3)
+        # -> 'my_function' took: 0:00:00.000001
+        # 5
+        ```
+
     """
 
     @functools.wraps(method)
@@ -64,7 +74,7 @@ def stopwatch(method):
 # Consistent output
 
 
-def print_file_item(file):
+def print_file_item(file: str) -> None:
     """
     Print a file name with a leading '  - '.
 
@@ -75,8 +85,15 @@ def print_file_item(file):
 
     Examples
     --------
-    >>> print_file_item('example.txt')
-    - example.txt
+
+    ???+ example
+
+        ```python
+        import ozzy as oz
+        oz.utils.print_file_item('example.txt')
+        # - example.txt
+        ```
+
     """
     print("  - " + file)
 
@@ -87,6 +104,9 @@ def print_file_item(file):
 def unpack_str(attr):
     """
     Unpack a string from a NumPy ndarray or return the input as is.
+
+    !!! note
+        This function is useful when reading attributes from HDF5 files, since strings are often wrapped in NumPy arrays when using [h5py](https://www.h5py.org/) to read these files.
 
     Parameters
     ----------
@@ -100,10 +120,16 @@ def unpack_str(attr):
 
     Examples
     --------
-    >>> unpack_str(np.array(['hello']))
-    'hello'
-    >>> unpack_str('world')
-    'world'
+
+    ???+ example
+        ```python
+        import ozzy as oz
+        import numpy as np
+        oz.utils.unpack_str(np.array(['hello']))
+        # 'hello'
+        oz.utils.unpack_str('world')
+        # 'world'
+        ```
     """
     if isinstance(attr, np.ndarray):
         match len(attr.shape):
@@ -118,7 +144,7 @@ def unpack_str(attr):
     return result
 
 
-def tex_format(str):
+def tex_format(str: str) -> str:
     """
     Format a string for TeX by enclosing it with '$' symbols.
 
@@ -134,10 +160,16 @@ def tex_format(str):
 
     Examples
     --------
-    >>> tex_format('x^2')
-    '$x^2$'
-    >>> tex_format('')
-    ''
+
+    ???+ example
+
+        ```python
+        import ozzy as oz
+        oz.utils.tex_format('k_p^2')
+        # '$k_p^2$'
+        oz.utils.tex_format('')
+        # ''
+        ```
     """
     if str == "":
         newstr = str
@@ -146,9 +178,12 @@ def tex_format(str):
     return newstr
 
 
-def get_regex_snippet(pattern, string):
+def get_regex_snippet(pattern: str, string: str) -> str:
     """
-    Extract a regex pattern from a string using re.search.
+    Extract a regex pattern from a string using [re.search()](https://docs.python.org/3/library/re.html#re.search).
+
+    !!! tip
+        Use [regex101.com](https://regex101.com/) to experiment with and debug regular expressions.
 
     Parameters
     ----------
@@ -164,8 +199,14 @@ def get_regex_snippet(pattern, string):
 
     Examples
     --------
-    >>> get_regex_snippet(r'\d+', 'hello123world')
-    '123'
+
+    ???+ example "Get number from file name"
+
+        ```python
+        import ozzy as oz
+        oz.utils.get_regex_snippet(r'\d+', 'field-001234.h5')
+        # '001234'
+        ```
     """
     return re.search(pattern, string).group(0)
 
@@ -173,7 +214,7 @@ def get_regex_snippet(pattern, string):
 # Class manipulation
 
 
-def get_user_methods(clss):
+def get_user_methods(clss: type) -> list[str]:
     """
     Get a list of user-defined methods in a class.
 
@@ -189,15 +230,20 @@ def get_user_methods(clss):
 
     Examples
     --------
-    >>> class MyClass:
-    ...     def __init__(self):
-    ...         pass
-    ...
-    ...     def my_method(self):
-    ...         pass
-    ...
-    >>> get_user_methods(MyClass)
-    ['my_method']
+
+    ???+ example "Minimal class"
+
+        ```python
+        class MyClass:
+            def __init__(self):
+                pass
+            def my_method(self):
+                pass
+
+        import ozzy as oz
+        oz.utils.get_user_methods(MyClass)
+        # ['my_method']
+        ```
     """
     return [
         func
@@ -211,9 +257,9 @@ def get_user_methods(clss):
 # I/O
 
 
-def prep_file_input(files):
+def prep_file_input(files: str | list[str]) -> list[str]:
     """
-    Prepare file input by expanding user paths and converting to absolute paths.
+    Prepare path input argument by expanding user paths and converting to absolute paths.
 
     Parameters
     ----------
@@ -227,10 +273,16 @@ def prep_file_input(files):
 
     Examples
     --------
-    >>> prep_file_input('~/example.txt')
-    ['/home/user/example.txt']
-    >>> prep_file_input(['~/file1.txt', '~/file2.txt'])
-    ['/home/user/file1.txt', '/home/user/file2.txt']
+
+    ???+ example "Expand user folder"
+
+        ```python
+        import ozzy as oz
+        oz.utils.prep_file_input('~/example.txt')
+        # ['/home/user/example.txt']
+        oz.utils.prep_file_input(['~/file1.txt', '~/file2.txt'])
+        # ['/home/user/file1.txt', '/home/user/file2.txt']
+        ```
     """
     if isinstance(files, str):
         filelist = [os.path.abspath(os.path.expanduser(files))]
@@ -255,19 +307,25 @@ def force_str_to_list(var):
 
     Examples
     --------
-    >>> force_str_to_list('hello')
-    ['hello']
-    >>> force_str_to_list([1, 2, 3])
-    [1, 2, 3]
+
+    ???+ example
+
+        ```python
+        import ozzy as oz
+        oz.utils.force_str_to_list('hello')
+        # ['hello']
+        oz.utils.force_str_to_list([1, 2, 3])
+        # [1, 2, 3]
+        ```
     """
     if isinstance(var, str):
         var = [var]
     return var
 
 
-def get_abs_filepaths(path, run_dir, quant_files):
+def get_abs_filepaths(path: str, run_dir: str, quant_files: list[str]) -> list[str]:
     """
-    Get absolute file paths for quantification files in a run directory.
+    Get absolute file paths of data files (simulation quantities) in a run directory.
 
     Parameters
     ----------
@@ -276,17 +334,23 @@ def get_abs_filepaths(path, run_dir, quant_files):
     run_dir : str
         The run directory name.
     quant_files : list of str
-        The quantification file names.
+        The file names (quantity names).
 
     Returns
     -------
     filepaths_to_read : list of str
-        A list of absolute file paths for the quantification files.
+        A list of absolute file paths for the data files.
 
     Examples
     --------
-    >>> get_abs_filepaths('/path/to/data', 'run1', ['quant1.txt', 'quant2.txt'])
-    ['/path/to/data/run1/quant1.txt', '/path/to/data/run1/quant2.txt']
+
+    ???+ example "Simulation data organized in subfolders"
+
+        ```python
+        import ozzy as oz
+        oz.utils.get_abs_filepaths('/path/to/data', 'run1', ['e1-000000.h5','e1-000001.h5'])
+        # ['/path/to/data/run1/MS/FLD/e1/e1-000000.h5', '/path/to/data/run1/MS/FLD/e1/e1-000001.h5']
+        ```
     """
     filepaths_to_read = []
     for file in quant_files:
@@ -298,26 +362,75 @@ def get_abs_filepaths(path, run_dir, quant_files):
     return filepaths_to_read
 
 
-def find_runs(path, runs_pattern):
+def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:
     """
-    Find run directories matching a pattern.
+    Find run directories matching a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern.
 
     Parameters
     ----------
     path : str
         The base path.
     runs_pattern : str or list of str
-        The run directory name pattern(s).
+        The run directory name or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern(s).
 
     Returns
     -------
     dirs_dict : dict
-        A dictionary mapping run names to their corresponding directory paths.
+        A dictionary mapping run names to their relative directory paths.
 
     Examples
     --------
-    >>> find_runs('/path/to/data', 'run*')
-    {'run1': '/path/to/data/run1', 'run2': '/path/to/data/run2'}
+
+    ???+ example "Finding set of run folders"
+
+        Let's say we have a set of simulations that pick up from different checkpoints of a baseline simulation, with the following folder tree:
+
+        ```
+        .
+        └── all_simulations/
+            ├── baseline/
+            │   ├── data.h5
+            │   ├── checkpoint_t_00200.h5
+            │   ├── checkpoint_t_00400.h5
+            │   ├── checkpoint_t_00600.h5
+            │   └── ...
+            ├── from_t_00200/
+            │   └── data.h5
+            ├── from_t_00400/
+            │   └── data.h5
+            ├── from_t_00600/
+            │   └── data.h5
+            ├── ...
+            └── other_simulation
+        ```
+
+        To get the directories of each subfolder, we could use either
+        ```python
+        import ozzy as oz
+        run_dirs = oz.utils.find_runs(path = "all_simulations", runs_pattern = "from_t_*")
+        print(run_dirs)
+        # {'from_t_00200': 'from_t_00200', 'from_t_00400': 'from_t_00400', ...}
+        ```
+        or
+        ```python
+        import ozzy as oz
+        run_dirs = oz.utils.find_runs(path = ".", runs_pattern = "all_simulations/from_t_*")
+        print(run_dirs)
+        # {'from_t_00200': 'all_simulations/from_t_00200', 'from_t_00400': 'all_simulations/from_t_00400', ...}
+        ```
+
+        Note that this function does not work recursively, though it still returns the current directory if no run folders are found:
+        ```python
+        import ozzy as oz
+        run_dirs = oz.utils.find_runs(path = ".", runs_pattern = "from_t_*")
+        # Could not find any run folder:
+        # - Checking whether already inside folder...
+        #     ...no
+        # - Proceeding without a run name.
+        print(run_dirs)
+        # {'undefined': '.'}
+        ```
+
     """
     dirs = []
     run_names = []
@@ -332,7 +445,7 @@ def find_runs(path, runs_pattern):
             folder for folder in filesindir if os.path.isdir(os.path.join(path, folder))
         ]
 
-    run_names = dirs
+    run_names = [PurePath(rdir).parts[-1] for rdir in dirs]
 
     # In case no run folders are found
 
@@ -340,7 +453,7 @@ def find_runs(path, runs_pattern):
         print("Could not find any run folder:")
         print(" - Checking whether already inside folder... ")
         # Check whether already inside run folder
-        folder = PurePath(path).parts[-1]
+        folder = PurePath(os.path.abspath(path)).parts[-1]
         try:
             assert any([folder == item for item in runs_pattern])
         except AssertionError:
@@ -362,9 +475,12 @@ def find_runs(path, runs_pattern):
     return dirs_dict
 
 
-def check_h5_availability(path):
+def check_h5_availability(path: str) -> None:
     """
     Check if an HDF5 file can be opened for writing.
+
+    !!! note
+        This method is useful for longer analysis operations that save a file at the end. Without checking the output file writeability at the beginning, there is the risk of undergoing the lengthy processing and then failing to write the result to a file at the end.
 
     Parameters
     ----------
@@ -382,7 +498,27 @@ def check_h5_availability(path):
 
     Examples
     --------
-    >>> check_h5_availability('/path/to/file.h5')  # doctest: +SKIP
+
+    ???+ example "Writing a custom analysis function"
+
+        ```python
+        import ozzy as oz
+
+        def my_analysis(ds, output_file='output.h5'):
+
+            # Check whether output file is writeable
+            oz.utils.check_h5_availability(output_file)
+
+            # Perform lengthy analysis
+            # ...
+            new_ds = 10 * ds
+
+            # Save result
+            new_ds.ozzy.save(output_file)
+
+            return
+
+        ```
     """
     try:
         with h5py.File(path, "a") as _:
@@ -402,9 +538,9 @@ def check_h5_availability(path):
 # Data manipulation
 
 
-def axis_from_extent(nx: int, lims: tuple[float, float]):
+def axis_from_extent(nx: int, lims: tuple[float, float]) -> np.ndarray:
     """
-    Create a numerical axis from the number of cells and extent limits.
+    Create a numerical axis from the number of cells and extent limits. The axis values are centered with respect to each cell.
 
     Parameters
     ----------
@@ -427,8 +563,17 @@ def axis_from_extent(nx: int, lims: tuple[float, float]):
 
     Examples
     --------
-    >>> axis_from_extent(10, (0, 1))
-    array([0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95])
+
+    ???+ example "Simple axis"
+
+        ```python
+        import ozzy as oz
+        axis = oz.utils.axis_from_extent(10, (0,1))
+        axis
+        # array([0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95])
+        ```
+        Note how the axis values correspond to the center of each cell.
+
     """
     if nx == 0:
         raise ZeroDivisionError("Number of cells in axis cannot be zero.")
@@ -439,9 +584,9 @@ def axis_from_extent(nx: int, lims: tuple[float, float]):
     return ax
 
 
-def bins_from_axis(axis):
+def bins_from_axis(axis: np.ndarray) -> np.ndarray:
     """
-    Create bin edges from a numerical axis.
+    Create bin edges from a numerical axis. This is useful for binning operations that require the bin edges.
 
     Parameters
     ----------
@@ -455,8 +600,26 @@ def bins_from_axis(axis):
 
     Examples
     --------
-    >>> bins_from_axis(np.array([0.1, 0.3, 0.5, 0.7, 0.9]))
-    array([0.05, 0.2 , 0.4 , 0.6 , 0.8 , 0.95])
+
+    ???+ example "Bin edges from simple axis"
+
+        First we create a simple axis with the [axis_from_extent()][ozzy.utils.axis_from_extent] function:
+
+        ```python
+        import ozzy as oz
+        axis = oz.utils.axis_from_extent(10, (0,1))
+        print(axis)
+        # [0.05 0.15 0.25 0.35 0.45 0.55 0.65 0.75 0.85 0.95]
+        ```
+        Now we get the bin edges:
+
+        ```python
+        bedges = oz.utils.bins_from_axis(axis)
+        bedges
+        # array([-6.9388939e-18,  1.0000000e-01,  2.0000000e-01,  3.0000000e-01, 4.0000000e-01,  5.0000000e-01,  6.0000000e-01,  7.0000000e-01, 8.0000000e-01,  9.0000000e-01,  1.0000000e+00])
+        ```
+
+        (In this example there is some rounding error for the zero edge.)
     """
     vmin = axis[0] - 0.5 * (axis[1] - axis[0])
     binaxis = axis + 0.5 * (axis[1] - axis[0])

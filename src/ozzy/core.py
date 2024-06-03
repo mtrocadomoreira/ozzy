@@ -358,9 +358,9 @@ def open_compare(
     path : str, optional
         The path to the directory containing the run folders. Default is the current working directory.
     runs : str, optional
-        A string or pattern to match the run folder names. Default is '*' to match all folders.
+        A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the run folder names. Default is '*' to match all folders.
     quants : str, optional
-        A string or pattern to match the quantity names. Default is '*' to match all quantities.
+        A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the quantity names. Default is '*' to match all quantities.
     axes_lims : dict[str, tuple[float, float]] | None, optional
         A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
 
