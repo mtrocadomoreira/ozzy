@@ -59,6 +59,7 @@ classifiers = [
 
 [project.optional-dependencies]
 optimize = ["numpy_groupies==0.10.2", "numbagg==0.8.1"]
+# TODO: add optional dependencies for building the documentation (mkdocs etc)
 
 
 [project.urls]

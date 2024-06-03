@@ -8,6 +8,10 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
+"""
+This submodule includes functions to analyze field data.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -15,8 +19,6 @@ from scipy.optimize import curve_fit
 from tqdm import tqdm
 
 from .utils import stopwatch
-
-# TODO: edit docstrings
 
 # --- Helper functions ---
 
@@ -74,59 +76,50 @@ def _k_from_fft():
 # --- Diagnostics ---
 
 
+# TODO: deal with features that are not implemented yet (fft, quasistatic z fixed)
+# TODO: explain what phi_err is exactly
+# TODO: explain how fit works exactly
+# TODO: add example (perhaps using sample data?)
 @stopwatch
 def vphi_from_fit(
     da: xr.DataArray,
+    x_zero: float,
     xvar: str = "x1",
     tvar: str = "t",
     window_len: float = 1.0,
     k: float | str = 1.0,
-    x_zero: float = 0.0,
     boundary: str = "trim",
     quasistatic_fixed_z: bool = False,
 ):
     """
-    Calculate the phase velocity (vphi) from a xarray.DataArray by fitting a sinusoidal function to blocks of data.
+    Measure the phase ($\phi$) and phase velocity ($v_\phi$) from stacked lineouts of a wave (waterfall data) by fitting a sinusoidal function to blocks of data.
 
     Parameters
     ----------
     da : xarray.DataArray
         The input xarray.DataArray containing the data to be analyzed.
+
+        The data should be two-dimensional: time or propagation distance along one dimension, and a longitudinal coordinate along the other dimension.
+    x_zero : float
+        Position along the longitudinal coordinate where the sine should be considered to start, and with respect to which the phase will be measured. For example, a seed position.
     xvar : str, optional
         The name of the spatial dimension along which to perform the fit. Default is `'x1'`.
     tvar : str, optional
-        The name of the time dimension. Default is `'t'`.
+        The name of the time or propagation dimension. Default is `'t'`.
     window_len : float, optional
-        The length of the window (in units of the spatial dimension) over which to perform the fit. Default is `1.0`.
+        The length of the window (in units of the plasma wavelength) over which to perform the fit. Default is `1.0`.
     k : float or str, optional
-        The wavenumber to use in the fit. If `'fft'`, the wavenumber will be calculated from the FFT of the data. Default is `1.0`.
-    x_zero : float, optional
-        The value of the spatial dimension at which the sinusoidal function is zero. Default is `0.0`.
+        The wavenumber to use in the definition of the window length. If `'fft'`, the wavenumber will be calculated from the FFT of the data. Default is `1.0`.
     boundary : str, optional
-        How to handle boundaries when coarsening the data into blocks. One of `'trim'`, `'pad'`, or `'drop'`. Default is `'trim'`.
+        How to handle boundaries when coarsening the data into blocks. One of `'trim'`, `'pad'`, or `'drop'`. See [xarray.DataArray.coarsen][].
     quasistatic_fixed_z : bool, optional
         If True, the phase velocity is calculated assuming a quasistatic approximation with a fixed z-dimension. Default is False.
 
     Returns
     -------
     xarray.Dataset
-        A dataset containing the calculated phase velocity (`vphi`), phase (`phi`), and phase error (`phi_err`).
+        A dataset containing the calculated phase velocity (`'vphi'`), phase (`'phi'`), and phase error (`'phi_err'`).
 
-    Examples
-    --------
-    >>> import xarray as xr
-    >>> da = xr.DataArray(np.random.rand(10, 20), dims=('t', 'x1'))
-    >>> res = vphi_from_fit(da)
-    >>> print(res)
-    <xarray.Dataset>
-    Dimensions:  (t: 10, x1: 10)
-    Coordinates:
-      * t        (t) int64 0 1 2 3 4 5 6 7 8 9
-      * x1       (x1) float64 ...
-    Data variables:
-        vphi     (t, x1) float64 ...
-        phi      (t, x1) float64 ...
-        phi_err  (t, x1) float64 ...
     """
     # Sort out input arguments
 
