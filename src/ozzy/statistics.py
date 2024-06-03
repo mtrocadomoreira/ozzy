@@ -8,6 +8,11 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
+"""
+The statistics submodule encompasses functions that process particle data or otherwise synthesize data into lower-dimensional measures. A classic example is getting the centroid (mean transverse position) of a particle distribution.
+
+"""
+
 import numpy as np
 import xarray as xr
 
@@ -99,6 +104,7 @@ def _define_q_units(n0, xi_var, dens_ds):
     return units_str
 
 
+# TODO: add example (perhaps using sample data?)
 @stopwatch
 def parts_into_grid(
     raw_ds,
@@ -110,7 +116,7 @@ def parts_into_grid(
     xi_var: str | None = None,
 ):
     """
-    Bin particle data into a grid.
+    Bin particle data into a grid (charge density distribution).
 
     Parameters
     ----------
@@ -118,21 +124,28 @@ def parts_into_grid(
         Dataset containing particle data.
     axes_ds : xarray.Dataset
         Dataset containing grid axes information.
+
+        ??? tip
+            The axis information can be easily obtained from a grid dataset (for example field data) with
+            ```python
+            axes_ds = fields_ds.coords
+            ```
+
     time_dim : str, optional
         Name of the time dimension in the input datasets. Default is `'t'`.
     weight_var : str, optional
-        Name of the variable representing particle weights. Default is `'q'`.
+        Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
     r_var : str or None, optional
         Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable. Default is None.
     n0 : float or None, optional
-        Reference density value. If provided, the charge density is converted to physical units. Default is None.
+        Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge density is converted to physical units. Default is None.
     xi_var : str or None, optional
-        Name of the variable representing the xi axis. Required if `n0` is provided.
+        Name of the variable representing the longitudinal axis. Required if `n0` is provided.
 
     Returns
     -------
     parts : xarray.Dataset
-        Dataset containing the binned particle data on the grid.
+        Dataset containing the charge density distribution on the grid.
 
     Raises
     ------
@@ -140,13 +153,6 @@ def parts_into_grid(
         If no spatial dimensions are found in the input `axes_ds`.
     ValueError
         If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
-
-    Examples
-    --------
-    >>> import xarray as xr
-    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
-    >>> axes_ds = xr.Dataset({'x': ..., 'y': ...})
-    >>> binned_parts = parts_into_grid(raw_ds, axes_ds)
     """
     _check_raw_and_grid(raw_ds, axes_ds)
 
@@ -198,6 +204,7 @@ def parts_into_grid(
     return parts
 
 
+# TODO: add example (perhaps using sample data?)
 @stopwatch
 def charge_in_field_quadrants(
     raw_ds,
@@ -208,7 +215,8 @@ def charge_in_field_quadrants(
     xi_var=None,
 ):
     """
-    Calculate the charge density in different quadrants of the field space.
+    Calculate the amount of charge in different quadrants of the "field space". By quadrants we mean the four possible combinations of positive/negative longitudinal fields and positive/negative transverse fields.
+
 
     Parameters
     ----------
@@ -216,31 +224,27 @@ def charge_in_field_quadrants(
         Dataset containing particle data.
     fields_ds : xarray.Dataset
         Dataset containing field data.
+        !!! warning
+            This function expects the `fields_ds` argument to be a dataset containing two variables, one of which corresponds to a longitudinal field/force and the other to a transverse field/force.
     time_dim : str, optional
         Name of the time dimension in the input datasets. Default is `'t'`.
     weight_var : str, optional
-        Name of the variable representing particle weights. Default is `'q'`.
+        Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
     n0 : float or None, optional
-        Reference density value. If provided, the charge density is converted to physical units. Default is None.
+        Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge is converted to physical units. Default is None.
     xi_var : str or None, optional
-        Name of the variable representing the xi axis. Required if `n0` is provided.
+        Name of the variable representing the longitudinal axis. Required if `n0` is provided.
 
     Returns
     -------
     charge_ds : xarray.Dataset
-        Dataset containing the charge density in different quadrants of the field space.
+        Dataset containing the charge in different quadrants of the "field space".
 
     Raises
     ------
     ValueError
         If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
 
-    Examples
-    --------
-    >>> import xarray as xr
-    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
-    >>> fields_ds = xr.Dataset({'Ex': ..., 'Ey': ...})
-    >>> charge_quadrants = charge_in_field_quadrants(raw_ds, fields_ds)
     """
 
     # Check type of input
@@ -306,6 +310,8 @@ def charge_in_field_quadrants(
     return charge_ds
 
 
+# TODO: rewrite docstring. warn about NO INTERPOLATION
+# TODO: add example (perhaps using sample data?)
 def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
     """
     Interpolate field values at particle positions.
@@ -333,12 +339,6 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
     -------
     This function assumes that the second element of `spatial_dims` is the vertical dimension.
 
-    Examples
-    --------
-    >>> import xarray as xr
-    >>> raw_ds = xr.Dataset({'x': ..., 'y': ..., 'q': ...})
-    >>> fields_ds = xr.Dataset({'Ex': ..., 'Ey': ...})
-    >>> particle_fields = field_space(raw_ds, fields_ds)
     """
 
     # BUG: (warning) assumes that second element of spatial_dims is the vertical dimension
