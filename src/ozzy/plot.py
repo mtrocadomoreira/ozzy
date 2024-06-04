@@ -209,6 +209,7 @@ ozparams = {
 
 sns.set_theme(
     style="ticks",
+    font="serif",
     rc=ozparams,
 )
 
@@ -307,24 +308,33 @@ def show_fonts(samples=False, fontsize=18):
     return
 
 
+def set_font(font: str) -> None:
+    if font in fm.get_font_names():
+        pass
+        mpl.rc("font", family=font)
+    else:
+        raise ValueError("Couldn't find font")
+    pass
+
+
 def show_cmaps(
-    libraries: str | list[str] = "all", categories: str | list[str] = "all"
+    library: str | list[str] = "all", category: str | list[str] = "all"
 ) -> None:
     libraries_list = ["mpl", "cmc", "tol"]
     categories_list = ["sequential", "diverging", "qualitative", "cyclical"]
 
-    if libraries == "all":
-        libraries = libraries_list
-    elif isinstance(libraries, str):
-        libraries = [libraries]
-    if categories == "all":
-        categories = categories_list
-    elif isinstance(categories, str):
-        categories = [categories]
+    if library == "all":
+        library = libraries_list
+    elif isinstance(library, str):
+        library = [library]
+    if category == "all":
+        category = categories_list
+    elif isinstance(category, str):
+        category = [category]
 
     # Scientific colour maps
-    if "cmc" in libraries:
-        for cat in categories:
+    if "cmc" in library:
+        for cat in category:
             for category, cmaps in cmc_cmaps.items():
                 if cat in category.lower():
                     cmaps = ["cmc." + name for name in cmaps]
@@ -335,8 +345,8 @@ def show_cmaps(
                     )
 
     # Paul Tol
-    if "tol" in libraries:
-        for cat in categories:
+    if "tol" in library:
+        for cat in category:
             for category, cmaps in tol_cmaps.items():
                 if cat in category.lower():
                     cmaps = ["tol." + name for name in cmaps]
@@ -347,8 +357,8 @@ def show_cmaps(
                     )
 
     # Matplotlib
-    if "mpl" in libraries:
-        for cat in categories:
+    if "mpl" in library:
+        for cat in category:
             for category, cmaps in mpl_cmaps.items():
                 if cat in category.lower():
                     plot_color_gradients(
