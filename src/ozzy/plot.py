@@ -17,8 +17,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns  # noqa
 import xarray as xr
+from IPython.display import HTML, display
 
 from . import tol_colors as tc
+from .utils import print_file_item
 
 # TODO: write documentation
 
@@ -153,15 +155,16 @@ for cmap in cmc_cmaps["Sequential"] + cmc_cmaps["Diverging"]:
 
 
 # Import fonts
-avail_fonts = []
+ozzy_fonts = []
 font_dirs = os.path.join(os.path.dirname(os.path.realpath(__file__)), "fonts")
 font_files = fm.findSystemFonts(fontpaths=font_dirs)
 for font_file in font_files:
     fm.fontManager.addfont(font_file)
     font_props = fm.FontProperties(fname=font_file)
     font_name = font_props.get_name()
-    if font_name not in avail_fonts:
-        avail_fonts.append(font_name)
+    if font_name not in ozzy_fonts:
+        ozzy_fonts.append(font_name)
+ozzy_fonts.sort()
 
 # Import all Paul Tol colormaps
 for col in list(tc.tol_cmap()):
@@ -253,6 +256,55 @@ def plot_color_gradients(title, note, cmap_list):
         fontsize=10,
         transform=ax.transAxes,
     )
+
+
+def show_fonts(samples=False, fontsize=18):
+    all_font_paths = fm.get_font_names()
+    # other_font_paths = list(set(all_font_paths) - set(ozzy_font_paths))
+    other_fonts = sorted(list(set(all_font_paths) - set(ozzy_fonts)))
+    # other_fonts = [fm.get_font_(item).family_name for item in other_font_paths]
+
+    if not samples:
+        print("Fonts bundled with ozzy:")
+        for item in ozzy_fonts:
+            print_file_item(item)
+
+        print("\nOther fonts available on your system:")
+        for item in other_fonts:
+            print_file_item(item)
+
+    else:
+        print("Warning: some font samples may not display correctly.")
+
+        def make_row(font):
+            return f'<tr> <td style="width: 40%; text-align: left;">{font}</td> <td style="width: 60%; text-align: left;"><span style="font-family:{font}; font-size: {fontsize}px;">{font}</span></td>   </tr>'
+
+        def make_table(font_list):
+            rows = ""
+            for font in font_list:
+                rows = rows + make_row(font)
+            body = f"""
+                <table style="width: 100%;">
+                    <tr>
+                        <th style="text-align: center;"><strong>Name</strong></th>
+                        <th style="text-align: center;"><strong>Sample</strong></th>
+                    </tr>
+                {rows}
+                </table>
+            """
+            return body
+
+        structure = f"""
+            <h2>Fonts bundled with ozzy:</h2>
+            {make_table(ozzy_fonts)}
+            <br>
+            <h2>Other fonts available on your system:</h2>
+            {make_table(other_fonts)}
+            """
+
+        display(HTML(structure))
+
+    return
 
 
 def show_cmaps(
