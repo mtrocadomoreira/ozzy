@@ -16,7 +16,7 @@ import xarray as xr
 from .backend_interface import Backend, _list_avail_backends
 from .grid_mixin import GridMixin
 from .part_mixin import PartMixin
-from .utils import get_user_methods, stopwatch
+from .utils import get_user_methods, stopwatch, tex_format
 
 xr.set_options(keep_attrs=True)
 
@@ -107,9 +107,18 @@ class Gatekeeper(type):
 # -----------------------------------------------------------------------
 
 # TODO: add working examples to docstrings
+# TODO: add details about coord_to_physical_distance to docstrings
 
 
-def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m"):
+def _coord_to_physical_distance(
+    instance,
+    coord: str,
+    n0: float,
+    new_coord: None | str = None,
+    new_label: None | str = None,
+    units: str = "m",
+    set_as_default: bool = True,
+):
     # HACK: make this function pint-compatible
     if not any([units == opt for opt in ["m", "cm"]]):
         raise KeyError('Error: "units" keyword must be either "m" or "cm"')
@@ -125,16 +134,33 @@ def _coord_to_physical_distance(instance, coord: str, n0: float, units: str = "m
         )
         new_inst = instance._obj
     else:
-        newcoord = coord + "_" + units
-        new_inst = instance._obj.assign_coords(
-            {newcoord: skdepth * instance._obj.coords[coord]}
-        )
-        new_inst[newcoord].attrs["units"] = r"$\mathrm{" + units + "}$"
-
-        if "long_name" in new_inst[coord].attrs:
-            new_inst[newcoord].attrs["long_name"] = new_inst[coord].attrs["long_name"]
+        if new_coord is None:
+            nwcoord = "_".join((coord, units))
         else:
-            new_inst[newcoord].attrs["long_name"] = coord
+            nwcoord = new_coord
+
+        new_inst = instance._obj.assign_coords(
+            {nwcoord: skdepth * instance._obj.coords[coord]}
+        )
+        new_inst[nwcoord].attrs["units"] = r"$\mathrm{" + units + "}$"
+
+        nwlabel = nwcoord
+        if new_label is None:
+            if new_coord is None:
+                if "long_name" in new_inst[coord].attrs:
+                    nwlabel = new_inst[coord].attrs["long_name"]
+        else:
+            assert isinstance(new_label, str)
+            nwlabel = new_label
+
+        # latexify label
+        if not (nwlabel.startswith("$") & nwlabel.endswith("$")):
+            nwlabel = tex_format(nwlabel)
+
+        new_inst[nwcoord].attrs["long_name"] = nwlabel
+
+        if set_as_default:
+            new_inst = new_inst.swap_dims({coord: nwcoord})
 
     return new_inst
 
@@ -220,7 +246,13 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         self._obj = xarray_obj
 
     def coord_to_physical_distance(
-        self, coord: str, n0: float, units: str = "m"
+        self,
+        coord: str,
+        n0: float,
+        units: str = "m",
+        new_coord: None | str = None,
+        new_label: None | str = None,
+        set_as_default: bool = True,
     ) -> xr.Dataset:
         r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
@@ -250,7 +282,15 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
             ds_cm = ds.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
             ```
         """
-        return _coord_to_physical_distance(self, coord, n0, units)
+        return _coord_to_physical_distance(
+            self,
+            coord,
+            n0,
+            units=units,
+            new_coord=new_coord,
+            new_label=new_label,
+            set_as_default=set_as_default,
+        )
 
     @stopwatch
     def save(self, path):
@@ -303,7 +343,13 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         self._obj = xarray_obj
 
     def coord_to_physical_distance(
-        self, coord: str, n0: float, units: str = "m"
+        self,
+        coord: str,
+        n0: float,
+        units: str = "m",
+        new_coord: None | str = None,
+        new_label: None | str = None,
+        set_as_default: bool = True,
     ) -> xr.DataArray:
         r"""Convert coordinate to physical units based on the plasma density $n_0$.
 
@@ -334,7 +380,15 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
             da_cm = da.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
             ```
         """
-        return _coord_to_physical_distance(self, coord, n0, units)
+        return _coord_to_physical_distance(
+            self,
+            coord,
+            n0,
+            units=units,
+            new_coord=new_coord,
+            new_label=new_label,
+            set_as_default=set_as_default,
+        )
 
     @stopwatch
     def save(self, path):

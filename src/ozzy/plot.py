@@ -182,6 +182,8 @@ for col in list(tc.tol_cset()):
 # Define the default color cycler for curves
 color_wheel = list(tc.tol_cset("muted"))
 
+# HACK: maybe check whether CLI or interactive first to set the figure.dpi (100 or 200)
+
 # Define the default rc parameters
 ozparams = {
     "mathtext.fontset": "cm",
@@ -324,49 +326,50 @@ def show_cmaps(
     categories_list = ["sequential", "diverging", "qualitative", "cyclical"]
 
     if library == "all":
-        library = libraries_list
+        lib = libraries_list
     elif isinstance(library, str):
-        library = [library]
+        lib = [library]
     if category == "all":
-        category = categories_list
+        cat = categories_list
     elif isinstance(category, str):
-        category = [category]
+        cat = [category]
 
     # Scientific colour maps
-    if "cmc" in library:
-        for cat in category:
-            for category, cmaps in cmc_cmaps.items():
-                if cat in category.lower():
+    if "cmc" in lib:
+        for c in cat:
+            for c2, cmaps in cmc_cmaps.items():
+                if c in c2.lower():
                     cmaps = ["cmc." + name for name in cmaps]
                     plot_color_gradients(
-                        "Scientific colour maps (F. Crameri) - " + category,
+                        "Scientific colour maps (F. Crameri) - " + c2,
                         "append an integer number and/or '_r'\nto get a discrete and/or reversed version",
                         cmaps,
                     )
 
     # Paul Tol
-    if "tol" in library:
-        for cat in category:
-            for category, cmaps in tol_cmaps.items():
-                if cat in category.lower():
+    if "tol" in lib:
+        for c in cat:
+            for c2, cmaps in tol_cmaps.items():
+                if c in c2.lower():
                     cmaps = ["tol." + name for name in cmaps]
                     plot_color_gradients(
-                        "Paul Tol - " + category,
+                        "Paul Tol - " + c2,
                         "",
                         cmaps,
                     )
 
     # Matplotlib
-    if "mpl" in library:
-        for cat in category:
-            for category, cmaps in mpl_cmaps.items():
-                if cat in category.lower():
+    if "mpl" in lib:
+        for c in cat:
+            for c2, cmaps in mpl_cmaps.items():
+                if c in c2.lower():
                     plot_color_gradients(
-                        "Matplotlib - " + category,
+                        "Matplotlib - " + c2,
                         "",
                         cmaps,
                     )
 
+    # HACK: maybe set resolution depending on whether cli or jupyter?
     plt.show()
 
     pass
