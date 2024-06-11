@@ -663,15 +663,13 @@ def read_plzshape(files: list[str] | str, file_info):
         data_vars={
             "np": ("t", ddf[:, 1]),
         },
-        coords={"t_offs": ("t", ddf[:, 0])},
+        coords={"t": ("t", ddf[:, 0])},
     )
 
     ds["np"] = ds["np"].assign_attrs(
         long_name="Longitudinal plasma density profile", units=r"$n_0$"
     )
-    ds["t_offs"] = ds["t_offs"].assign_attrs(
-        long_name=r"$t - \Delta t / 2$", units=r"$\omega_p^{-1}$"
-    )
+    ds["t"] = ds["t"].assign_attrs(long_name=r"$t$", units=r"$\omega_p^{-1}$")
 
     return ds
 
