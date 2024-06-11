@@ -206,6 +206,7 @@ ozparams = {
     "savefig.format": "pdf",
     "savefig.transparent": True,
     "savefig.dpi": "300",
+    "savefig.bbox": "tight",
     # "legend.fontsize": "x-small",
 }
 
