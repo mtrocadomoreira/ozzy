@@ -148,7 +148,7 @@ class Backend:
         # Search files matching mattern
         filenames = []
         for run, run_dir in dirs_runs.items():
-            searchdir = os.path.join(path, run_dir)
+            searchdir = run_dir  # os.path.join(path, run_dir)
             for term in searchterms:
                 query = sorted(glob.glob(term, recursive=True, root_dir=searchdir))
                 filenames = filenames + [os.path.basename(f) for f in query]

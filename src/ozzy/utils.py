@@ -442,7 +442,7 @@ def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:
     for run in runs_list:
         filesindir = sorted(glob.glob(run, root_dir=path))
         dirs = dirs + [
-            os.path.abspath(folder)
+            os.path.abspath(os.path.join(path, folder))
             for folder in filesindir
             if os.path.isdir(os.path.join(path, folder))
         ]
