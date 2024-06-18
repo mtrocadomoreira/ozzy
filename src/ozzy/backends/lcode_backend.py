@@ -155,6 +155,7 @@ for i, pref in enumerate(prefix):
 
 quant_info = {
     "parts": qinfo_parts,
+    "beamfile": qinfo_parts,
     "grid": qinfo_grid,
     "extrema": qinfo_extrema,
     "lineout": qinfo_lineout,
@@ -280,7 +281,15 @@ def dd_read_table(file: str, sep=r"\s+", header=None):
     return ddf.squeeze()
 
 
-def lcode_append_time(ds, file_string: str):
+# TODO: write docstring for lcode_append_time
+def lcode_append_time(ds, time: float):
+    ds_out = ds.assign_coords({"t": [time]})
+    ds_out.coords["t"].attrs["long_name"] = r"$t$"
+    ds_out.coords["t"].attrs["units"] = r"$\omega_p^{-1}$"
+    return ds_out
+
+
+def lcode_append_time_from_fname(ds: xr.DataArray | xr.Dataset, file_string: str):
     """Append a time coordinate to an xarray.Dataset based on the file name.
 
     Parameters
@@ -306,7 +315,7 @@ def lcode_append_time(ds, file_string: str):
     >>> ds = xr.Dataset({'var': (['x1', 'x2'], np.random.rand(10, 20))},
     ...                  coords={'x1': np.linspace(0, 1, 10),
     ...                          'x2': np.linspace(0, 1, 20)})
-    >>> ds = lcode_append_time(ds, 'file_000005.dat')
+    >>> ds = lcode_append_time_from_fname(ds, 'file_000005.dat')
     >>> ds.coords
     Coordinates:
       * x1        (x1) float64 0.0 0.1111 0.2222 0.3333 ... 0.7778 0.8889 1.0
@@ -314,9 +323,7 @@ def lcode_append_time(ds, file_string: str):
       * t         (t) int64 5
     """
     thistime = float(get_regex_snippet(r"\d{5,6}", os.path.basename(file_string)))
-    ds_out = ds.assign_coords({"t": [thistime]})
-    ds_out.coords["t"].attrs["long_name"] = r"$t$"
-    ds_out.coords["t"].attrs["units"] = r"$\omega_p^{-1}$"
+    ds_out = lcode_append_time(ds, thistime)
     return ds_out
 
 
@@ -387,7 +394,11 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
         data_vars[var] = ("pid", dda[:, i])
-    ds = new_dataset(data_vars).assign_coords({"pid": dda[:, -1]})
+    ds = (
+        new_dataset(data_vars)
+        .assign_coords({"pid": dda[:, -1]})
+        .expand_dims(dim={"t": 1}, axis=1)
+    )
     ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
 
     return ds
@@ -510,7 +521,7 @@ def read_grid_single(
     return ds
 
 
-def set_quant_metadata(ds, file_info):
+def set_quant_metadata(ds, file_type):
     """
     Set the metadata (long name and units) for the quantities in the input Dataset.
 
@@ -527,7 +538,7 @@ def set_quant_metadata(ds, file_info):
         The input Dataset with metadata assigned to the quantities.
 
     """
-    quants_key = quant_info[file_info.type]
+    quants_key = quant_info[file_type]
     for quant in ds.data_vars:
         q_in_quant = ((q == quant, q) for q in quants_key)
         found_q = False
@@ -572,19 +583,34 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     [print_file_item(file) for file in files]
     for file in tqdm(files):
         ds_tmp = parser_func(file, **kwargs)
-        ds_tmp = lcode_append_time(ds_tmp, file)
+        ds_tmp = lcode_append_time_from_fname(ds_tmp, file)
         ds_t.append(ds_tmp)
     print("  Concatenating along time...")
     ds = lcode_concat_time(ds_t)
 
     # Get name of quantity and define appropriate metadata
-    ds = set_quant_metadata(ds, file_info)
+    ds = set_quant_metadata(ds, file_info.type)
 
     if post_func is not None:
         fpath = os.path.dirname(files[0])
         ds = post_func(ds, file_info, fpath)
 
     return ds
+
+
+# TODO: docstring for read_beamfile (warn that this looks for one single file with exact match beamfile.bin)
+def read_beamfile(files: list[str]):
+    datasets = []
+    for file in files:
+        print_file_item(file)
+        ds = read_parts_single(file)
+        bitfile = file.replace(".bin", ".bit")
+        thistime = np.loadtxt(bitfile)
+        ds = lcode_append_time(ds, thistime)
+        datasets.append(ds)
+
+    ds_out = xr.merge(datasets)
+    return ds_out
 
 
 def read_extrema(files: list[str] | str, file_info):
@@ -747,7 +773,12 @@ def read(
                 ds = read_plzshape(files, file_info)
                 pic_data_type = "grid"
 
-            case "info" | "beamfile" | "notimplemented":
+            case "beamfile":
+                ds = read_beamfile(files)
+                pic_data_type = "part"
+                pass
+
+            case "info" | "notimplemented":
                 raise NotImplementedError(
                     "Backend for this type of file has not been implemented yet. Exiting."
                 )

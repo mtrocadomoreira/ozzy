@@ -285,9 +285,15 @@ def prep_file_input(files: str | list[str]) -> list[str]:
         ```
     """
     if isinstance(files, str):
-        filelist = [os.path.abspath(os.path.expanduser(files))]
+        globlist = glob.glob(os.path.expanduser(files))
+        filelist = [os.path.abspath(f) for f in globlist]
     else:
-        filelist = [os.path.abspath(os.path.expanduser(f)) for f in files]
+        filelist = [os.path.expanduser(f) for f in files]
+        globlist = []
+        for f in filelist:
+            globlist.append(glob.glob(f))
+        filelist = [os.path.abspath(f) for f in globlist]
+
     return filelist
 
 
@@ -323,6 +329,7 @@ def force_str_to_list(var):
     return var
 
 
+# TODO: delete this function (unnecessary)
 def get_abs_filepaths(path: str, run_dir: str, quant_files: list[str]) -> list[str]:
     """
     Get absolute file paths of data files (simulation quantities) in a run directory.
@@ -360,6 +367,17 @@ def get_abs_filepaths(path: str, run_dir: str, quant_files: list[str]) -> list[s
         fullloc = [os.path.join(path, run_dir, loc) for loc in fileloc]
         filepaths_to_read = filepaths_to_read + fullloc
     return filepaths_to_read
+
+
+# TODO: add docstring to path_list_to_pars
+def path_list_to_pars(pathlist: list[str]):
+    filedirs = [os.path.dirname(file) for file in pathlist]
+    quants = [os.path.basename(file) for file in pathlist]
+    quants = list(set(quants))
+
+    common_dir = os.path.commonpath(filedirs)
+    dirs_runs = {os.path.relpath(filedir, common_dir): filedir for filedir in filedirs}
+    return common_dir, dirs_runs, quants
 
 
 def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:

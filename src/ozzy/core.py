@@ -31,15 +31,11 @@ from .backend_interface import Backend, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
 from .utils import (
     find_runs,
-    get_abs_filepaths,
+    path_list_to_pars,
     prep_file_input,
     print_file_item,
     stopwatch,
 )
-
-# -----------------------------------------------------------------------
-# Core functions
-# -----------------------------------------------------------------------
 
 
 def Dataset(
@@ -311,23 +307,18 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
 
     """
     filelist = prep_file_input(files)
-
     bknd = Backend(file_type, as_series=True)
-
-    # TODO: make this a separate function
-    filedirs = [os.path.dirname(file) for file in filelist]
-    files = [os.path.basename(file) for file in filelist]
-    common_dir = os.path.commonpath(filedirs)
-    subdirs = [os.path.relpath(filedir, common_dir) for filedir in filedirs]
-    dirs_runs = {subdir: subdir for subdir in subdirs}
+    common_dir, dirs_runs, quants = path_list_to_pars(filelist)
 
     quant_files = bknd._load_quant_files(
-        path=common_dir, dirs_runs=dirs_runs, quants=files
+        path=common_dir, dirs_runs=dirs_runs, quants=quants
     )
 
     ds = []
-    for q, flist in quant_files.items():
-        ds.append(bknd.parse_data(flist[:nfiles], axes_lims=axes_lims))
+    for run, run_dir in dirs_runs.items():
+        for quant, quant_files in bknd._quant_files.items():
+            filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
+            ds.append(bknd.parse_data(filepaths[:nfiles], axes_lims=axes_lims))
 
     ods = xr.merge(ds)
 
@@ -435,7 +426,7 @@ def open_compare(
     for run, run_dir in dirs_runs.items():
         for bk in bknds:
             for quant, quant_files in bk._quant_files.items():
-                filepaths = get_abs_filepaths(path, run_dir, quant_files)
+                filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
                 ods = bk.parse_data(filepaths, axes_lims=axes_lims, quant_name=quant)
                 ods.attrs["run"] = run
 
