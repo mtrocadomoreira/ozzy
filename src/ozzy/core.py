@@ -23,6 +23,7 @@ multiple file types and runs.
 
 import os
 
+import dask
 import pandas as pd
 import xarray as xr
 
@@ -320,7 +321,8 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
             filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
             ds.append(bknd.parse_data(filepaths[:nfiles], axes_lims=axes_lims))
 
-    ods = xr.merge(ds)
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        ods = xr.merge(ds)
 
     return ods
 

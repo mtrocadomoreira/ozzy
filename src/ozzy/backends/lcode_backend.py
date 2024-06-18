@@ -389,7 +389,10 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     """
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
-    dda = da.from_array(arr[0:-1, :])  # last row is excluded because it marks the eof
+    with dask.config.set({"array.slicing.split_large_chunks": True}):
+        dda = da.from_array(
+            arr[0:-1, :]
+        )  # last row is excluded because it marks the eof
 
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
@@ -599,7 +602,7 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
 
 
 # TODO: docstring for read_beamfile (warn that this looks for one single file with exact match beamfile.bin)
-def read_beamfile(files: list[str]):
+def read_beamfile(files: list[str], file_info):
     datasets = []
     for file in files:
         print_file_item(file)
@@ -610,6 +613,7 @@ def read_beamfile(files: list[str]):
         datasets.append(ds)
 
     ds_out = xr.merge(datasets)
+    ds_out = set_quant_metadata(ds_out, file_info.type)
     return ds_out
 
 
@@ -774,7 +778,7 @@ def read(
                 pic_data_type = "grid"
 
             case "beamfile":
-                ds = read_beamfile(files)
+                ds = read_beamfile(files, file_info)
                 pic_data_type = "part"
                 pass
 
