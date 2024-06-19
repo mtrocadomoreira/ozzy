@@ -11,6 +11,7 @@
 import os
 import re
 from importlib.resources import files
+from typing import Callable, NamedTuple
 
 import dask
 import dask.array as da
@@ -236,7 +237,7 @@ def get_file_type(file: str):
     return row
 
 
-def get_quant_name_from_regex(file_info, file):
+def get_quant_name_from_regex(file_info: NamedTuple, file: str) -> str:
     """Extract the quantity name from an LCODE file name using a regular expression.
 
     Parameters
@@ -255,7 +256,7 @@ def get_quant_name_from_regex(file_info, file):
     return match.group(1)
 
 
-def dd_read_table(file: str, sep=r"\s+", header=None):
+def dd_read_table(file: str, sep=r"\s+", header=None) -> dask.array.Array:
     """Read a tabular data file into a [Dask Array][dask.array.core.Array].
 
     Parameters
@@ -281,15 +282,61 @@ def dd_read_table(file: str, sep=r"\s+", header=None):
     return ddf.squeeze()
 
 
-# TODO: write docstring for lcode_append_time
-def lcode_append_time(ds, time: float):
+def lcode_append_time(
+    ds: xr.Dataset | xr.DataArray, time: float
+) -> xr.Dataset | xr.DataArray:
+    """
+    Append a time coordinate to an xarray.Dataset.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        The input xarray.Dataset to append the time coordinate to.
+    time : float
+        The time value to append as the time coordinate.
+
+    Returns
+    -------
+    xarray.Dataset
+        The input xarray.Dataset with the time coordinate appended.
+
+    Examples
+    --------
+    ???+ example "Append time coordinate to Dataset"
+        ```python
+        import xarray as xr
+        import ozzy as oz
+
+        # Create a sample Dataset
+        data = xr.DataArray(
+            data=[[1, 2], [3, 4]],
+            coords={"x": [0, 1], "y": [0, 1]},
+            dims=("y", "x"),
+        )
+        ds = data.to_dataset(name="var")
+
+        # Append time coordinate
+        ds_with_time = oz.lcode_append_time(ds, 10.0)
+        print(ds_with_time)
+        # <xarray.Dataset>
+        # Dimensions:  (y: 2, x: 2, t: 1)
+        # Coordinates:
+        #   * x        (x) int64 0 1
+        #   * y        (y) int64 0 1
+        #   * t        (t) float64 10.0
+        # Data variables:
+        #     var      (y, x) int64 1 2 3 4
+        ```
+    """
     ds_out = ds.assign_coords({"t": [time]})
     ds_out.coords["t"].attrs["long_name"] = r"$t$"
     ds_out.coords["t"].attrs["units"] = r"$\omega_p^{-1}$"
     return ds_out
 
 
-def lcode_append_time_from_fname(ds: xr.DataArray | xr.Dataset, file_string: str):
+def lcode_append_time_from_fname(
+    ds: xr.DataArray | xr.Dataset, file_string: str
+) -> xr.DataArray | xr.Dataset:
     """Append a time coordinate to an xarray.Dataset based on the file name.
 
     Parameters
@@ -328,7 +375,7 @@ def lcode_append_time_from_fname(ds: xr.DataArray | xr.Dataset, file_string: str
 
 
 @stopwatch
-def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]):
+def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     """Concatenate an xarray.Dataset along the time dimension.
 
     Parameters
@@ -441,7 +488,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     return ds
 
 
-def read_lineout_post(ds: xr.Dataset, file_info, fpath: str) -> xr.Dataset:
+def read_lineout_post(ds: xr.Dataset, file_info: NamedTuple, fpath: str) -> xr.Dataset:
     """
     Read supplementary data for lineout files and assign it to the input Dataset.
 
@@ -524,23 +571,49 @@ def read_grid_single(
     return ds
 
 
-def set_quant_metadata(ds, file_type):
-    """
-    Set the metadata (long name and units) for the quantities in the input Dataset.
+def set_quant_metadata(ds: xr.Dataset, file_type: str) -> xr.Dataset:
+    r"""
+    Set the metadata (long name and units) for the quantities in the input `xarray.Dataset`.
 
     Parameters
     ----------
-    ds : xr.Dataset
+    ds : xarray.Dataset
         The input Dataset containing the quantities.
-    file_info :
-        An object containing information about the file type.
+    file_type : str
+        The type of file the data is from.
 
     Returns
     -------
-    xr.Dataset
+    xarray.Dataset
         The input Dataset with metadata assigned to the quantities.
 
+    Examples
+    --------
+    ???+ example "Set metadata for LCODE particle data"
+        ```python
+        import xarray as xr
+        import ozzy.backends.lcode_backend as lcode
+
+        # Load particle data from LCODE
+        ds = xr.open_dataset('particles.h5')
+
+        # Set metadata
+        ds = lcode.set_quant_metadata(ds, 'part')
+        ```
+
+    ???+ example "Set metadata for LCODE field data"
+        ```python
+        import xarray as xr
+        import ozzy.backends.lcode_backend as lcode
+
+        # Load field data from LCODE
+        ds = xr.open_dataset('fields.h5')
+
+        # Set metadata
+        ds = lcode.set_quant_metadata(ds, 'grid')
+        ```
     """
+
     quants_key = quant_info[file_type]
     for quant in ds.data_vars:
         q_in_quant = ((q == quant, q) for q in quants_key)
@@ -559,7 +632,13 @@ def set_quant_metadata(ds, file_type):
     return ds
 
 
-def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
+def read_agg(
+    files: list[str],
+    file_info: NamedTuple,
+    parser_func: Callable,
+    post_func: Callable = None,
+    **kwargs,
+) -> xr.Dataset:
     """
     Read and aggregate multiple files into a single Dataset.
 
@@ -567,8 +646,8 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     ----------
     files : list[str]
         A list of file paths to be read.
-    file_info : FileInfo
-        An object containing information about the file type and regex pattern.
+    file_info : NamedTuple
+        An object (a Pandas DataFrame row returned by [`pandas.DataFrame.itertuples`][pandas.DataFrame.itertuples]) containing information about the file type and regex pattern.
     parser_func : callable
         A function to parse individual files and create a Dataset.
     post_func : callable or None, optional
@@ -601,8 +680,24 @@ def read_agg(files, file_info, parser_func, post_func=None, **kwargs):
     return ds
 
 
-# TODO: docstring for read_beamfile (warn that this looks for one single file with exact match beamfile.bin)
-def read_beamfile(files: list[str], file_info):
+def read_beamfile(files: list[str], file_info: NamedTuple) -> xr.Dataset:
+    r"""
+    Read particle data from a list of LCODE beam files and return an xarray.Dataset.
+
+    Parameters
+    ----------
+    files : list[str]
+        A list of file paths to the LCODE beam files.
+    file_info : NamedTuple
+        An object (a Pandas DataFrame row returned by [`pandas.DataFrame.itertuples`][pandas.DataFrame.itertuples]) containing information about the file type and regex pattern.
+
+
+    Returns
+    -------
+    xr.Dataset
+        An xarray.Dataset containing the particle data from the input files.
+
+    """
     datasets = []
     for file in files:
         print_file_item(file)
@@ -617,7 +712,7 @@ def read_beamfile(files: list[str], file_info):
     return ds_out
 
 
-def read_extrema(files: list[str] | str, file_info):
+def read_extrema(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
     """
     Read extrema data from one or more files.
 
@@ -625,8 +720,8 @@ def read_extrema(files: list[str] | str, file_info):
     ----------
     files : list[str] or str
         A list of file paths or a single file path containing extrema data.
-    file_info : FileInfo
-        An object containing information about the file type and regex pattern.
+    file_info : NamedTuple
+        An object (a Pandas DataFrame row returned by [`pandas.DataFrame.itertuples`][pandas.DataFrame.itertuples]) containing information about the file type and regex pattern.
 
     Returns
     -------
@@ -670,7 +765,7 @@ def read_extrema(files: list[str] | str, file_info):
     return ds
 
 
-def read_plzshape(files: list[str] | str, file_info):
+def read_plzshape(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
     """
     Read plasma shape data from one or more files.
 
@@ -678,8 +773,9 @@ def read_plzshape(files: list[str] | str, file_info):
     ----------
     files : list[str] or str
         A list of file paths or a single file path containing plasma shape data.
-    file_info : FileInfo
-        An object containing information about the file type and regex pattern.
+    file_info : NamedTuple
+        An object (a Pandas DataFrame row returned by [`pandas.DataFrame.itertuples`][pandas.DataFrame.itertuples]) containing information about the file type and regex pattern.
+
 
     Returns
     -------
@@ -706,7 +802,7 @@ def read_plzshape(files: list[str] | str, file_info):
 
 def read(
     files: list[str], axes_lims: dict[str, tuple[float, float]] | None = None, **kwargs
-):
+) -> xr.Dataset:
     """
     Read one or more LCODE data files and create a Dataset.
 
@@ -800,22 +896,20 @@ def read(
     return ds
 
 
-# TODO: finish example for convert_q
 class Methods:
     """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
 
-    def convert_q(self, dxi, q_var="q", n0=None):
+    def convert_q(self, dxi: float, q_var: str = "q", n0: float | None = None) -> None:
         r"""Convert the charge density variable to physical units.
 
         Parameters
         ----------
-        dxi : array_like
-            The grid spacing in the x direction.
+        dxi : float
+            The grid spacing in the x direction, in units of $k_p^{-1}$ or $\mathrm{cm}$. If `dxi` is given in normalized units, `n0` must be given as well.
         q_var : str, default 'q'
             Name of the charge density variable.
         n0 : float, optional
-            The reference density, in $\mathrm{cm}^{-3}$. If not provided, `dxi` is assumed
-            to be in $\mathrm{cm}$.
+            The reference density, in $\mathrm{cm}^{-3}$. If not provided, `dxi` is assumed to be in $\mathrm{cm}$.
 
         Returns
         -------
@@ -843,7 +937,6 @@ class Methods:
 
             ```
         """
-        # expects n0 in 1/cm^3
         # TODO: make this compatible with pint
 
         print("\n   Converting charge...")
