@@ -106,9 +106,6 @@ class Gatekeeper(type):
 # Define Ozzy accessor classes
 # -----------------------------------------------------------------------
 
-# TODO: add working examples to docstrings
-# TODO: add details about coord_to_physical_distance to docstrings
-
 
 def _coord_to_physical_distance(
     instance,
@@ -222,12 +219,14 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
         kaxis = _get_kaxis(da.coords[dim].to_numpy())
         da = da.assign_coords({dim: kaxis})
 
-        da.coords[dim].attrs["long_name"] = (
-            r"$k(" + da.coords[dim].attrs["long_name"].strip("$") + r")$"
-        )
-        da.coords[dim].attrs["units"] = (
-            r"$\left(" + da.coords[dim].attrs["units"].strip("$") + "\right)^{-1}$"
-        )
+        if "long_name" in da.coords[dim].attrs:
+            da.coords[dim].attrs["long_name"] = (
+                r"$k(" + da.coords[dim].attrs["long_name"].strip("$") + r")$"
+            )
+        if "units" in da.coords[dim].attrs:
+            da.coords[dim].attrs["units"] = (
+                r"$\left(" + da.coords[dim].attrs["units"].strip("$") + "\right)^{-1}$"
+            )
 
     # Calculate FFT
 
@@ -235,7 +234,7 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
 
     # Define new DataArray object
 
-    dout = da.copy(data=daskarr.array(fftdata, chunks=da.chunks))
+    dout = da.copy(data=daskarr.from_array(fftdata, chunks="auto"))
 
     return dout
 
@@ -254,16 +253,24 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         new_label: None | str = None,
         set_as_default: bool = True,
     ) -> xr.Dataset:
-        r"""Convert coordinate to physical units based on the plasma density $n_0$.
+        r"""Convert a coordinate to physical units based on the plasma density $n_0$.
+
+        This function calculates the skin depth based on the provided `n0` value and scales the specified coordinate `coord` by the skin depth. The scaled coordinate is assigned a new name (`new_coord` or a default name) and added to the dataset as a new coordinate. The new coordinate can also be assigned a custom label (`new_label`).
 
         Parameters
         ----------
         coord : str
             Name of coordinate to convert.
         n0 : float
-            Plasma electron density in $\mathrm{cm}^{-3}$.
+            Value for the plasma electron density used to calculate the skin depth, in $\mathrm{cm}^{-3}$.
+        new_coord : str, optional
+            The name to assign to the new coordinate. If not provided, a default name is generated based on `coord` and `units`.
+        new_label : str, optional
+            The label (`"long_name"` attribute) to assign to the new coordinate. If not provided, the label of `coord` is used, if available.
         units : str, optional
-            Units of returned physical distance. Either `'m'` for meters or `'cm'` for centimeters.
+            The physical units for the new coordinate. Must be either `"m"` for meters or `"cm"` for centimeters.
+        set_as_default : bool, optional
+            If `True`, the new coordinate is set as the default coordinate for the corresponding dimension, replacing `coord`.
 
         Returns
         -------
@@ -273,13 +280,25 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         Examples
         --------
 
-        ??? example "Example 1"
+        ???+ example "Converting normalized time units to propagation distance"
 
             ```python
             import ozzy as oz
-            ds = oz.Dataset({'z': [0, 1, 2]})
-            ds_m = ds.ozzy.coord_to_physical_distance('z', 1e18) # z in meters
-            ds_cm = ds.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
+            ds = oz.Dataset(data_vars={'var1': [3,4,5]}, coords={'t': [0,1,2]}, dims='t')
+            ds_m = ds.ozzy.coord_to_physical_distance('t', 1e18, new_coord='z') # z in m
+            ds_cm = ds.ozzy.coord_to_physical_distance('t', 1e18, units='cm', new_coord='z') # z in cm
+            ```
+
+        ???+ example r"Convert $r$ coordinate to centimeters with new label"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            ds = oz.Dataset({'var': np.random.rand(5, 10)},
+                            coords={'x2': np.linspace(0, 1, 10)})
+            n0 = 1e17  # cm^-3
+            ds_new = ds.ozzy.coord_to_physical_distance('x2', n0, new_coord='r', units='cm')
             ```
         """
         return _coord_to_physical_distance(
@@ -303,16 +322,32 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
 
         Examples
         --------
-        >>> ds = ozzy.Dataset(...)
-        >>> ds.ozzy.save('data.h5')
+
+        ??? example "Save empty Dataset"
+
+            ```python
+            import ozzy as oz
+            ds = oz.Dataset()
+            ds.ozzy.save('empty_file.h5')
+            #  -> Saved file "empty_file.h5"
+            # -> 'save' took: 0:00:00.197806
+            ```
         """
         _save(self, path)
 
     @stopwatch
     def fft(
-        self, data_var: str, axes=None, dims: list[str] | None = None, **kwargs
+        self,
+        data_var: str,
+        axes: list[int] | None = None,
+        dims: list[str] | None = None,
+        **kwargs,
     ) -> xr.DataArray:
-        """Take FFT of variable in Dataset along specified axes.
+        """Calculate the Fast Fourier Transform (FFT) of a variable in a [`Dataset`][xarray.Dataset] along specified dimensions. Take FFT of variable in Dataset along specified axes.
+
+        !!! warning
+
+            This method has not been thoroughly checked for accuracy yet. Please double-check your results with a different FFT function.
 
         Parameters
         ----------
@@ -321,7 +356,7 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         axes : list[int], optional
             The integer indices of the axes to take FFT along.
         dims : list[str], optional
-            The names of the dimensions to take FFT along. Overrides `axes`.
+            Dimensions along which to compute the FFT. If provided, this takes precedence over `axes`.
         **kwargs
             Additional keyword arguments passed to [`numpy.fft.fftn`][numpy.fft.fftn].
 
@@ -330,8 +365,42 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
         xarray.DataArray
             The FFT result as a new DataArray.
 
+
         Examples
         --------
+
+        ???+ example "1D FFT"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a 1D variable in a [Dataset][xarray.Dataset]
+            x = np.linspace(0, 10, 100)
+            da = oz.Dataset(data_vars = {'f_x' : np.sin(2 * np.pi * x)}, coords=[x], dims=['x'], pic_data_type='grid')
+
+            # Compute the 1D FFT
+            da_fft = da.ozzy.fft('f_x', dims=['x'])
+            # -> 'fft' took: 0:00:00.085525
+            ```
+
+        ???+ example "2D FFT"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a 2D DataArray
+            x = np.linspace(0, 10, 100)
+            y = np.linspace(0, 5, 50)
+            X, Y = np.meshgrid(x, y)
+            da = oz.Dataset(data_vars = {'f_xy': np.sin(2 * np.pi * X) * np.cos(2 * np.pi * Y)},
+                    coords=[y, x], dims=['y', 'x'], pic_data_type='grid')
+
+            # Compute the 2D FFT
+            da_fft = da.ozzy.fft(dims=['x', 'y'])
+            # -> 'fft' took: 0:00:00.006278
+            ```
 
         """
         return _fft(self._obj[data_var], axes, dims, **kwargs)
@@ -351,17 +420,24 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         new_label: None | str = None,
         set_as_default: bool = True,
     ) -> xr.DataArray:
-        r"""Convert coordinate to physical units based on the plasma density $n_0$.
+        r"""Convert a coordinate to physical units based on the plasma density $n_0$.
+
+        This function calculates the skin depth based on the provided `n0` value and scales the specified coordinate `coord` by the skin depth. The scaled coordinate is assigned a new name (`new_coord` or a default name) and added to the dataset as a new coordinate. The new coordinate can also be assigned a custom label (`new_label`).
 
         Parameters
         ----------
         coord : str
             Name of coordinate to convert.
         n0 : float
-            Plasma electron density in $\mathrm{cm}^{-3}$.
+            Value for the plasma electron density used to calculate the skin depth, in $\mathrm{cm}^{-3}$.
+        new_coord : str, optional
+            The name to assign to the new coordinate. If not provided, a default name is generated based on `coord` and `units`.
+        new_label : str, optional
+            The label (`"long_name"` attribute) to assign to the new coordinate. If not provided, the label of `coord` is used, if available.
         units : str, optional
-            Units of returned physical distance. Either `'m'` for meters or `'cm'` for centimeters.
-            Default is `'m'`.
+            The physical units for the new coordinate. Must be either `"m"` for meters or `"cm"` for centimeters.
+        set_as_default : bool, optional
+            If `True`, the new coordinate is set as the default coordinate for the corresponding dimension, replacing `coord`.
 
         Returns
         -------
@@ -371,13 +447,25 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
         Examples
         --------
 
-        ??? example "Example 1"
+        ???+ example "Converting normalized time units to propagation distance"
 
             ```python
             import ozzy as oz
-            da = oz.DataArray(data=[3,4,5], coords={'z': [0,1,2]}, dims='z')
-            da_m = da.ozzy.coord_to_physical_distance('z', 1e18) # z in meters
-            da_cm = da.ozzy.coord_to_physical_distance('z', 1e18, units='cm') # z in cm
+            da = oz.DataArray([3,4,5], coords={'t': [0,1,2]}, dims='t')
+            da_m = da.ozzy.coord_to_physical_distance('t', 1e18, new_coord='z') # z in m
+            da_cm = da.ozzy.coord_to_physical_distance('t', 1e18, units='cm', new_coord='z') # z in cm
+            ```
+
+        ???+ example r"Convert $r$ coordinate to centimeters with new label"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            da = oz.DataArray({'var': np.random.rand(5, 10)},
+                            coords={'x2': np.linspace(0, 1, 10)})
+            n0 = 1e17  # cm^-3
+            da_new = da.ozzy.coord_to_physical_distance('x2', n0, new_coord='r', units='cm')
             ```
         """
         return _coord_to_physical_distance(
@@ -401,21 +489,35 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
 
         Examples
         --------
-        >>> ds = ozzy.DataArray(...)
-        >>> ds.ozzy.save('data.h5')
+
+        ??? example "Save empty DataArray"
+
+            ```python
+            import ozzy as oz
+            ds = oz.DataArray()
+            ds.ozzy.save('empty_file.h5')
+            #  -> Saved file "empty_file.h5"
+            # -> 'save' took: 0:00:00.197806
+            ```
         """
         _save(self, path)
 
     @stopwatch
-    def fft(self, axes=None, dims: list[str] | None = None, **kwargs) -> xr.DataArray:
-        """Take FFT of DataArray along specified axes.
+    def fft(
+        self, axes: list[int] | None = None, dims: list[str] | None = None, **kwargs
+    ) -> xr.DataArray:
+        """Calculate the Fast Fourier Transform (FFT) of a [`DataArray`][xarray.DataArray] along specified dimensions.
+
+        !!! warning
+
+            This method has not been thoroughly checked for accuracy yet. Please double-check your results with a different FFT function.
 
         Parameters
         ----------
         axes : list[int], optional
             The integer indices of the axes to take FFT along.
         dims : list[str], optional
-            The names of the dimensions to take FFT along. Overrides `axes`.
+            Dimensions along which to compute the FFT. If provided, this takes precedence over `axes`.
         **kwargs
             Additional keyword arguments passed to [`numpy.fft.fftn`][numpy.fft.fftn].
 
@@ -426,7 +528,38 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
 
         Examples
         --------
-        >>> da = xr.DataArray(...)
-        >>> da_fft = da.ozzy.fft(dims=['x', 'z'])
+
+        ???+ example "1D FFT"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a 1D DataArray
+            x = np.linspace(0, 10, 100)
+            da = oz.DataArray(np.sin(2 * np.pi * x), coords=[x], dims=['x'], pic_data_type='grid')
+
+            # Compute the 1D FFT
+            da_fft = da.ozzy.fft(dims=['x'])
+            # -> 'fft' took: 0:00:00.085525
+            ```
+
+        ???+ example "2D FFT"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a 2D DataArray
+            x = np.linspace(0, 10, 100)
+            y = np.linspace(0, 5, 50)
+            X, Y = np.meshgrid(x, y)
+            da = oz.DataArray(np.sin(2 * np.pi * X) * np.cos(2 * np.pi * Y),
+                    coords=[y, x], dims=['y', 'x'], pic_data_type='grid')
+
+            # Compute the 2D FFT
+            da_fft = da.ozzy.fft(dims=['x', 'y'])
+            # -> 'fft' took: 0:00:00.006278
+            ```
         """
         return _fft(self._obj, axes, dims, **kwargs)
