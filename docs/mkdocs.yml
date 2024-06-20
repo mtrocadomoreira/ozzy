@@ -155,7 +155,8 @@ plugins:
           - https://docs.dask.org/en/stable/objects.inv
           - https://numpy.org/doc/stable/objects.inv
           - https://pandas.pydata.org/docs/objects.inv
-          - https://docs.h5py.org/en/stable//objects.inv
+          - https://docs.h5py.org/en/stable/objects.inv
+          - https://matplotlib.org/stable/objects.inv
 
   - git-revision-date-localized:
       enabled: true #!ENV [CI, false]

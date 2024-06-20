@@ -68,11 +68,6 @@ def _coarsen_into_blocks(
     return da_blocks
 
 
-# TODO: write function to get k from FFT of data
-def _k_from_fft():
-    pass
-
-
 # --- Diagnostics ---
 
 

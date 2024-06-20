@@ -22,11 +22,10 @@ from IPython.display import HTML, display
 from . import tol_colors as tc
 from .utils import print_file_item
 
-# TODO: write documentation
 # HACK: function to plot quiver plot between two time steps (particle data)
 
 
-def cmap_exists(name):
+def _cmap_exists(name):
     try:
         mpl.colormaps[name]
         return True
@@ -151,7 +150,7 @@ cmc_cmaps = {
 cmc_cmaps["Qualitative"] = [cmap + "S" for cmap in cmc_cmaps["Sequential"]]
 cmc_cmaps["Cyclical"] = []
 for cmap in cmc_cmaps["Sequential"] + cmc_cmaps["Diverging"]:
-    if cmap_exists("cmc." + cmap + "O"):
+    if _cmap_exists("cmc." + cmap + "O"):
         cmc_cmaps["Cyclical"].append(cmap + "O")
 
 
@@ -170,11 +169,11 @@ ozzy_fonts.sort()
 # Import all Paul Tol colormaps
 for col in list(tc.tol_cmap()):
     cm_name = "tol." + col
-    if not cmap_exists(cm_name):
+    if not _cmap_exists(cm_name):
         plt.cm.register_cmap(cm_name, tc.tol_cmap(col))
 for col in list(tc.tol_cset()):
     cm_name = "tol." + col
-    if not cmap_exists(cm_name):
+    if not _cmap_exists(cm_name):
         cmap = mpl.colors.LinearSegmentedColormap.from_list(
             cm_name, tc.tol_cset(col), len(tc.tol_cset(col))
         )
@@ -182,8 +181,6 @@ for col in list(tc.tol_cset()):
 
 # Define the default color cycler for curves
 color_wheel = list(tc.tol_cset("muted"))
-
-# HACK: maybe check whether CLI or interactive first to set the figure.dpi (100 or 200)
 
 # Define the default rc parameters
 ozparams = {
@@ -218,7 +215,7 @@ sns.set_theme(
 )
 
 # Set default colormaps
-xr.set_options(cmap_divergent="cmc.vik", cmap_sequential="cmc.lipari")
+xr.set_options(cmap_diverging="cmc.vik", cmap_sequential="cmc.lipari")
 
 
 # Define module functions
@@ -226,7 +223,7 @@ xr.set_options(cmap_divergent="cmc.vik", cmap_sequential="cmc.lipari")
 
 # Adapted from matplotlib
 # https://matplotlib.org/stable/users/explain/colors/colormaps.html
-def plot_color_gradients(title, note, cmap_list):
+def _plot_color_gradients(title, note, cmap_list):
     gradient = np.linspace(0, 1, 256)
     gradient = np.vstack((gradient, gradient))
     # Create figure and adjust figure height to number of colormaps
@@ -263,11 +260,37 @@ def plot_color_gradients(title, note, cmap_list):
     )
 
 
-def show_fonts(samples=False, fontsize=18):
+def show_fonts(samples: bool = False, fontsize: float = 18) -> None:
+    """
+    Display a list of fonts bundled with ozzy and other fonts available on the system.
+
+    Parameters
+    ----------
+    samples : bool, optional
+        If `True`, display font samples in addition to the font names.
+
+        !!! Warning
+        The font samples are rendered as an HTML object (only works with Jupyter).
+
+    fontsize : float, optional
+        The font size to use for displaying font samples.
+
+    Examples
+    --------
+    ???+ example "Show font names only"
+        ```python
+        import ozzy.plot as oplt
+        oplt.show_fonts()
+        ```
+
+    ???+ example "Show font names and samples"
+        ```python
+        import ozzy.plot as oplt
+        oplt.show_fonts(samples=True)
+        ```
+    """
     all_font_paths = fm.get_font_names()
-    # other_font_paths = list(set(all_font_paths) - set(ozzy_font_paths))
     other_fonts = sorted(list(set(all_font_paths) - set(ozzy_fonts)))
-    # other_fonts = [fm.get_font_(item).family_name for item in other_font_paths]
 
     if not samples:
         print("Fonts bundled with ozzy:")
@@ -313,17 +336,89 @@ def show_fonts(samples=False, fontsize=18):
 
 
 def set_font(font: str) -> None:
+    """
+    Set the font family for all text in the plots.
+
+    !!! note
+
+        If you want all text in the plot to be rendered in LaTeX math font, as opposed to only the text surrounded by `$...$`, use the following commands:
+
+        ```python
+        import ozzy.plot as oplt
+        oplt.plt.rcParams['text.usetex'] = True
+        ```
+        or
+        ```python
+        import ozzy.plot as oplt
+        import matplotlib.pyplot as plt
+        plt.rcParams["text.usetex"] = True
+        ```
+
+    Parameters
+    ----------
+    font : str
+        The name of the font family to use. The font must be installed on the system and recognized by [`matplotlib.font_manager.get_font_names()`][matplotlib.font_manager.get_font_names].
+
+    Raises
+    ------
+    ValueError
+        If the specified `font` is not found in the list of available font names.
+
+    Examples
+    --------
+    ???+ example "Set font to DejaVu Sans"
+        ```python
+        import ozzy.plot as oplt
+        oplt.set_font('DejaVu Sans')
+        ```
+
+    ???+ example "Attempt to set an invalid font"
+        ```python
+        import ozzy.plot as oplt
+        oplt.set_font('InvalidFontName')
+        # ValueError: Couldn't find font
+        ```
+    """
     if font in fm.get_font_names():
-        pass
         mpl.rc("font", family=font)
     else:
         raise ValueError("Couldn't find font")
-    pass
+    return
 
 
 def show_cmaps(
     library: str | list[str] = "all", category: str | list[str] = "all"
 ) -> None:
+    """
+    Display available colormaps from different libraries and categories.
+
+    Parameters
+    ----------
+    library : str | list[str], optional
+        The library or libraries to display colormaps from. Options are `'mpl'` (Matplotlib), `'cmc'` ([Scientific colour maps](https://www.fabiocrameri.ch/colourmaps/) by F. Crameri), `'tol'` ([Paul Tol's colormaps](https://personal.sron.nl/~pault/)), and `'all'`.
+    category : str | list[str], optional
+        The category or categories of colormaps to display. Options are `'sequential'`, `'diverging'`, `'qualitative'`, `'cyclical'`, and `'all'`.
+
+    Examples
+    --------
+    ???+ example "Show all available colormaps"
+        ```python
+        import ozzy.plot as oplt
+        oplt.show_cmaps()
+        ```
+
+    ???+ example "Show sequential colormaps from Matplotlib"
+        ```python
+        import ozzy.plot as oplt
+        oplt.show_cmaps(library='mpl', category='sequential')
+        ```
+
+    ???+ example "Show diverging colormaps from Paul Tol and Scientific colour maps"
+        ```python
+        import ozzy.plot as oplt
+        oplt.show_cmaps(library=['tol', 'cmc'], category='diverging')
+        ```
+    """
     libraries_list = ["mpl", "cmc", "tol"]
     categories_list = ["sequential", "diverging", "qualitative", "cyclical"]
 
@@ -342,7 +437,7 @@ def show_cmaps(
             for c2, cmaps in cmc_cmaps.items():
                 if c in c2.lower():
                     cmaps = ["cmc." + name for name in cmaps]
-                    plot_color_gradients(
+                    _plot_color_gradients(
                         "Scientific colour maps (F. Crameri) - " + c2,
                         "append an integer number and/or '_r'\nto get a discrete and/or reversed version",
                         cmaps,
@@ -354,7 +449,7 @@ def show_cmaps(
             for c2, cmaps in tol_cmaps.items():
                 if c in c2.lower():
                     cmaps = ["tol." + name for name in cmaps]
-                    plot_color_gradients(
+                    _plot_color_gradients(
                         "Paul Tol - " + c2,
                         "",
                         cmaps,
@@ -365,13 +460,11 @@ def show_cmaps(
         for c in cat:
             for c2, cmaps in mpl_cmaps.items():
                 if c in c2.lower():
-                    plot_color_gradients(
+                    _plot_color_gradients(
                         "Matplotlib - " + c2,
                         "",
                         cmaps,
                     )
-
-    # HACK: maybe set resolution depending on whether cli or jupyter?
     plt.show()
 
     pass
@@ -380,12 +473,47 @@ def show_cmaps(
 def set_cmap(
     general: None | str = None,
     qualitative: None | str = None,
-    divergent: None | str = None,
+    diverging: None | str = None,
     sequential: None | str = None,
 ) -> None:
+    """
+    Set the default colormaps for various types of plots.
+
+    Parameters
+    ----------
+    general : str, optional
+        The colormap to use for general plots.
+    qualitative : str | list[str], optional
+        The colormap or list of colors to use for qualitative plots (e.g., line plots).
+    diverging : str, optional
+        The colormap to use for diverging plots.
+    sequential : str, optional
+        The colormap to use for sequential plots.
+
+    Examples
+    --------
+    ???+ example "Set general colormap to 'viridis'"
+        ```python
+        import ozzy.plot as oplt
+        oplt.set_cmap(general='viridis')
+        ```
+
+    ???+ example "Set diverging and sequential colormaps separately"
+        ```python
+        import ozzy.plot as oplt
+        oplt.set_cmap(diverging='cmc.lisbon', sequential='tol.iridescent')
+        ```
+
+    ???+ example "Set qualitative colormap to Paul Tol's _Bright_ color scheme"
+        ```python
+        import ozzy.plot as oplt
+        oplt.set_cmap(qualitative='tol.bright')
+        ```
+    """
+
     # Function to first verify existence of colormap and then set it with a given command
     def verify_and_set(cmap, set_command):
-        if cmap_exists(cmap):
+        if _cmap_exists(cmap):
             set_command()
         else:
             raise ValueError(f'Colormap "{general}" not found')
@@ -405,9 +533,9 @@ def set_cmap(
             verify_and_set(general, lambda: mpl.rc("image", cmap=general))
         # Set diverging and/or sequential colormaps separately
         else:
-            if divergent is not None:
+            if diverging is not None:
                 verify_and_set(
-                    divergent, lambda: xr.set_options(cmap_divergent=divergent)
+                    diverging, lambda: xr.set_options(cmap_divergent=diverging)
                 )
             if sequential is not None:
                 verify_and_set(
@@ -432,7 +560,7 @@ def set_cmap(
                     cset_name = (
                         qualitative if qualitative.endswith("S") else qualitative + "S"
                     )
-                    if cmap_exists(cset_name):
+                    if _cmap_exists(cset_name):
                         lcm = mpl.colormaps[cset_name]
                         collist = lcm.colors
                     else:

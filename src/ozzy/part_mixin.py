@@ -8,7 +8,6 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
-import os
 
 import numpy as np
 import xarray as xr
@@ -18,7 +17,8 @@ from .new_dataobj import new_dataset
 from .statistics import parts_into_grid
 from .utils import axis_from_extent, bins_from_axis
 
-# TODO: write examples
+# TODO: check examples
+# TODO: make sure that sample data is available
 
 
 class PartMixin:
@@ -28,8 +28,8 @@ class PartMixin:
 
     """
 
-    def sample_particles(self, n) -> xr.Dataset:
-        """Downsample the particle dataset by randomly sampling particles.
+    def sample_particles(self, n: int) -> xr.Dataset:
+        """Downsample a particle Dataset by randomly choosing particles.
 
         Parameters
         ----------
@@ -44,7 +44,31 @@ class PartMixin:
         Examples
         --------
         >>> ds_small = ds.sample_particles(1000)
+
+        ???+ example "Sample 1000 particles"
+            ```python
+            import ozzy as oz
+
+            # Load particle dataset
+            ds = oz.load_sample('particles.h5')
+
+            # Sample 1000 particles
+            ds_small = ds.ozzy.sample_particles(1000)
+            ```
+
+        ???+ example "Sample all particles"
+            ```python
+            import ozzy as oz
+
+            # Load particle dataset
+            ds = oz.load_sample('particles.h5')
+
+            # Try to sample more particles than available
+            ds_all = ds.ozzy.sample_particles(1e9)
+            # WARNING: number of particles to be sampled is larger than total particles. Proceeding without any sampling.
+            ```
         """
+
         dvar = list(set(list(self._obj)) - {"pid", "t", "q"})[0]
 
         if "t" in self._obj.dims:
@@ -69,12 +93,10 @@ class PartMixin:
     def mean_std(
         self,
         vars: str | list[str],
-        axes_ds,
-        savepath=os.getcwd(),
-        outfile=None,
-        expand_time=True,
-        axisym=False,
-    ):
+        axes_ds: xr.DataArray | xr.Dataset | xr.Coordinates,
+        expand_time: bool = True,
+        axisym: bool = False,
+    ) -> xr.Dataset:
         """Calculate mean and standard deviation of variables.
 
         Bins the particle data onto the grid specified by `axes_ds`
@@ -82,34 +104,43 @@ class PartMixin:
 
         Parameters
         ----------
-        vars : str or list of str
-            Variables to calculate statistics for.
-        axes_ds : xarray.Dataset
-            Dataset defining the grid to bin onto.
-        savepath : str, optional
-            Directory to save output file. Default is current working dir.
-        outfile : str, optional
-            Filename for output file. By default it is generated automatically.
+        vars : str | list[str]
+            The variable(s) for which to calculate statistics.
+        axes_ds : xarray.Dataset | xarray.DataArray | xarray.Coordinates
+            Data object containing the axes to use for the calculation (as [xarray coordinates](https://docs.xarray.dev/en/v2024.06.0/user-guide/data-structures.html#coordinates)).
+
+            !!! tip
+                The axes object can be taken from an existing Dataset or DataArray via `axes_ds = <data_obj>.coords`.
+
         expand_time : bool, optional
-            If True, statistics are calculated separately for each timestep.
-            Default is True.
+            If `True`, statistics are calculated separately for each timestep.
         axisym : bool, optional
-            If True, azimuthal symmetry is assumed. Default is False.
+            If `True`, azimuthal symmetry is assumed.
 
         Returns
         -------
-        None
+        xarray.Dataset
+            Dataset containing the calculated mean and standard deviation of the particle variables.
 
         Examples
         --------
-        >>> ds.ozzy.mean_std('density', grid_ds, 'results/', 'density_stats.nc')
+        ???+ example "Get mean and std of 'x1'"
+            ```python
+            import ozzy as oz
+            from ozzy.utils import axis_from_extent
+            axes_ds = oz.Dataset(coords={'x1': axis_from_extent(20, (0, 2)), 'x2': axis_from_extent(10, (-1, 1))})
+            parts = oz.load_sample('particles.h5')
+            ds_mean_std = parts.ozzy.mean_std('x2', axes_ds)
+            ```
+
         """
-        # BUG: this will probably fail because axes_ds might be a DataArray
         if "grid" not in axes_ds.attrs["pic_data_type"]:
             raise ValueError("axes_ds must be grid data")
 
         if isinstance(axes_ds, xr.DataArray):
             axes_ds = new_dataset(axes_ds, pic_data_type="grid")
+        elif isinstance(axes_ds, xr.Coordinates):
+            axes_ds = new_dataset(coords=axes_ds, pic_data_type="grid")
 
         if isinstance(vars, str):
             vars = [vars]
@@ -189,20 +220,9 @@ class PartMixin:
             )
             result = result.drop_vars(dim + "_sqw")
 
-        # Save data
+        result.attrs["pic_data_type"] = "grid"
 
-        if outfile is None:
-            prefix = [dim + "_" for dim in vars]
-            outfile = prefix + "mean_std_raw.nc"
-
-        filepath = os.path.join(savepath, outfile)
-        print("\nSaving file " + filepath)
-
-        result.ozzy.save(filepath)
-
-        print("\nDone!")
-
-        return
+        return result
 
     def get_phase_space(
         self,
@@ -217,24 +237,27 @@ class PartMixin:
 
         Parameters
         ----------
-        vars : list of str
+        vars : list[str]
             Variables to deposit onto phase space.
-        extents : dict, optional
-            Minimum and maximum extent for each variable.
-            If not specified, extents are calculated from data.
-        nbins : int or dict, optional
-            Number of bins for each variable.
-            If int, same number of bins used for all variables.
-            Default is 200 bins.
+        extents : dict[str, tuple[float,float]], optional
+            Minimum and maximum extent for each variable. If not specified, extents are calculated from the data.
+        nbins : int | dict[str, int], optional
+            Number of bins for each variable. If `int`, the same number of bins is used for all variables.
 
         Returns
         -------
         xarray.Dataset
-            Dataset with deposited particle data on phase space grid.
+            Dataset with phase space data.
 
         Examples
         --------
-        >>> ps = ds.get_phase_space(['x', 'vx'], nbins=100)
+
+        ???+ example "Transverse phase space"
+            ```python
+            import ozzy as oz
+            parts = oz.load_sample('particles.h5')
+            ds_ps = parts.ozzy.get_phase_space(['p2', 'x2'])
+            ```
         """
         if extents is None:
             extents = {}
