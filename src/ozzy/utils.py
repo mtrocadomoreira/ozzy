@@ -465,7 +465,8 @@ def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:
             if os.path.isdir(os.path.join(path, folder))
         ]
 
-    run_names = [PurePath(rdir).parts[-1] for rdir in dirs]
+    run_names = [os.path.relpath(rdir, os.path.commonpath(dirs)) for rdir in dirs]
+    # run_names = [PurePath(rdir).parts[-1] for rdir in dirs]
 
     # In case no run folders are found
 
