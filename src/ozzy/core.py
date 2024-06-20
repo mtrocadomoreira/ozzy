@@ -35,6 +35,7 @@ from .utils import (
     path_list_to_pars,
     prep_file_input,
     print_file_item,
+    recursive_search_for_file,
     stopwatch,
 )
 
@@ -327,9 +328,6 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
     return ods
 
 
-# TODO: check whether this really accepts a list of file_types
-# TODO: check whether 'runs' and 'path' parameters also accept a list of strings
-
 # HACK: maybe it's more correct to hide backend-specific arguments such as "axes_lims" in the general open functions, and simply pass everything on as **kwargs. The only downside is that these arguments will not show up in the documentation other than as an intentional note. But the Backend class and everything downstream should not have to know what each different backend module requires as extra parameters, which is the current status.
 
 
@@ -337,8 +335,8 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
 def open_compare(
     file_types: str | list[str],
     path: str = os.getcwd(),
-    runs: str = "*",
-    quants: str = "*",
+    runs: str | list[str] = "*",
+    quants: str | list[str] = "*",
     axes_lims: dict[str, tuple[float, float]] | None = None,
 ) -> pd.DataFrame:
     """
@@ -350,9 +348,9 @@ def open_compare(
         The type(s) of data files to open. Current options are: `'ozzy'`, `'osiris'`, or `'lcode'`.
     path : str, optional
         The path to the directory containing the run folders. Default is the current working directory.
-    runs : str, optional
+    runs : str | list[str], optional
         A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the run folder names. Default is '*' to match all folders.
-    quants : str, optional
+    quants : str | list[str], optional
         A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the quantity names. Default is '*' to match all quantities.
     axes_lims : dict[str, tuple[float, float]] | None, optional
         A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
@@ -398,6 +396,45 @@ def open_compare(
         ```python
         ds = df.at['run_b', 'e1']
         ```
+
+    ???+ example "Opening files with two different backends"
+
+        Let's say we have the following directory:
+        ```text
+        /MySimulations/
+        ├── OSIRIS/
+        │   └── my_sim_1/
+        │       └── MS/
+        │           └── DENSITY/
+        │               └── electrons/
+        │                   └── charge/
+        │                       ├── charge-electrons-000000.h5
+        │                       ├── charge-electrons-000001.h5
+        │                       ├── charge-electrons-000002.h5
+        │                       └── ...
+        └── LCODE/
+            └── my_sim_2/
+                ├── ez00200.swp
+                ├── ez00400.swp
+                ├── ez00600.swp
+                └── ...
+        ```
+        We can read two quantities produced by two different simulation codes:
+
+        ```python
+        import ozzy as oz
+        df = oz.open_compare(
+            ["osiris", "lcode"],
+            path='/MySimulations',
+            runs=["OSIRIS/my_sim_1", "LCODE/my_sim_2"],
+            quants=["charge", "ez"],
+        )
+        # ...
+        print(df)
+        #                   charge-electrons    ez
+        # OSIRIS/my_sim_1           [charge]    []
+        # LCODE/my_sim_2                  []  [ez]
+        ```
     """
 
     # Make sure file_type is a list
@@ -428,7 +465,16 @@ def open_compare(
     for run, run_dir in dirs_runs.items():
         for bk in bknds:
             for quant, quant_files in bk._quant_files.items():
-                filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
+                # Get absolute paths to files that should be read
+                rel_filepaths = []
+                for qfile in quant_files:
+                    query = recursive_search_for_file(qfile, run_dir)
+                    rel_filepaths = rel_filepaths + query
+                filepaths = [
+                    os.path.join(run_dir, relfile) for relfile in rel_filepaths
+                ]
+
+                # Read found files
                 ods = bk.parse_data(filepaths, axes_lims=axes_lims, quant_name=quant)
                 ods.attrs["run"] = run
 

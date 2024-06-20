@@ -9,11 +9,12 @@
 # *********************************************************
 
 import collections
-import glob
 import os
 import re
 
 import xarray as xr  # noqa
+
+from .utils import recursive_search_for_file
 
 
 def _list_avail_backends():
@@ -83,51 +84,60 @@ class Backend:
         self._file_endings = backend_mod.general_file_endings
         self._quants_ignore = backend_mod.quants_ignore
 
-    def find_quants(self, path, dirs_runs, quants):
-        """Find files matching quantities in simulation output.
-
-        Searches `path` for files matching `quants` in the run directories specified by `dirs_runs`.
+    def find_quants(
+        self,
+        path: str,
+        dirs_runs: dict[str, str],
+        quants: str | list[str] | None = None,
+    ) -> dict[str, list[str]]:
+        """
+        Searches `path` for files matching `quants` in the run directories specified by `dirs_runs`. All arguments may contain [glob](https://en.wikipedia.org/wiki/Glob_(programming)) patterns.
 
         Parameters
         ----------
         path : str
-            Base path to search in.
-        dirs_runs : dict
-            Mapping of run names to their directories (see info below).
+            The base path to search for files.
+        dirs_runs : dict[str, str]
+            A dictionary mapping run names to directory paths relative to `path`.
+        quants : str, or list[str], optional
+            A quantity name or list of quantity names to search for. The search term may contain the full filename (`'e1-000001.h5'`), only the quantity name (`'e1'`) or any combination with a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern (`'e1-*'`, `'e1-*.h5'`).
+            If not provided, any files with the file endings associated with this `Backend` are searched for.
 
-        quants : list of str, optional
-            Quantities to search for. Looks for all quantities (`'*'`) if not given.
 
-        Tip
-        ----
+        !!! tip
 
-        The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
+            The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
 
-        ```python
-        path_sim = 'sim_dir'
-        rundirs = ozzy.find_runs(path=path_sim, runs_pattern='param_scan_*')
-        quant_files = ozzy.find_quants(path=path_sim, dirs_runs=rundirs, quants='ez')
-        ```
+            ```python
+            import ozzy as oz
+            dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
+            ```
 
         Returns
         -------
-        dict
-            Mapping of found quantities to lists of matching files.
+        dict[str, list[str]]
+            A dictionary mapping quantity names to lists of matching file names.
 
         Examples
         --------
-
-        ???+ example "Find quantity files in a directory"
-
+        ???+ example "Search for files with a specific quantity"
             ```python
-            dirs_runs = {'run1': 'output'}
-            files = backend.find_quants('sim_dir', dirs_runs, ['e_field'])
-            print(files)
-            # {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
+            import ozzy.backend_interface as obi
+            backend = obi.Backend('lcode')
+            dirs_runs = {'run1': 'path/to/run1', 'run2': 'path/to/run2'}
+            quants_dict = backend.find_quants('/base/path', dirs_runs, 'xi_Ez')
+            # quants_dict = {'xi_Ez': ['xi_Ez_0001.swp', 'xi_Ez_0002.swp', ...]}
             ```
 
+        ???+ example "Search for files with any quantity"
+            ```python
+            import ozzy.backend_interface as obi
+            backend = obi.Backend('lcode')
+            dirs_runs = {'run1': 'path/to/run1', 'run2': 'path/to/run2'}
+            quants_dict = backend.find_quants('/base/path', dirs_runs)
+            # quants_dict = {'xi_Ez': [...], 'xi_Er': [...], ...}
+            ```
         """
-        # TODO: check whether this is really the output in the above example - maybe returns full file paths
 
         if quants is None:
             quants = [""]
@@ -140,17 +150,17 @@ class Backend:
             if "." not in q:
                 term = []
                 for fend in self._file_endings:
-                    term.append("**/" + q + "*." + fend)
+                    term.append(q + "*." + fend)
             else:
-                term = ["**/" + q]
+                term = [q]
             searchterms = searchterms + term
 
         # Search files matching mattern
         filenames = []
         for run, run_dir in dirs_runs.items():
-            searchdir = run_dir  # os.path.join(path, run_dir)
+            searchdir = run_dir
             for term in searchterms:
-                query = sorted(glob.glob(term, recursive=True, root_dir=searchdir))
+                query = recursive_search_for_file(term, searchdir)
                 filenames = filenames + [os.path.basename(f) for f in query]
 
         # Look for clusters of files matching pattern
@@ -178,35 +188,23 @@ class Backend:
 
         return quants_dict
 
-    # TODO: make this function show up in documentation
     def _load_quant_files(self, *args, **kwargs):
-        """Load quantity files by calling `find_quants() and storing them in the `_quant_files` attribute.
-
-        Examples
-        --------
-
-        ??? example "Find quantity files in a directory"
-
-            ```python
-            dirs_runs = {'run1': 'output'}
-            backend._load_quant_files('sim_dir', dirs_runs, ['e_field'])
-            print(backend._quant_files)
-            # {'e_field': ['e_field_0000.h5', 'e_field_0001.h5']}
-            ```
-
-        """
-        # TODO: check whether this is really the output in the above example - maybe returns full file paths
         self._quant_files = self.find_quants(*args, **kwargs)
         return self._quant_files
 
-    # TODO: example missing here
-    def parse_data(self, files, *args, **kwargs) -> xr.Dataset:
-        """Read data from files and attach metadata.
+    def parse_data(self, files: list[str], *args, **kwargs) -> xr.Dataset:
+        """Read data from files and attach metadata according to the selected [`Backend`][ozzy.backend_interface.Backend].
+
+        When an instance of the `Backend` class is created, ozzy looks for a function called `read` in the respective backend specification file (e.g. `backends/osiris_backend.py`) and stores it as the instance's `parse` method. The method `parse_data` then calls `parse` and therefore the `read` function of the backend specification.
 
         Parameters
         ----------
         files : list[str]
             File paths to read data from.
+        *args
+            Positional arguments to be passed to the `read` function of the backend specification.
+        **kwargs
+            Keyword arguments to be passed to the `read` function of the backend specification.
 
         Returns
         -------
@@ -216,7 +214,26 @@ class Backend:
         Examples
         --------
 
+        ???+ example "Parse a single file"
+
+            ```python
+            from ozzy.backend_interface import Backend
+
+            backend = Backend('lcode')
+            ds = backend.parse_data(['path/to/file.swp'])
+            ```
+
+        ???+ example "Parse multiple files"
+
+            ```python
+            from ozzy.backend_interface import Backend
+
+            backend = Backend('osiris')
+            ds = backend.parse_data(['path/to/file1.h5', 'path/to/file2.h5'])
+            ```
+
         """
+
         print("\nReading the following files:")
         ods = self.parse(files, *args, **kwargs)
 

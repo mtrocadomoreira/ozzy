@@ -369,6 +369,12 @@ def get_abs_filepaths(path: str, run_dir: str, quant_files: list[str]) -> list[s
     return filepaths_to_read
 
 
+# TODO: add docstring to this function
+def recursive_search_for_file(fname: str, path: str) -> list[str]:
+    query = sorted(glob.glob("**/" + fname, recursive=True, root_dir=path))
+    return query
+
+
 # TODO: add docstring to path_list_to_pars
 def path_list_to_pars(pathlist: list[str]):
     filedirs = [os.path.dirname(file) for file in pathlist]
