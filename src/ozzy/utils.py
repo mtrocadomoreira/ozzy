@@ -329,54 +329,98 @@ def force_str_to_list(var):
     return var
 
 
-# TODO: delete this function (unnecessary)
-def get_abs_filepaths(path: str, run_dir: str, quant_files: list[str]) -> list[str]:
+def recursive_search_for_file(fname: str, path: str = os.getcwd()) -> list[str]:
     """
-    Get absolute file paths of data files (simulation quantities) in a run directory.
+    Recursively search for files with a given name or pattern in a specified directory and its subdirectories.
 
     Parameters
     ----------
-    path : str
-        The base path.
-    run_dir : str
-        The run directory name.
-    quant_files : list of str
-        The file names (quantity names).
+    fname : str
+        The name or name pattern of the file to search for.
+    path : str, optional
+        The path to the directory where the search should start. If not specified, uses the current directory.
 
     Returns
     -------
-    filepaths_to_read : list of str
-        A list of absolute file paths for the data files.
+    list[str]
+        A list of paths to the files found, relative to `path`.
 
     Examples
     --------
-
-    ???+ example "Simulation data organized in subfolders"
-
+    ???+ example "Search for a file in the current directory"
         ```python
-        import ozzy as oz
-        oz.utils.get_abs_filepaths('/path/to/data', 'run1', ['e1-000000.h5','e1-000001.h5'])
-        # ['/path/to/data/run1/MS/FLD/e1/e1-000000.h5', '/path/to/data/run1/MS/FLD/e1/e1-000001.h5']
+        from ozzy.utils import recursive_search_for_file
+        files = recursive_search_for_file('example.txt')
+        # files = ['/path/to/current/dir/example.txt']
+        ```
+
+    ???+ example "Search for many files in a subdirectory"
+        ```python
+        from ozzy.utils import recursive_search_for_file
+        files = recursive_search_for_file('data-*.h5', '/path/to/project')
+        # files = ['data/data-000.h5', 'data/data-001.h5', 'analysis/data-modified.h5']
         ```
     """
-    filepaths_to_read = []
-    for file in quant_files:
-        fileloc = glob.glob(
-            "**/" + file, recursive=True, root_dir=os.path.join(path, run_dir)
-        )
-        fullloc = [os.path.join(path, run_dir, loc) for loc in fileloc]
-        filepaths_to_read = filepaths_to_read + fullloc
-    return filepaths_to_read
-
-
-# TODO: add docstring to this function
-def recursive_search_for_file(fname: str, path: str) -> list[str]:
     query = sorted(glob.glob("**/" + fname, recursive=True, root_dir=path))
     return query
 
 
-# TODO: add docstring to path_list_to_pars
-def path_list_to_pars(pathlist: list[str]):
+def path_list_to_pars(pathlist: list[str]) -> tuple[str, dict[str, str], list[str]]:
+    """
+    Split a list of file paths into common directory, run directories, and quantities.
+
+    Parameters
+    ----------
+    pathlist : list[str]
+        A list of file paths.
+
+    Returns
+    -------
+    common_dir : str
+        The common directory shared by all file paths.
+    dirs_runs : dict[str, str]
+        A dictionary mapping run folder names to their absolute paths.
+    quants : list[str]
+        A list of unique quantities (file names) present in the input paths.
+
+    Examples
+    --------
+    ???+ example "Simple example"
+        ```python
+        import os
+        from ozzy.utils import path_list_to_pars
+
+        pathlist = ['/path/to/run1/quantity1.txt',
+                    '/path/to/run1/quantity2.txt',
+                    '/path/to/run2/quantity1.txt']
+
+        common_dir, dirs_runs, quants = path_list_to_pars(pathlist)
+
+        print(f"Common directory: {common_dir}")
+        # Common directory: /path/to
+        print(f"Run directories: {dirs_runs}")
+        # Run directories: {'run1': '/path/to/run1', 'run2': '/path/to/run2'}
+        print(f"Quantities: {quants}")
+        # Quantities: ['quantity2.txt', 'quantity1.txt']
+        ```
+
+    ???+ example "Single file path"
+        ```python
+        import os
+        from ozzy.utils import path_list_to_pars
+
+        pathlist = ['/path/to/run1/quantity.txt']
+
+        common_dir, dirs_runs, quants = path_list_to_pars(pathlist)
+
+        print(f"Common directory: {common_dir}")
+        # Common directory: /path/to/run1
+        print(f"Run directories: {dirs_runs}")
+        # Run directories: {'.': '/path/to/run1'}
+        print(f"Quantities: {quants}")
+        # Quantities: ['quantity.txt']
+        ```
+    """
     filedirs = [os.path.dirname(file) for file in pathlist]
     quants = [os.path.basename(file) for file in pathlist]
     quants = list(set(quants))
