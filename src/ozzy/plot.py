@@ -23,6 +23,7 @@ from . import tol_colors as tc
 from .utils import print_file_item
 
 # HACK: function to plot quiver plot between two time steps (particle data)
+# HACK: function to plot lineout on top of imshow/pcolormesh; give position of line-out, give max and min axis range in the units of the imshow axis; have option to keep ticks or not; return new secondary axis and line object
 
 
 def _cmap_exists(name):
@@ -215,7 +216,7 @@ sns.set_theme(
 )
 
 # Set default colormaps
-xr.set_options(cmap_diverging="cmc.vik", cmap_sequential="cmc.lipari")
+xr.set_options(cmap_divergent="cmc.vik", cmap_sequential="cmc.lipari")
 
 
 # Define module functions
