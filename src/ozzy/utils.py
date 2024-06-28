@@ -294,6 +294,9 @@ def prep_file_input(files: str | list[str]) -> list[str]:
             globlist.append(glob.glob(f))
         filelist = [os.path.abspath(f) for f in globlist]
 
+    if len(filelist) == 0:
+        raise FileNotFoundError("No files were found")
+
     return filelist
 
 
