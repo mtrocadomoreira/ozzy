@@ -20,7 +20,7 @@ general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
 
-# TODO: make compatible with part data (and different data types in general)
+# TODO: make compatible with particle track data
 
 special_vars = {"ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"]}
 
@@ -122,7 +122,7 @@ def config_osiris(ds):
                 coord = "x" + str(i + 1)
                 ax = np.arange(xmin[i], xmax[i], dx[i]) + 0.5 * dx[i]
                 ds = ds.assign_coords({coord: (dims[i], ax)})
-                ds[coord].assign_attrs(
+                ds[coord] = ds[coord].assign_attrs(
                     long_name=tex_format(ax_labels[i]),
                     units=tex_format(ax_units[i]),
                     type=ax_type[i],
@@ -148,7 +148,11 @@ def config_osiris(ds):
         case "particles":
             # Get variable metadata
 
-            quants_zip = zip(ds.attrs["quants"], ds.attrs["labels"], ds.attrs["units"])
+            quants_zip = zip(
+                ds.attrs["quants"],
+                ds.attrs["labels"],
+                ds.attrs["units"],
+            )
 
             for var, label, units in quants_zip:
                 ds[var] = ds[var].assign_attrs(
