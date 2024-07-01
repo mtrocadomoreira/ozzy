@@ -25,6 +25,8 @@ def _list_avail_backends():
 # Backend class
 # -----------------------------------------------------------------------
 
+# TODO: make longitudinal consistent for all different backends (x1, xi, zeta, etc)
+
 
 class Backend:
     """Interface class for reading simulation data. Upon initialization, the Backend instance imports a specific submodule for a given data format and defines its data-parsing methods accordingly.

@@ -156,6 +156,7 @@ def parts_into_grid(
 
     _check_n0_input(n0, xi_var)
 
+    # TODO: change this error message; dims might not be space dims (e.g. phase space)
     spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
     if len(spatial_dims) == 0:
         raise KeyError("Did not find any spatial dimensions in input axes dataset")
@@ -197,7 +198,8 @@ def parts_into_grid(
     parts["nb"] = parts["nb"].assign_attrs({"long_name": r"$\rho$", "units": units_str})
 
     for var in parts.coords:
-        parts.coords[var] = parts.coords[var].assign_attrs(axes_ds[var].attrs)
+        if var in axes_ds:
+            parts.coords[var] = parts.coords[var].assign_attrs(axes_ds[var].attrs)
 
     return parts
 

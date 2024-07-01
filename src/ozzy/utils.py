@@ -101,6 +101,30 @@ def print_file_item(file: str) -> None:
 # String manipulation
 
 
+# TODO: add docstring
+def unpack_attr(attr):
+    assert isinstance(attr, np.ndarray)
+
+    if attr.dtype.kind == "S":
+        match len(attr.shape):
+            case 0:
+                content = attr
+            case 1:
+                content = attr[0]
+            case 2:
+                if attr.size == 1:
+                    content = attr[0, 0]
+        out = content.decode("UTF-8")
+
+    else:
+        if len(attr) == 1:
+            out = attr[0]
+        else:
+            out = attr
+
+    return out
+
+
 def unpack_str(attr):
     """
     Unpack a string from a NumPy ndarray or return the input as is.

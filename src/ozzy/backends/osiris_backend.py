@@ -14,7 +14,7 @@ import numpy as np
 import xarray as xr
 
 from ..new_dataobj import new_dataset
-from ..utils import print_file_item, stopwatch, tex_format, unpack_str
+from ..utils import print_file_item, stopwatch, tex_format, unpack_attr
 
 general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
 general_file_endings = ["h5"]
@@ -22,96 +22,165 @@ quants_ignore = None
 
 # TODO: make compatible with part data (and different data types in general)
 
+special_vars = {"ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"]}
+
 
 def config_osiris(ds):
-    # Read some properties with HDF5 interface
+    # Convert all attributes to lower case
+    original_keys = list(ds.attrs.keys())
+    for item in original_keys:
+        ds.attrs[item.lower()] = ds.attrs.pop(item)
 
-    ax_labels = []
-    ax_units = []
-    ax_type = []
-    xmax = []
-    xmin = []
+    # Read attributes in SIMULATION group with HDF5 interface
+
     fname = ds.encoding["source"]
 
-    f = h5py.File(fname, "r")
     try:
-        move_c = f["/SIMULATION"].attrs["MOVE C"]
+        f = h5py.File(fname, "r")
+        for sim_attr in list(f["/SIMULATION"].attrs):
+            ds.attrs[sim_attr.lower()] = unpack_attr(f["/SIMULATION"].attrs[sim_attr])
+
+        # Read axis metadata if grid
+        if ds.attrs["type"] == "grid":
+            ax_labels = []
+            ax_units = []
+            ax_type = []
+            xmin = []
+            xmax = []
+            for axis in list(f["AXIS"]):
+                loc = "/AXIS/" + axis
+                ax_labels.append(unpack_attr(f[loc].attrs["LONG_NAME"]))
+                ax_units.append(unpack_attr(f[loc].attrs["UNITS"]))
+                ax_type.append(unpack_attr(f[loc].attrs["TYPE"]))
+                xmin.append(f[loc][0])
+                xmax.append(f[loc][1])
+
     except KeyError:
         raise
-    else:
-        axgroups = list(f["AXIS"])
-        for subgrp in axgroups:
-            loc = "/AXIS/" + subgrp
-            ax_labels.append(unpack_str(f[loc].attrs["LONG_NAME"]))
-            ax_units.append(f[loc].attrs["UNITS"][0])
-            ax_type.append(f[loc].attrs["TYPE"][0])
-            xmax.append(f[loc][1])
-            xmin.append(f[loc][0])
     finally:
         f.close()
 
-    xmax = np.array(xmax)
-    xmin = np.array(xmin)
-    length_x1 = round((xmax[0] - xmin[0]) * 1e3) * 1e-3
+    xmax_box = np.array(ds.attrs["xmax"])
+    xmin_box = np.array(ds.attrs["xmin"])
+    nx = np.array(ds.attrs["nx"])
 
-    # Save data label, units and dimension info
+    dx = (xmax_box - xmin_box) / nx
 
-    varname = list(ds.keys())[0]
-    ds[varname] = ds[varname].assign_attrs(
-        long_name=tex_format(ds.attrs["LABEL"]), units=tex_format(ds.attrs["UNITS"])
-    )
-    del ds.attrs["LABEL"], ds.attrs["UNITS"]
+    # Specific metadata depending on type of data
 
-    nx = np.array(ds[varname].shape)
-    ndims = len(nx)
-    if ndims >= 2:
-        nx[1], nx[0] = nx[0], nx[1]
-    if ndims == 3:
-        nx = np.roll(nx, 1)
+    ndims = ds.attrs["ndims"]
 
-    # Rename dimensions
+    match ds.attrs["type"]:
+        case "grid":
+            # Get variable metadata
 
-    match ndims:
-        case 1:
-            ds = ds.rename_dims({"phony_dim_0": "x1"})
-        case 2:
-            ds = ds.rename_dims({"phony_dim_0": "x2", "phony_dim_1": "x1"})
-        case 3:
-            ds = ds.rename_dims(
-                {"phony_dim_0": "x3", "phony_dim_1": "x2", "phony_dim_2": "x1"}
+            var = list(ds.data_vars)[0]
+            ds[var] = ds[var].assign_attrs(
+                long_name=tex_format(ds.attrs["label"]),
+                units=tex_format(ds.attrs["units"]),
             )
+            if var in special_vars:
+                if special_vars[var][0] is not None:
+                    ds[var].attrs["long_name"] = special_vars[var][0]
+                if special_vars[var][1] is not None:
+                    ds[var].attrs["units"] = special_vars[var][1]
+            del ds.attrs["label"], ds.attrs["units"]
 
-    # Save axis values and metadata
+            # Rename dims
 
-    dx = (xmax - xmin) / nx
-    dx[0] = length_x1 / nx[0]
+            dims = []
+            for i in np.arange(ndims):
+                dim_suffix = "_box" if ds.attrs["move c"][i] == 1 else ""
+                dims.append("x" + str(i + 1) + dim_suffix)
 
-    ax = np.arange(dx[0], length_x1 + dx[0], dx[0]) - 0.5 * dx[0]
-    ds = ds.assign_coords({"x1": ax})
+            dim_suffix = [
+                "_box" if ifmove == 1 else "" for ifmove in ds.attrs["move c"]
+            ]
+            match ndims:
+                case 1:
+                    ds = ds.rename_dims({"phony_dim_0": "x1" + dim_suffix[0]})
 
-    for i in np.arange(1, ndims):
-        coord = "x" + str(i + 1)
-        ax = np.arange(xmin[i] + dx[i], xmax[i] + dx[i], dx[i]) - 0.5 * dx[i]
-        ds = ds.assign_coords({coord: ax})
+                case 2:
+                    ds = ds.rename_dims(
+                        {
+                            "phony_dim_0": "x2" + dim_suffix[1],
+                            "phony_dim_1": "x1" + dim_suffix[0],
+                        }
+                    )
+                case 3:
+                    ds = ds.rename_dims(
+                        {
+                            "phony_dim_0": "x3" + dim_suffix[2],
+                            "phony_dim_1": "x2" + dim_suffix[1],
+                            "phony_dim_2": "x1" + dim_suffix[0],
+                        }
+                    )
 
-    for i in np.arange(0, ndims):
-        coord = "x" + str(i + 1)
-        ds.coords[coord].attrs["long_name"] = tex_format(ax_labels[i].decode("UTF-8"))
-        ds.coords[coord].attrs["units"] = tex_format(ax_units[i].decode("UTF-8"))
-        ds.coords[coord].attrs["TYPE"] = ax_type[i].decode("UTF-8")
+            # Read axis metadata
 
-    # Save other metadata
+            for i in np.arange(0, ndims):
+                coord = "x" + str(i + 1)
+                ax = np.arange(xmin[i], xmax[i], dx[i]) + 0.5 * dx[i]
+                ds = ds.assign_coords({coord: (dims[i], ax)})
+                ds[coord].assign_attrs(
+                    long_name=tex_format(ax_labels[i]),
+                    units=tex_format(ax_units[i]),
+                    type=ax_type[i],
+                )
 
-    ds = ds.assign_coords(
-        {"t": ds.attrs["TIME"], "iter": ds.attrs["ITER"], "move_offset": xmin[0]}
+            for i, ifmove in enumerate(ds.attrs["move c"]):
+                if ifmove:
+                    coord = "x" + str(i + 1) + "_box"
+                    ax = np.arange(xmin_box[i], xmax_box[i], dx[i]) + 0.5 * dx[i]
+                    ds = ds.assign_coords({coord: (dims[i], ax)})
+
+                    if i == 0:
+                        new_lab = tex_format(ax_labels[i] + "- t")
+                    else:
+                        new_lab = tex_format(ax_labels[i]) + " (fixed)"
+
+                    ds[coord] = ds[coord].assign_attrs(
+                        long_name=new_lab,
+                        units=tex_format(ax_units[i]),
+                        type=ax_type[i],
+                    )
+
+        case "particles":
+            # Get variable metadata
+
+            quants_zip = zip(ds.attrs["quants"], ds.attrs["labels"], ds.attrs["units"])
+
+            for var, label, units in quants_zip:
+                ds[var] = ds[var].assign_attrs(
+                    long_name=tex_format(label), units=tex_format(units)
+                )
+                if var in special_vars:
+                    if special_vars[var][0] is not None:
+                        ds[var].attrs["long_name"] = special_vars[var][0]
+                    if special_vars[var][1] is not None:
+                        ds[var].attrs["units"] = special_vars[var][1]
+
+            del ds.attrs["quants"], ds.attrs["labels"], ds.attrs["units"]
+
+            # Rename dims
+            ds = ds.rename_dims({"phony_dim_0": "pid"})
+
+        case "tracks-2":
+            raise NotImplementedError(
+                "Tracks have not been implemented in the OSIRIS backend yet"
+            )
+        case _:
+            type_str = ds.attrs["type"]
+            raise ValueError(f"Unrecognized OSIRIS data type: {type_str}")
+
+    # Save general metadata
+    ds = ds.expand_dims(dim={"t": 1}, axis=len(ds.dims))
+    ds = ds.assign_coords({"t": [ds.attrs["time"]], "iter": ("t", [ds.attrs["iter"]])})
+    ds["t"] = ds["t"].assign_attrs(
+        long_name=r"$t$", units=tex_format(ds.attrs["time units"])
     )
-    ds = ds.expand_dims(dim={"t": 1}, axis=ndims)
-    ds.t.attrs["units"] = tex_format(ds.attrs["TIME UNITS"])
-    ds.t.attrs["long_name"] = "Time"
-    ds.attrs["length_x1"] = length_x1
+    del ds.attrs["iter"], ds.attrs["time"], ds.attrs["time units"]
     ds.attrs["dx"] = dx
-    ds.attrs["nx"] = nx
-    ds.attrs["move_c"] = move_c
 
     return ds
 
@@ -132,7 +201,7 @@ def read(files, **kwargs):
                 join="exact",
             )
 
-        ds.attrs["pic_data_type"] = ds.attrs["TYPE"]
+        ds.attrs["pic_data_type"] = ds.attrs["type"]
 
     except OSError:
         ds = new_dataset()
