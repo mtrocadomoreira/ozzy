@@ -1,4 +1,4 @@
-# LCODE backend definition
+# LCODE backend
 
 ## Available file types
 
