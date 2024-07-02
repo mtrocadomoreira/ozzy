@@ -171,3 +171,5 @@ cython_debug/
 
 # Custom
 testing/
+debug.py
+**/debug.py

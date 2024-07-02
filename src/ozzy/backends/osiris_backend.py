@@ -24,6 +24,8 @@ quants_ignore = None
 
 special_vars = {"ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"]}
 
+type_mapping = {"particles": "part", "grid": "grid", "tracks-2": "track"}
+
 
 def config_osiris(ds):
     # Convert all attributes to lower case
@@ -146,6 +148,9 @@ def config_osiris(ds):
                     )
 
         case "particles":
+            # TODO: check whether tags exist and store in pid coordinate; if not, have to make it clear that pid is random
+            # unique_pids = false
+
             # Get variable metadata
 
             quants_zip = zip(
@@ -168,6 +173,22 @@ def config_osiris(ds):
 
             # Rename dims
             ds = ds.rename_dims({"phony_dim_0": "pid"})
+
+            # Check whether particles have unique pid's
+            if "tag" in ds:
+                # Convert two columns to single pid
+                tags = ds["tag"].astype(int).to_numpy()
+                dgts_right = len(str(np.max(tags[:, 1])))
+
+                new_tags = tags[:, 1] + tags[:, 0] * 10**dgts_right
+
+                ds = ds.assign_coords({"pid": ("pid", new_tags)})
+                ds = ds.sortby("pid")
+                ds.attrs["unique_pids"] = True
+                ds = ds.drop_vars("tag")
+            else:
+                ds = ds.assign_coords({"pid": ("pid", np.arange(ds.sizes["pid"]))})
+                ds.attrs["unique_pids"] = False
 
         case "tracks-2":
             raise NotImplementedError(
@@ -194,6 +215,16 @@ def read(files, **kwargs):
     [print_file_item(file) for file in files]
 
     try:
+        # Check type of data
+        with h5py.File(files[0]) as f:
+            match f.attrs["TYPE"]:
+                case b"grid":
+                    join_opt = {"join": "exact"}
+                case b"particles":
+                    join_opt = {"join": "outer"}
+                case _:
+                    join_opt = {"join": "exact"}
+
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             ds = xr.open_mfdataset(
                 files,
@@ -202,10 +233,10 @@ def read(files, **kwargs):
                 phony_dims="access",
                 preprocess=config_osiris,
                 combine="by_coords",
-                join="exact",
+                **join_opt,
             )
 
-        ds.attrs["pic_data_type"] = ds.attrs["type"]
+        ds.attrs["pic_data_type"] = type_mapping[ds.attrs["type"]]
 
     except OSError:
         ds = new_dataset()
