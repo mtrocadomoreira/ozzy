@@ -216,28 +216,31 @@ def read(files, **kwargs):
 
     try:
         # Check type of data
-        with h5py.File(files[0]) as f:
-            match f.attrs["TYPE"]:
-                case b"grid":
-                    join_opt = {"join": "exact"}
-                case b"particles":
-                    join_opt = {"join": "outer"}
-                case _:
-                    join_opt = {"join": "exact"}
+        if len(files) > 0:
+            with h5py.File(files[0]) as f:
+                match f.attrs["TYPE"]:
+                    case b"grid":
+                        join_opt = {"join": "exact"}
+                    case b"particles":
+                        join_opt = {"join": "outer"}
+                    case _:
+                        join_opt = {"join": "exact"}
 
-        with dask.config.set({"array.slicing.split_large_chunks": True}):
-            ds = xr.open_mfdataset(
-                files,
-                chunks="auto",
-                engine="h5netcdf",
-                phony_dims="access",
-                preprocess=config_osiris,
-                combine="by_coords",
-                **join_opt,
-            )
+            with dask.config.set({"array.slicing.split_large_chunks": True}):
+                ds = xr.open_mfdataset(
+                    files,
+                    chunks="auto",
+                    engine="h5netcdf",
+                    phony_dims="access",
+                    preprocess=config_osiris,
+                    combine="by_coords",
+                    **join_opt,
+                )
 
-        ds.attrs["pic_data_type"] = type_mapping[ds.attrs["type"]]
+            ds.attrs["pic_data_type"] = type_mapping[ds.attrs["type"]]
 
+        else:
+            raise OSError
     except OSError:
         ds = new_dataset()
 
