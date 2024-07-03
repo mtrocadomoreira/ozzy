@@ -17,16 +17,36 @@ general_regex_pattern: str = r""
 """
 A regular expression pattern used for matching file names or contents.
 The pattern is an empty string by default.
+
+!!! tip
+    Use [regex101.com](https://regex101.com/) to experiment with and debug regular expressions.
+
+???+ example
+    For OSIRIS files:
+    ```python
+    general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+    ```
 """
 general_file_endings: str | list[str] = []
 """
 A list of file extensions to consider when reading files.
 These extensions are used to identify and filter out certain types of files when trying to find the data.
+???+ example
+    For LCODE files:
+    ```python
+    general_file_endings = ["swp", "dat", "det", "bin", "bit", "pls"]
+    ```
 """
 quants_ignore: None | list[str] | str = None
 """
-A list of variable names to ignore when reading data.
-If None, no variables are ignored.
+A list of variable names to ignore when reading data. This is useful when the code saves a file containing axis data or other metadata only, and should therefore not be considered a quantity file.
+If `None`, no variables are ignored.
+
+???+ example
+    For LCODE files:
+    ```python
+    quants_ignore = ["xi"]
+    ```
 """
 
 
