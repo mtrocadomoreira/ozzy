@@ -123,6 +123,10 @@ def config_osiris(ds):
             for i in np.arange(0, ndims):
                 coord = "x" + str(i + 1)
                 ax = np.arange(xmin[i], xmax[i], dx[i]) + 0.5 * dx[i]
+
+                if len(ax) == (ds.sizes[dims[i]] + 1):
+                    ax = ax[0:-1]
+
                 ds = ds.assign_coords({coord: (dims[i], ax)})
                 ds[coord] = ds[coord].assign_attrs(
                     long_name=tex_format(ax_labels[i]),
