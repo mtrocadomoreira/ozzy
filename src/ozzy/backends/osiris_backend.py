@@ -72,6 +72,8 @@ def config_osiris(ds):
 
     ndims = ds.attrs["ndims"]
 
+    # BUG: still have a problem when x1box doesn't match exactly in each time step
+
     match ds.attrs["type"]:
         case "grid":
             # Get variable metadata

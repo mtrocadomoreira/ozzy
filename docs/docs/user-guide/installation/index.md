@@ -11,6 +11,11 @@ Ozzy is available both on [PyPI](https://pypi.org/) (via `pip`) and on [conda-fo
 
 ## with conda <small>(recommended)</small>
 
+!!! note "Note about mamba"
+
+    Feel free to replace the `conda` command with `mamba`. [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is a faster version of the conda package manager, and is installed by default with [miniforge](https://github.com/conda-forge/miniforge).
+
+
 After you have activated a new virtual environment, run:
 
 ```bash
