@@ -1,6 +1,8 @@
 
 # Key concepts
 
+## Data objects
+
 !!! info
     This is a very brief introduction to the data objects used by ozzy. 
     Please refer to the ["Data structures" section of xarray's User Guide](https://docs.xarray.dev/en/latest/user-guide/data-structures.html) for a complete tour.
@@ -47,5 +49,6 @@ This is particularly useful when we have several quantities that are all defined
 :   any other user-defined metadata
 
 
-Please refer to the ["Data structures" section of xarray's User Guide](https://docs.xarray.dev/en/latest/user-guide/data-structures.html) for a complete tour of these data objects.
+## Indexing
 
+## Array chunks

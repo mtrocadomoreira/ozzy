@@ -179,7 +179,13 @@ nav:
     - Installation:
       - user-guide/installation/index.md
       - Virtual environment setup: user-guide/installation/virtual-environments.md
-    - Getting started: user-guide/getting-started.md
+    - Getting started: 
+      - user-guide/getting-started/index.md
+      - Subtract two field components: user-guide/getting-started/subtract-two-field-components.md
+      - Get maximum of fields along time: user-guide/getting-started/max-along-time.md
+      - Plot histograms of particle data: user-guide/getting-started/histograms.md
+      - Get phase space from particle data: user-guide/getting-started/phase-space.md
+      - Get charge density from particle data: user-guide/getting-started/charge-density.md
     - Key Concepts: user-guide/key-concepts.md
     - Reading files: user-guide/reading-files.md
     - Plotting: user-guide/plotting.md

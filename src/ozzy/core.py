@@ -27,7 +27,8 @@ import dask
 import pandas as pd
 import xarray as xr
 
-from .accessors import *  # noqa: F403
+# from .accessors import *  # noqa: F403
+from . import accessors  # noqa
 from .backend_interface import Backend, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
 from .utils import (

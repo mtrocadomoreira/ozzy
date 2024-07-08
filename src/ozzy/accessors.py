@@ -289,7 +289,7 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
             ds_cm = ds.ozzy.coord_to_physical_distance('t', 1e18, units='cm', new_coord='z') # z in cm
             ```
 
-        ???+ example r"Convert $r$ coordinate to centimeters with new label"
+        ???+ example "Convert $r$ coordinate to centimeters with new label"
 
             ```python
             import ozzy as oz
@@ -456,7 +456,7 @@ class OzzyDataArray(*mixins, metaclass=Gatekeeper):
             da_cm = da.ozzy.coord_to_physical_distance('t', 1e18, units='cm', new_coord='z') # z in cm
             ```
 
-        ???+ example r"Convert $r$ coordinate to centimeters with new label"
+        ???+ example "Convert $r$ coordinate to centimeters with new label"
 
             ```python
             import ozzy as oz
