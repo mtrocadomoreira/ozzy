@@ -4,9 +4,12 @@ There are several resources out there to guide you through virtual environments 
 
 ## with conda <small>(recommended)</small>
 
+!!! note "Note about mamba"
+    All `conda` commands in the following guide can be replaced by `mamba`. [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is a faster version of the conda package manager, and is installed by default with miniforge.
+
 #### Step 1 - Follow online guide
 
-Follow this great online guide for installing miniforge (a smaller version of conda) and creating virtual environments:
+Follow this great online guide for installing [miniforge](https://github.com/conda-forge/miniforge) and creating virtual environments:
 
 [Miniforge setup](https://kirenz.github.io/codelabs/codelabs/miniforge-setup/#0)
 
@@ -42,7 +45,7 @@ Make sure you have [Python](https://www.python.org/downloads/) installed on your
 
 #### Step 2 - Follow online guide
 
-Follow the instructions in the guide for venv, which is a virtual environment tool built into Python:
+Follow the instructions in the guide for [venv](https://docs.python.org/3/library/venv.html), which is a virtual environment tool built into Python:
 
 [Create and use virtual environments](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments)
 
