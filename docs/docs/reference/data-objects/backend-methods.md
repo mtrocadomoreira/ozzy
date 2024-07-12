@@ -1,7 +1,3 @@
----
-status: in-progress
----
-
 # Backend-specific methods
 
 The methods described in this section are exclusively applicable to specific data formats. In general, these methods can be accessed with:

@@ -1,7 +1,3 @@
----
-status: in-progress
----
-
 # Data-type-specific methods
 
 These methods can be accessed via the standard [accessor](index.md) way, i.e.:

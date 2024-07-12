@@ -35,6 +35,7 @@ theme:
 
   features:
     - content.code.copy
+    - content.code.annotate
     - content.tooltips
     - navigation.indexes
     - navigation.instant
@@ -163,6 +164,7 @@ plugins:
       enabled: true #!ENV [CI, false]
       enable_creation_date: true
       fallback_to_build_date: true
+  - glightbox
   # - privacy:
   #   enabled: !ENV [CI, false]
 
@@ -186,7 +188,7 @@ nav:
       - Plot histograms of particle data: user-guide/getting-started/histograms.md
       - Get phase space from particle data: user-guide/getting-started/phase-space.md
       - Get charge density from particle data: user-guide/getting-started/charge-density.md
-    - Key Concepts: user-guide/key-concepts.md
+    - Key concepts: user-guide/key-concepts.md
     - Reading files: user-guide/reading-files.md
     - Plotting: user-guide/plotting.md
     - Analysis: user-guide/analysis.md

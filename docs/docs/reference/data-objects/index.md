@@ -1,7 +1,3 @@
----
-status: in-progress
----
-
 # Data object methods
 
 Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[^1]. All the ozzy functionality built on top of xarray data objects ([Datasets][xarray.Dataset] or [DataArrays][xarray.DataArray]) can therefore be accessed via 
