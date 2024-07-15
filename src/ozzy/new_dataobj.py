@@ -33,6 +33,11 @@ def new_dataset(
     if data_origin is not None:
         ds.attrs["data_origin"] = data_origin
 
+    for par in ["pic_data_type", "data_origin"]:
+        for var in ds.data_vars:
+            if par in ds[var].attrs:
+                del ds[var].attrs[par]
+
     return ds
 
 
