@@ -309,13 +309,13 @@ def prep_file_input(files: str | list[str]) -> list[str]:
         ```
     """
     if isinstance(files, str):
-        globlist = glob.glob(os.path.expanduser(files))
+        globlist = glob.glob(os.path.expanduser(files), recursive=True)
         filelist = [os.path.abspath(f) for f in globlist]
     else:
         filelist = [os.path.expanduser(f) for f in files]
         globlist = []
         for f in filelist:
-            globlist.append(glob.glob(f))
+            globlist.append(glob.glob(f, recursive=True))
         filelist = [os.path.abspath(f) for f in globlist]
 
     if len(filelist) == 0:

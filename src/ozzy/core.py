@@ -251,6 +251,12 @@ def open(
     """
     filelist = prep_file_input(path)
 
+    if len(filelist) > 1:
+        print(
+            "\nWARNING: Found multiple files matching path. Reading only the first file in list.\n"
+        )
+        filelist = filelist[0]
+
     # initialize the backend object (it deals with the error handling)
     bknd = Backend(file_type, as_series=False)
 
@@ -297,15 +303,12 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
             └── Ez_0050.h5
         ```
 
-        We want to open only the first three files. We can use the `glob` package to return a list of the file locations:
+        We want to open only the first three files.
 
         ```python
         import ozzy as oz
-        import glob
-        files = glob.glob('my_data/*.h5')
-        ds = oz.open_series('ozzy', files, nfiles=3)
+        ds = oz.open_series('ozzy', 'my_data/Ez_*.h5', nfiles=3)
         ```
-
         The three files have been put together in a single dataset with a new time dimension.
 
     """
