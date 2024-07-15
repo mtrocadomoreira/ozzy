@@ -206,7 +206,6 @@ ozparams = {
     "savefig.transparent": True,
     "savefig.dpi": "300",
     "savefig.bbox": "tight",
-    # "legend.fontsize": "x-small",
 }
 
 sns.set_theme(
@@ -271,7 +270,8 @@ def show_fonts(samples: bool = False, fontsize: float = 18) -> None:
         If `True`, display font samples in addition to the font names.
 
         !!! Warning
-        The font samples are rendered as an HTML object (only works with Jupyter).
+
+            The font samples are rendered as an HTML object (only works with Jupyter).
 
     fontsize : float, optional
         The font size to use for displaying font samples.
@@ -493,7 +493,7 @@ def set_cmap(
 
     Examples
     --------
-    ???+ example "Set general colormap to 'viridis'"
+    ???+ example "Set general colormap to *viridis*"
         ```python
         import ozzy.plot as oplt
         oplt.set_cmap(general='viridis')

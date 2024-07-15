@@ -92,7 +92,7 @@ Please consider acknowledging ozzy if you use it to produce images or results pu
 
 [^1]: 
 
-In addition, please note that the plotting submodule of ozzy uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
+In addition, please note that the plotting submodule of ozzy uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (diverging) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
 
 > The Scientific colour map lipari[^2] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^3].
 

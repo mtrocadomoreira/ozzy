@@ -191,7 +191,6 @@ nav:
     - Plotting: user-guide/plotting.md
     - Analysis: user-guide/analysis.md
     - Notes on speed: user-guide/speed.md
-    - See also: user-guide/see-also.md
   - Code Reference: 
     - reference/index.md
     - ozzy: reference/core.md

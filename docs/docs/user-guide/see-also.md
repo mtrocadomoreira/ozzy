@@ -1,6 +1,0 @@
-
-
-* xarray
-* dask
-* Pandas
-* NumPy
