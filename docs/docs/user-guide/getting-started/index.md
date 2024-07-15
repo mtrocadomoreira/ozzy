@@ -47,6 +47,14 @@ Once a file has been read by ozzy and translated from a simulation file into a d
     plt.grid()
     plt.legend()
     plt.show()
+
+    # Save result as a Dataset
+    ds_out = oz.Dataset(
+        {"Ex_max": da_max, "Ex_mean": da_mean},
+        pic_data_type="grid", 
+        data_origin="ozzy"
+    )
+    ds_out.ozzy.save("Ex_max_mean.h5")
     ```
 
     We've taken the maximum and mean values along the spatial dimension $x$ for each time $t$, and plotted the result. The generated plots look like this:
