@@ -192,7 +192,7 @@ Besides standard array indexing (such as `a[i,j]`), the main ways to select slic
         4. See [`xarray.Dataset.sel`][xarray.Dataset.sel].
         5. Notice how each data variable inside the Dataset was sliced.
 
-When data objects are organized in a table ([`pandas.DataFrame`](pandas.DataFrame)), items can be accessed either via the row and column labels or with a numerical index, with [`.loc`][pandas.DataFrame.loc] and [`.iloc`][pandas.DataFrame.iloc], respectively.
+When data objects are organized in a table ([`pandas.DataFrame`](pandas.DataFrame)), items can be accessed either via the row and column labels or with a numerical index, with [`.loc`][pandas.DataFrame.loc] or [`.at`][pandas.DataFrame.at] and [`.iloc`][pandas.DataFrame.iloc] or [`.iat`][pandas.DataFrame.iat], respectively.
 
 ???+ example "Indexing elements in a DataFrame (table)"
 
@@ -224,6 +224,8 @@ When data objects are organized in a table ([`pandas.DataFrame`](pandas.DataFram
     # The following are equivalent
     df.loc["Simulation 1", "Ez"]
     df.iloc[0, 1]
+    df.at["Simulation 1", "Ez"]
+    df.iat[0, 1]
 
     print(df.iloc[0, 1])
     # <xarray.Dataset>

@@ -60,3 +60,5 @@ Afterwards, we can save the result as an HDF5 file.
 # We're leaving e2 and b3 aside
 fields['wr'].ozzy.save('wr.h5')
 ```
+
+<!-- TODO: add iteration along time to save file at every t -->
