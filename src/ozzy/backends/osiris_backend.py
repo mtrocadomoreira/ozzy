@@ -154,9 +154,6 @@ def config_osiris(ds):
                     )
 
         case "particles":
-            # TODO: check whether tags exist and store in pid coordinate; if not, have to make it clear that pid is random
-            # unique_pids = false
-
             # Get variable metadata
 
             quants_zip = zip(

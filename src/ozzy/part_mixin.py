@@ -17,9 +17,6 @@ from .new_dataobj import new_dataset
 from .statistics import parts_into_grid
 from .utils import axis_from_extent, bins_from_axis
 
-# TODO: check examples
-# TODO: make sure that sample data is available
-
 
 class PartMixin:
     """Mixin class for operations on particle-like data objects.
@@ -43,29 +40,37 @@ class PartMixin:
 
         Examples
         --------
-        >>> ds_small = ds.sample_particles(1000)
 
         ???+ example "Sample 1000 particles"
             ```python
             import ozzy as oz
+            import numpy as np
 
-            # Load particle dataset
-            ds = oz.load_sample('particles.h5')
+
+            # Create a sample particle dataset
+            ds = oz.Dataset(
+                {
+                    "x1": ("pid", np.random.rand(10000)),
+                    "x2": ("pid", np.random.rand(10000)),
+                    "p1": ("pid", np.random.rand(10000)),
+                    "p2": ("pid", np.random.rand(10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                pic_data_type="part",
+                data_origin="ozzy",
+            )
 
             # Sample 1000 particles
             ds_small = ds.ozzy.sample_particles(1000)
-            ```
-
-        ???+ example "Sample all particles"
-            ```python
-            import ozzy as oz
-
-            # Load particle dataset
-            ds = oz.load_sample('particles.h5')
+            print(len(ds_small.pid))
+            # 1000
 
             # Try to sample more particles than available
-            ds_all = ds.ozzy.sample_particles(1e9)
+            ds_all = ds.ozzy.sample_particles(20000)
             # WARNING: number of particles to be sampled is larger than total particles. Proceeding without any sampling.
+            print(len(ds_all.pid))
+            # 10000
             ```
         """
 
@@ -124,15 +129,38 @@ class PartMixin:
 
         Examples
         --------
-        ???+ example "Get mean and std of 'x1'"
+
+        ???+ example "Get mean and std of `'x2'` and `'p2'`"
             ```python
             import ozzy as oz
-            from ozzy.utils import axis_from_extent
-            axes_ds = oz.Dataset(coords={'x1': axis_from_extent(20, (0, 2)), 'x2': axis_from_extent(10, (-1, 1))})
-            parts = oz.load_sample('particles.h5')
-            ds_mean_std = parts.ozzy.mean_std('x2', axes_ds)
-            ```
+            import numpy as np
 
+            # Create a sample particle dataset
+            ds = oz.Dataset(
+                {
+                    "x1": ("pid", np.random.rand(10000)),
+                    "x2": ("pid", np.random.rand(10000)),
+                    "p1": ("pid", np.random.rand(10000)),
+                    "p2": ("pid", np.random.rand(10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                pic_data_type="part",
+                data_origin="ozzy",
+            )
+
+            # Create axes for binning
+            axes_ds = oz.Dataset(
+                coords={
+                    "x1": np.linspace(0, 1, 21),
+                },
+                pic_data_type="grid",
+                data_origin="ozzy",
+            )
+
+            # Calculate mean and standard deviation
+            ds_mean_std = ds.ozzy.mean_std(["x2", "p2"], axes_ds)
+            ```
         """
         if "grid" not in axes_ds.attrs["pic_data_type"]:
             raise ValueError("axes_ds must be grid data")
@@ -151,8 +179,8 @@ class PartMixin:
         bin_vars = []
         bin_axes = []
 
-        for var in axes_ds._obj.data_vars:
-            axis = np.array(axes_ds._obj[var])
+        for var in axes_ds.data_vars:
+            axis = np.array(axes_ds[var])
             bin_axes.append(axis)
             bin_arr.append(bins_from_axis(axis))
             bin_vars.append(var)
@@ -206,21 +234,34 @@ class PartMixin:
                 )
                 result = result.rename({dim + "_w": dim + "_mean"})
 
-                result[dim + "_mean"] = result[dim + "_mean"].assign_attrs(
-                    long_name="mean(" + self[dim].attrs["long_name"] + ")",
-                    units=self[dim].attrs["units"],
-                )
+                if "long_name" in self._obj[dim].attrs:
+                    newlname = "mean(" + self._obj[dim].attrs["long_name"] + ")"
+                else:
+                    newlname = "mean"
+                result[dim + "_mean"].attrs["long_name"] = newlname
+
+                if "units" in self._obj[dim].attrs:
+                    result[dim + "_mean"].attrs["units"] = self._obj[dim].attrs["units"]
 
             else:
                 result[dim + "_std"] = np.sqrt(result[dim + "_sqw"])
 
-            result[dim + "_std"] = result[dim + "_std"].assign_attrs(
-                long_name="std(" + self[dim].attrs["long_name"] + ")",
-                units=self[dim].attrs["units"],
-            )
+            # TODO: make function to use long_name and units if existing, otherwise replace with something
+
+            if "long_name" in self._obj[dim].attrs:
+                newlname = "std(" + self._obj[dim].attrs["long_name"] + ")"
+            else:
+                newlname = "std"
+            result[dim + "_std"].attrs["long_name"] = newlname
+
+            if "units" in self._obj[dim].attrs:
+                result[dim + "_std"].attrs["units"] = self._obj[dim].attrs["units"]
+
             result = result.drop_vars(dim + "_sqw")
 
         result.attrs["pic_data_type"] = "grid"
+
+        print("\nDone!")
 
         return result
 
@@ -254,9 +295,25 @@ class PartMixin:
 
         ???+ example "Transverse phase space"
             ```python
+
             import ozzy as oz
-            parts = oz.load_sample('particles.h5')
-            ds_ps = parts.ozzy.get_phase_space(['p2', 'x2'])
+            import numpy as np
+
+            # Create a sample particle dataset
+            ds = oz.Dataset(
+                {
+                    "x1": ("pid", np.random.rand(10000)),
+                    "x2": ("pid", np.random.rand(10000)),
+                    "p1": ("pid", np.random.rand(10000)),
+                    "p2": ("pid", np.random.rand(10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                pic_data_type="part",
+                data_origin="ozzy",
+            )
+
+            ds_ps = ds.ozzy.get_phase_space(['p2', 'x2'], nbins=100)
             ```
         """
         if extents is None:

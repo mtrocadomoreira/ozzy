@@ -101,8 +101,67 @@ def print_file_item(file: str) -> None:
 # String manipulation
 
 
-# TODO: add docstring
 def unpack_attr(attr):
+    """
+    Unpack a NumPy array attribute, typically from HDF5 files.
+
+    This function handles different shapes and data types of NumPy arrays,
+    particularly focusing on string (byte string) attributes. It's useful
+    for unpacking attributes read from HDF5 files using h5py.
+
+    Parameters
+    ----------
+    attr : numpy.ndarray
+        The input NumPy array to unpack.
+
+    Returns
+    -------
+    object
+        The unpacked attribute. For string attributes, it returns a UTF-8
+        decoded string. For other types, it returns either a single element
+        (if the array has only one element) or the entire array.
+
+    Raises
+    ------
+    AssertionError
+        If the input is not a NumPy array.
+
+    Notes
+    -----
+    - For string attributes (dtype.kind == 'S'):
+        - 0D arrays: returns the decoded string
+        - 1D arrays: returns the first element decoded
+        - 2D arrays: returns the first element if size is 1, otherwise the entire array
+    - For non-string attributes:
+        - If the array has only one element, returns that element
+        - Otherwise, returns the entire array
+
+    Examples
+    --------
+    ???+ example "Unpacking a string attribute"
+        ```python
+        import numpy as np
+        import ozzy.utils as utils
+
+        # Create a NumPy array with a byte string
+        attr = np.array(b'Hello, World!')
+        result = utils.unpack_attr(attr)
+        print(result)
+        # Output: Hello, World!
+        ```
+
+    ???+ example "Unpacking a numeric attribute"
+        ```python
+        import numpy as np
+        import ozzy.utils as utils
+
+        # Create a NumPy array with a single number
+        attr = np.array([42])
+        result = utils.unpack_attr(attr)
+        print(result)
+        # Output: 42
+        ```
+    """
     assert isinstance(attr, np.ndarray)
 
     if attr.dtype.kind == "S":
@@ -123,49 +182,6 @@ def unpack_attr(attr):
             out = attr
 
     return out
-
-
-def unpack_str(attr):
-    """
-    Unpack a string from a NumPy ndarray or return the input as is.
-
-    !!! note
-        This function is useful when reading attributes from HDF5 files, since strings are often wrapped in NumPy arrays when using [h5py](https://www.h5py.org/) to read these files.
-
-    Parameters
-    ----------
-    attr : numpy.ndarray or object
-        The input array or object.
-
-    Returns
-    -------
-    result : str or object
-        The unpacked string or the original input object.
-
-    Examples
-    --------
-
-    ???+ example
-        ```python
-        import ozzy as oz
-        import numpy as np
-        oz.utils.unpack_str(np.array(['hello']))
-        # 'hello'
-        oz.utils.unpack_str('world')
-        # 'world'
-        ```
-    """
-    if isinstance(attr, np.ndarray):
-        match len(attr.shape):
-            case 0:
-                result = str(attr)
-            case 1:
-                result = attr[0]
-            case 2:
-                result = attr[0, 0]
-    else:
-        result = attr
-    return result
 
 
 def tex_format(str: str) -> str:

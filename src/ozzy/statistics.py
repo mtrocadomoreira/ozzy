@@ -173,25 +173,39 @@ def parts_into_grid(
         raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
         wvar = "w"
 
+    def get_dist(ds):
+        part_coords = [ds[var] for var in spatial_dims]
+        dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds[wvar])
+        return dist
+
     # Loop along time
 
-    for i in np.arange(0, len(raw_ds[time_dim])):
-        ds_i = raw_ds.isel({time_dim: i})
+    if "t" in raw_ds.dims:
+        for i in np.arange(0, len(raw_ds[time_dim])):
+            ds_i = raw_ds.isel({time_dim: i})
+            dist = get_dist(ds_i)
 
-        part_coords = [ds_i[var] for var in spatial_dims]
-        dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds_i[wvar])
+            newcoords = {var: axes_ds[var] for var in spatial_dims}
+            newcoords[time_dim] = ds_i[time_dim]
+            qds_i = new_dataset(
+                data_vars={"nb": (spatial_dims, dist)},
+                coords=newcoords,
+                pic_data_type="grid",
+                data_origin=raw_ds.attrs["data_origin"],
+            )
+            q_binned.append(qds_i)
 
+        parts = xr.concat(q_binned, time_dim)
+
+    else:
+        dist = get_dist(raw_ds)
         newcoords = {var: axes_ds[var] for var in spatial_dims}
-        newcoords[time_dim] = ds_i[time_dim]
-        qds_i = new_dataset(
+        parts = new_dataset(
             data_vars={"nb": (spatial_dims, dist)},
             coords=newcoords,
             pic_data_type="grid",
             data_origin=raw_ds.attrs["data_origin"],
         )
-        q_binned.append(qds_i)
-
-    parts = xr.concat(q_binned, time_dim)
 
     units_str = _define_q_units(n0, xi_var, parts)
 
@@ -310,11 +324,10 @@ def charge_in_field_quadrants(
     return charge_ds
 
 
-# TODO: rewrite docstring. warn about NO INTERPOLATION
 # TODO: add example (perhaps using sample data?)
 def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
     """
-    Interpolate field values at particle positions.
+    Get values of fields in the cell where each particle is located (no interpolation is done).
 
     Parameters
     ----------
