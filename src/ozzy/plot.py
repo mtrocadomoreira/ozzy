@@ -171,14 +171,14 @@ ozzy_fonts.sort()
 for col in list(tc.tol_cmap()):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
-        plt.cm.register_cmap(cm_name, tc.tol_cmap(col))
+        mpl.colormaps.register(tc.tol_cmap(col), name=cm_name)
 for col in list(tc.tol_cset()):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
         cmap = mpl.colors.LinearSegmentedColormap.from_list(
             cm_name, tc.tol_cset(col), len(tc.tol_cset(col))
         )
-        plt.cm.register_cmap(cm_name, cmap)
+        mpl.colormaps.register(cmap, name=cm_name)
 
 # Define the default color cycler for curves
 color_wheel = list(tc.tol_cset("muted"))
