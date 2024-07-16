@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.0 (2024-07-16)
+
+### Feature
+
+* feat: set up CD of ozzy releases ([`109e196`](https://github.com/mtrocadomoreira/ozzy/commit/109e196a553ac923cb94005d06e283d72df68bbd))
+
 ## v0.0.1 (2024-07-16)
 
 ### Build
