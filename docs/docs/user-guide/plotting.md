@@ -20,6 +20,9 @@ Though xarray's plotting capabilities can be used directly, ozzy does some extra
 | Font |  Noto Serif  |  
 
 
+<!-- TODO: examples of lines, scatter, imshow, pcolormesh, etc. -->
+
+
 ## Color maps and schemes
 
 Ozzy aims to make scientific plots as **accessible** and as **scientific** as possible. In accordance with this principle, the default color maps and color schemes in `ozzy.plot` are perceptually uniform and readable by people with color-blindness. However, several color options that fulfill these criteria are available, most of which were developed by [Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) and [Paul Tol](https://personal.sron.nl/~pault/).

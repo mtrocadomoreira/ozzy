@@ -32,7 +32,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     <!-- Refer to labeled dimensions and dataset variables instead of having to wonder which numerical index corresponds to the $x$ dimension of that array again. -->
 
-    [:octicons-arrow-right-24: Indexing](user-guide/key-concepts.md)
+    [:octicons-arrow-right-24: Indexing](user-guide/key-concepts.md#indexing)
 
 -   :material-chart-box-plus-outline:{ .lg .middle } __Keep the metadata__
 
@@ -40,7 +40,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     _Which file was this again?_ Let the code stay organized so you don't have to. Attributes go where the array goes.
 
-    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts.md)
+    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts#data-objects.md)
 
 -   :material-arm-flex:{ .lg .middle } __No file size too large__
 
@@ -48,14 +48,14 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     Chunking and lazy-loading of large data files (_ugh, right?_) are handled automatically by [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/).
 
-    [:octicons-arrow-right-24: Array chunks](user-guide/key-concepts.md)
+    [:octicons-arrow-right-24: Data chunking and lazy-loading](user-guide/key-concepts.md#data-chunking-and-lazy-loading)
 
 -   :material-lightning-bolt:{ .lg .middle } __Fast and furious__
 
     ---
     Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your analysis run even faster.
 
-    [:octicons-arrow-right-24: Notes on speed](user-guide/speed.md)
+    [:octicons-arrow-right-24: Notes on speed](user-guide/speed.md "Page under development")
 
 -   :material-yoga:{ .lg .middle } __Stay flexible__
 
@@ -63,7 +63,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     We embrace [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/), but you don't have to. Easily manipulate your data as trusty [NumPy](https://numpy.org/) arrays whenever convenient.
 
-    [:octicons-arrow-right-24: Data analysis](user-guide/analysis.md)
+    [:octicons-arrow-right-24: Data analysis](user-guide/analysis.md "Page under development")
 
 -   :material-flower-tulip:{ .lg .middle } __Beautiful plots with one line of code__
 
