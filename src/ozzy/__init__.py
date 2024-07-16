@@ -12,3 +12,6 @@ __all__ = [
     "statistics",
     "utils",
 ]
+
+
+__version__ = "0.0.0"
