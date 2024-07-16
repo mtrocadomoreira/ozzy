@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.0.1 (2024-07-16)
+
+### Build
+
+* build: prepare for build with poetry and automatic releases ([`460f18b`](https://github.com/mtrocadomoreira/ozzy/commit/460f18bab5d749097857daa28eac0096e7994588))
+
+### Fix
+
+* fix(ozzy.plot): use correct function to register colormap ([`8e5fabd`](https://github.com/mtrocadomoreira/ozzy/commit/8e5fabdf12c0cefc23b6c171f85416b42f256126))
+
 ## v0.0.0 (2024-07-16)
 
 ### Documentation
@@ -266,9 +276,9 @@ Code refactoring ([`01bf45b`](https://github.com/mtrocadomoreira/ozzy/commit/01b
 
 * Merge commit &#39;2ad1ba0efcee68172bef38c40d9fd6acd7970d85&#39; into refactor ([`897d04d`](https://github.com/mtrocadomoreira/ozzy/commit/897d04d1d88ecef0459b1476e468cdf70d94d6d0))
 
-* small changes ([`74ebbfc`](https://github.com/mtrocadomoreira/ozzy/commit/74ebbfc6d5f4cbf84f42327936d1bf77a61f233b))
-
 * first working version of refactored code ([`2ad1ba0`](https://github.com/mtrocadomoreira/ozzy/commit/2ad1ba0efcee68172bef38c40d9fd6acd7970d85))
+
+* small changes ([`74ebbfc`](https://github.com/mtrocadomoreira/ozzy/commit/74ebbfc6d5f4cbf84f42327936d1bf77a61f233b))
 
 * found problem with subclassing from xarray ([`f6bbcf1`](https://github.com/mtrocadomoreira/ozzy/commit/f6bbcf10b514275c0e2e2b9f22a36a973e4ebb6e))
 
