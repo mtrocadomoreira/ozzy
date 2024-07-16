@@ -12,7 +12,7 @@ Ozzy is a data visualization and data wrangling Python package geared towards **
 Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
 
 > [!WARNING]
-> The documentation for the first version of ozzy is still in development. The package is not available on PyPI, conda-forge or Zenodo yet, and some links may be broken.
+> The first release of ozzy is still in progress. The package is not available on PyPI or conda-forge yet.
 
 ### **Why ozzy?**
 
@@ -71,9 +71,9 @@ Please consider acknowledging ozzy if you use it to produce images or results pu
 
 > The data and plots in this publication were processed with ozzy[^1], a freely available data visualization and analysis package.
 
-[^1]: 
+[^1]: M. Moreira, “Ozzy: A flexible Python package for PIC simulation data analysis and visualization”. Zenodo, Jul. 16, 2024. [doi: 10.5281/zenodo.12752995](https://doi.org/10.5281/zenodo.12752995).
 
-In addition, please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (divergent) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
+In addition, please note that `ozzy.plot` uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: vik (diverging) and lipari (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
 
 > The Scientific colour map lipari[^2] is used in this study to prevent visual distortion of the data and exclusion of readers with colour-vision deficiencies[^3].
 

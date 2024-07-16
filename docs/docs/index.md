@@ -90,7 +90,7 @@ Please consider acknowledging ozzy if you use it to produce images or results pu
 
 > The data and plots in this publication were processed with ozzy[^1], a freely available data visualization and analysis package.
 
-[^1]: 
+[^1]: M. Moreira, “Ozzy: A flexible Python package for PIC simulation data analysis and visualization”. Zenodo, Jul. 16, 2024. [doi: 10.5281/zenodo.12752995](https://doi.org/10.5281/zenodo.12752995).
 
 In addition, please note that the plotting submodule of ozzy uses two [color maps developed by Fabio Crameri](https://www.fabiocrameri.ch/colourmaps/) (licensed under an MIT license) by default: `vik` (diverging) and `lipari` (sequential). **These color maps should be acknowledged if used in a published image**, for example with:
 
