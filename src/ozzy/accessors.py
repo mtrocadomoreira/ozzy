@@ -16,7 +16,7 @@ import xarray as xr
 from .backend_interface import Backend, _list_avail_backends
 from .grid_mixin import GridMixin
 from .part_mixin import PartMixin
-from .utils import get_user_methods, stopwatch, tex_format
+from .utils import get_user_methods, set_attr_if_exists, stopwatch, tex_format
 
 xr.set_options(keep_attrs=True)
 
@@ -235,6 +235,8 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
     # Define new DataArray object
 
     dout = da.copy(data=daskarr.from_array(fftdata, chunks="auto"))
+    set_attr_if_exists(dout, "long_name", ("FFT(", ")"), "FFT")
+    set_attr_if_exists(dout, "units", lambda x: x)
 
     return dout
 

@@ -17,11 +17,13 @@ import glob
 import os
 import re
 import time
+from collections.abc import Callable, Iterable
 from datetime import timedelta
 from pathlib import PurePath
 
 import h5py
 import numpy as np
+import xarray as xr
 
 # Decorators
 
@@ -739,3 +741,24 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
     binaxis = axis + 0.5 * (axis[1] - axis[0])
     binaxis = np.insert(binaxis, 0, vmin)
     return binaxis
+
+
+# TODO: docstring
+# TODO: replace bits of code elsewhere that do this
+def set_attr_if_exists(
+    da: xr.DataArray,
+    attr: str,
+    str_exists: str | Iterable[str] | Callable,
+    str_doesnt: str | None = None,
+):
+    if attr in da.attrs:
+        if isinstance(str_exists, str):
+            da.attrs[attr] = str_exists
+        elif isinstance(str_exists, Iterable):
+            da.attrs[attr] = str_exists[0] + da.attrs[attr] + str_exists[1]
+        elif isinstance(str_exists, Callable):
+            da.attrs[attr] = str_exists(da.attrs[attr])
+    else:
+        if str_doesnt is not None:
+            da.attrs[attr] = str_doesnt
+    return da
