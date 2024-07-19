@@ -211,7 +211,7 @@ def tex_format(str: str) -> str:
         # ''
         ```
     """
-    if str == "":
+    if (str == ""):
         newstr = str
     else:
         newstr = "$" + str + "$"
