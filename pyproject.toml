@@ -53,6 +53,8 @@ cmcrameri = ">=1.9"
 seaborn = ">=0.13.2"
 dask-expr = ">=1.1.7"
 ipython = ">=8.26.0"
+pytest = ">=8.2.2"
+hypothesis = ">=6.108.2"
 
 [tool.poetry.group.optimize.dependencies]
 numpy_groupies = ">=0.10.2"
@@ -146,3 +148,7 @@ insecure = false
 dist_glob_patterns = ["dist/*"]
 upload_to_vcs_release = true
 
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
