@@ -42,9 +42,9 @@ def test_fft_metadata_update():
     )
     result = _fft(da, dims=["x", "y"])
     assert result.coords["x"].attrs["long_name"] == r"$k(X)$"
-    assert result.coords["x"].attrs["units"] == r"$\left(m\right)^{-1}$"
+    assert result.coords["x"].attrs["units"] == r"$\left(\mathrm{m}\right)^{-1}$"
     assert result.coords["y"].attrs["long_name"] == r"$k(Y)$"
-    assert result.coords["y"].attrs["units"] == r"$\left(s\right)^{-1}$"
+    assert result.coords["y"].attrs["units"] == r"$\left(\mathrm{s}\right)^{-1}$"
 
 
 test_fft_metadata_update()
