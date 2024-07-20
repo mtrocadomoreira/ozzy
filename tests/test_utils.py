@@ -8,8 +8,11 @@ from ozzy.utils import force_str_to_list, tex_format
 
 @given(st.text())
 def test_tex_format_reverse(s):
-    if s == "$":
-        assert tex_format(s).strip("$") == ""
+    if len(s) > 0:
+        if (s[0] == "$") or (s[-1] == "$"):
+            assert tex_format(s).strip("$") == s.strip("$")
+        else:
+            assert tex_format(s).strip("$") == s
     else:
         assert tex_format(s).strip("$") == s
 
