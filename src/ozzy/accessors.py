@@ -217,16 +217,19 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
                 f"Dimension {dim} was not found in coordinates of DataArray. Please provide a coordinate for this dimension."
             )
         kaxis = _get_kaxis(da.coords[dim].to_numpy())
+        dim_attrs = da[dim].attrs
         da = da.assign_coords({dim: kaxis})
+        da[dim].attrs = dim_attrs
 
-        if "long_name" in da.coords[dim].attrs:
-            da.coords[dim].attrs["long_name"] = (
-                r"$k(" + da.coords[dim].attrs["long_name"].strip("$") + r")$"
-            )
-        if "units" in da.coords[dim].attrs:
-            da.coords[dim].attrs["units"] = (
-                r"$\left(" + da.coords[dim].attrs["units"].strip("$") + "\right)^{-1}$"
-            )
+        set_attr_if_exists(
+            da[dim], "long_name", lambda x: r"$k(" + x.strip("$") + r")$", f"$k_{dim}$"
+        )
+        set_attr_if_exists(
+            da[dim],
+            "units",
+            lambda x: r"$\left(" + x.strip("$") + r"\right)^{-1}$",
+            "a.u.",
+        )
 
     # Calculate FFT
 
