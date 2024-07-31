@@ -5,6 +5,10 @@ from hypothesis import strategies as st
 from ozzy.accessors import _fft
 
 
+@given(
+    x_size=st.integers(min_value=2, max_value=100),
+    y_size=st.integers(min_value=2, max_value=100),
+)
 def test_fft_shape(x_size, y_size):
     da = xr.DataArray(
         np.random.rand(x_size, y_size),
