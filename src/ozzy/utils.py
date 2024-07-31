@@ -213,7 +213,7 @@ def tex_format(str: str) -> str:
         # ''
         ```
     """
-    if (str == ""):
+    if str == "":
         newstr = str
     else:
         newstr = "$" + str + "$"
@@ -292,7 +292,7 @@ def get_user_methods(clss: type) -> list[str]:
         for func in dir(clss)
         if callable(getattr(clss, func))
         and (func in clss.__dict__)
-        and (~func.startswith("__"))
+        and (not func.startswith("__"))
     ]
 
 
