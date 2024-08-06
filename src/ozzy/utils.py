@@ -330,11 +330,19 @@ def prep_file_input(files: str | list[str]) -> list[str]:
         globlist = glob.glob(os.path.expanduser(files), recursive=True)
         filelist = [os.path.abspath(f) for f in globlist]
     else:
-        filelist = [os.path.expanduser(f) for f in files]
+        expandlist = [os.path.expanduser(f) for f in files]
         globlist = []
-        for f in filelist:
+        for f in expandlist:
             globlist.append(glob.glob(f, recursive=True))
-        filelist = [os.path.abspath(f) for f in globlist]
+
+        filelist = []
+        for f in globlist:
+            try:
+                os.path.abspath(f)
+            except TypeError:
+                pass
+            else:
+                filelist.append(os.path.abspath(f))
 
     if len(filelist) == 0:
         raise FileNotFoundError("No files were found")
