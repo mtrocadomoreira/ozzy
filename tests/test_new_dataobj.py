@@ -3,7 +3,6 @@ import pytest
 import xarray as xr
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ozzy.new_dataobj import new_dataarray, new_dataset
 
 
@@ -75,7 +74,7 @@ def test_new_dataset_with_data_variables():
     ds = new_dataset(data, coords=coords, pic_data_type="grid", data_origin="ozzy")
     assert "temp" in ds.data_vars
     assert "pressure" in ds.data_vars
-    assert ds.dims == {"x": 3, "y": 3}
+    assert ds.sizes == {"x": 3, "y": 3}
 
 
 def test_new_dataarray_with_coordinates():
