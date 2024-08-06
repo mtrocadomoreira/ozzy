@@ -1,9 +1,10 @@
 import numpy as np
-import ozzy.core as oz
 import pytest
 import xarray as xr
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+
+import ozzy.core as oz
 
 
 @pytest.fixture
@@ -19,21 +20,6 @@ def sample_dataset():
         coords={"pid": np.arange(1000)},
         attrs={"pic_data_type": "part", "data_origin": "ozzy"},
     )
-
-    # class TestPartMixin:
-    #     @pytest.fixture
-    #     def sample_dataset(self):
-    #         return oz.Dataset(
-    #             {
-    #                 "x1": ("pid", np.random.rand(1000)),
-    #                 "x2": ("pid", np.random.rand(1000)),
-    #                 "p1": ("pid", np.random.rand(1000)),
-    #                 "p2": ("pid", np.random.rand(1000)),
-    #                 "q": ("pid", np.ones(1000)),
-    #             },
-    #             coords={"pid": np.arange(1000)},
-    #             attrs={"pic_data_type": "part", "data_origin": "ozzy"},
-    #         )
 
 
 def test_sample_particles(sample_dataset):
