@@ -55,6 +55,7 @@ dask-expr = ">=1.1.7"
 ipython = ">=8.26.0"
 pytest = ">=8.2.2"
 hypothesis = ">=6.108.2"
+pytest-mock = "^3.14.0"
 
 [tool.poetry.group.optimize.dependencies]
 numpy_groupies = ">=0.10.2"
