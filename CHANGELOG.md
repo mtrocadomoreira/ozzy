@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v0.1.1 (2024-08-13)
+
+### Documentation
+
+* docs: include zenodo reference ([`1ef5d22`](https://github.com/mtrocadomoreira/ozzy/commit/1ef5d22b4f0c7e172eb2d3d16bbba582001448e7))
+
+### Fix
+
+* fix(part_mixin): automatic extent calculation for phase space even when min = max ([`fed8f27`](https://github.com/mtrocadomoreira/ozzy/commit/fed8f276a8ddb5969732e34b7f51c82c7b019465))
+
+### Refactor
+
+* refactor: utils function to set attributes if they exist ([`2d79f50`](https://github.com/mtrocadomoreira/ozzy/commit/2d79f50853de754baf930a05bc836c76f901c8f2))
+
+### Unknown
+
+* bug(accessors): fix metadata setting in fft ([`af52467`](https://github.com/mtrocadomoreira/ozzy/commit/af52467bf3bfd92bb13d6d5e3495cd334941032d))
+
 ## v0.1.0 (2024-07-16)
 
 ### Feature
