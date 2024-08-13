@@ -321,6 +321,11 @@ class PartMixin:
             for v in vars:
                 maxval = float(self._obj[v].max().compute().to_numpy())
                 minval = float(self._obj[v].min().compute().to_numpy())
+
+                if minval == maxval:
+                    minval = minval - 0.05 * abs(minval)
+                    maxval = maxval + 0.05 * abs(maxval)
+
                 if (minval < 0) & (maxval > 0):
                     extr = max([abs(minval), maxval])
                     lims = (-extr, extr)
