@@ -270,6 +270,8 @@ class PartMixin:
         vars: list[str],
         extents: dict[str, tuple[float, float]] | None = None,
         nbins: int | dict[str, int] = 200,
+        axisym: bool = False,
+        r_var: str = "x2",
     ):
         """Generate a phase space grid from particle data.
 
@@ -284,6 +286,10 @@ class PartMixin:
             Minimum and maximum extent for each variable. If not specified, extents are calculated from the data.
         nbins : int | dict[str, int], optional
             Number of bins for each variable. If `int`, the same number of bins is used for all variables.
+        axisym : bool, optional
+            Whether geometry is 2D cylindrical (axisymmetric), in which case the particle weights are divided by the radial coordinate (`r_var`).
+        r_var : str, optional
+            Name of the radial coordinate. This argument is ignored if `axisym = False`.
 
         Returns
         -------
@@ -350,7 +356,12 @@ class PartMixin:
 
         # Deposit quantities on phase space grid
 
-        ps = parts_into_grid(self._obj, axes_ds)
+        if axisym:
+            r_arg = r_var
+        else:
+            r_arg = None
+
+        ps = parts_into_grid(self._obj, axes_ds, r_var=r_arg)
         ps = ps.rename_vars({"nb": "Q"})
         ps["Q"] = ps["Q"].assign_attrs({"units": r"a.u.", "long_name": r"$Q$"})
 
