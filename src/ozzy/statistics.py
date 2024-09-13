@@ -19,6 +19,16 @@ import xarray as xr
 from .new_dataobj import new_dataset
 from .utils import stopwatch
 
+# HACK: think whether all of this should go into the part mixin class (methods for particle data)
+
+# TODO: add function to get histogram (counts or otherwise) as function of axes_ds object
+# e.g. example for counts:
+# def get_histogram(da, ax_da, tvar = 't'):
+#     bin_edges = ax_da.ozzy.get_bin_edges(tvar)
+#     data = [da.to_numpy()]
+#     dist, edges = np.histogramdd(data, bins=bin_edges, weights=np.ones(data[0].shape))
+#     return dist
+
 
 def _check_raw_and_grid(raw_ds, grid_ds):
     """
@@ -70,6 +80,7 @@ def _check_n0_input(n0, xi_var):
         print("WARNING: Assuming the xi axis is in normalized units.")
 
 
+# TODO: may need to update this based on tests of LCODE charge definitions
 def _define_q_units(n0, xi_var, dens_ds):
     """
     Define the units for the charge density based on the data origin and input parameters.
@@ -103,6 +114,7 @@ def _define_q_units(n0, xi_var, dens_ds):
 
 
 # TODO: add example (perhaps using sample data?)
+# HACK: maybe adjust values by ensuring that integrated grid corresponds to sum of weights ('q')
 @stopwatch
 def parts_into_grid(
     raw_ds,
