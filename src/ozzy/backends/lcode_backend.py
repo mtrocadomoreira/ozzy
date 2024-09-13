@@ -680,6 +680,7 @@ def read_agg(
     return ds
 
 
+# TODO: do not raise exception when beamfile.bit is not found and instead assume t=0.0 (and print warning)
 def read_beamfile(files: list[str], file_info: NamedTuple) -> xr.Dataset:
     r"""
     Read particle data from a list of LCODE beam files and return an xarray.Dataset.
