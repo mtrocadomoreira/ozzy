@@ -113,7 +113,7 @@ units = [
     r"$m_e c$",
     r"$m_e c^2 / \omega_p$",
     "",
-    r"$e \frac{\Delta \xi}{2 \: r_e}$",
+    r"$\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$",
     "",
 ]
 qinfo_parts = dict()
@@ -900,17 +900,17 @@ def read(
 class Methods:
     """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
 
-    def convert_q(self, dxi: float, q_var: str = "q", n0: float | None = None) -> None:
-        r"""Convert the charge density variable to physical units.
+    def convert_q(self, dxi: float, n0: float, q_var: str = "q") -> None:
+        r"""Convert the charge variable to physical units (in units of $e$).
 
         Parameters
         ----------
         dxi : float
-            The grid spacing in the x direction, in units of $k_p^{-1}$ or $\mathrm{cm}$. If `dxi` is given in normalized units, `n0` must be given as well.
+            The grid spacing in the longitudinal direction in normalized units, i.e., in units of $k_p^{-1}$. or $\mathrm{cm}$.
+        n0 : float
+            The reference density, in $\mathrm{cm}^{-3}$.
         q_var : str, default 'q'
             Name of the charge density variable.
-        n0 : float, optional
-            The reference density, in $\mathrm{cm}^{-3}$. If not provided, `dxi` is assumed to be in $\mathrm{cm}$.
 
         Returns
         -------
@@ -919,11 +919,13 @@ class Methods:
 
         Notes
         -----
-        The charge in physical units ($\mathrm{C}$) is obtained by multiplying the normalized charge with the factor $\Delta \xi / (2 r_e)$, where $\Delta \xi$ is longitudinal cell size and $r_e$ is the classical electron radius, defined as:
+        The charge in physical units ($\mathrm{C}$) is obtained by multiplying the normalized charge with the factor $\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$, where $\Delta \hat{\xi} = k_p \Delta \xi$ is the normalized longitudinal cell size and $I_A$ is the Alfvén current, defined as:
 
         \[
-        r_e = \frac{1}{4 \pi \varepsilon_0} \frac{e^2}{m_e c^2}
+        I_A = 4 \pi \varepsilon_0 \frac{m_e c^3}{e} \approx 17.045 \ \mathrm{kA}
         \]
+
+        Note that the charge is given in units of the elementary charge $e$ after this method is applied.
 
         Examples
         --------
@@ -940,17 +942,11 @@ class Methods:
         """
         # TODO: make this compatible with pint
 
-        print("\n   Converting charge...")
-
-        re = 2.8179403227e-13  # in cm
-        if n0 is None:
-            print("         - assuming dxi is in units of cm")
-            factor = dxi / (2 * re)
-        else:
-            print("         - assuming dxi is in normalized units")
-            distcm = 531760.37819 / np.sqrt(n0)
-            factor = dxi * distcm / (2 * re)
-
+        # Alfven current divided by elementary charge
+        alfven_e = 1.0638708535128997e23  # 1/s
+        # Plasma frequency
+        omega_p = 56414.60231191864 * np.sqrt(n0)  # 1/s
+        factor = dxi * 0.5 * alfven_e / omega_p
         self._obj[q_var] = self._obj[q_var] * factor
         self._obj[q_var].attrs["units"] = "$e$"
 
