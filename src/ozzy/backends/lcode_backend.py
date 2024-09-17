@@ -109,9 +109,9 @@ label = [
 units = [
     r"$k_p^{-1}$",
     r"$k_p^{-1}$",
-    r"$m_e c$",
-    r"$m_e c$",
-    r"$m_e c^2 / \omega_p$",
+    r"$m_\mathrm{sp} c$",
+    r"$m_\mathrm{sp} c$",
+    r"$m_\mathrm{sp} c^2 / \omega_p$",
     "",
     r"$\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$",
     "",
