@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.3 (2024-09-17)
+
+### Fix
+
+* fix(lcode_backend): change momentum units ([`022b0c4`](https://github.com/mtrocadomoreira/ozzy/commit/022b0c465d5bcaff80658910919ade6b88a07dd9))
+
 ## v0.1.2 (2024-09-17)
 
 ### Chore
