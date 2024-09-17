@@ -113,6 +113,20 @@ def _define_q_units(n0, xi_var, dens_ds):
     return units_str
 
 
+def _define_q_units_general(axes_da, r_var):
+    if all("units" in axes_da[each].attrs for each in axes_da.coords):
+        ustrings = [axes_da[each].attrs["units"].strip("$") for each in axes_da.coords]
+        extra = ""
+        for ustr in ustrings:
+            extra += rf"/ {ustr}"
+        if r_var is not None:
+            extra += rf"/ {axes_da[r_var].attrs["units"].strip("$")}"
+        units_str = rf"$Q_w {extra}$"
+    else:
+        units_str = "a.u."
+    return units_str
+
+
 # TODO: add example (perhaps using sample data?)
 # HACK: maybe adjust values by ensuring that integrated grid corresponds to sum of weights ('q')
 @stopwatch
@@ -163,6 +177,16 @@ def parts_into_grid(
         If no spatial dimensions are found in the input `axes_ds`.
     ValueError
         If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
+
+    Notes
+    -----
+    The binned density data is multiplied by a factor that ensures that the total volume integral of the density corresponds to the sum of all particle weights $Q_w$. If $w$ is each particle's weight variable and $N_p$ is the total number of particles, then $Q_w$ is defined as:
+
+    \[
+    Q_w = \sum_i^{N_p} w_i
+    \]
+
+    Note that different simulation codes have different conventions in terms of what $Q_w$ corresponds to.
     """
     _check_raw_and_grid(raw_ds, axes_ds)
 
@@ -171,7 +195,7 @@ def parts_into_grid(
     # TODO: change this error message; dims might not be space dims (e.g. phase space)
     spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
     if len(spatial_dims) == 0:
-        raise KeyError("Did not find any spatial dimensions in input axes dataset")
+        raise KeyError("Did not find any non-time dimensions in input axes dataset")
 
     bin_edges = axes_ds.ozzy.get_bin_edges(time_dim)
 
@@ -179,11 +203,32 @@ def parts_into_grid(
 
     # Multiply weight by radius, if r_var is specified
 
+    def integrate_cart(da):
+        dx_factor = 1
+        for dim in spatial_dims:
+            dx = axes_ds[dim][1] - axes_ds[dim][0]
+            dx_factor = dx_factor * dx
+        return dx_factor * da.sum(dim=spatial_dims)
+
+    def integrate_cyl(da):
+        dx_factor = 1
+        for dim in spatial_dims:
+            dx = axes_ds[dim][1] - axes_ds[dim][0]
+            dx_factor = dx_factor * dx
+        return dx_factor * (da[r_var] * da).sum(dim=spatial_dims)
+
+    total_w = raw_ds[weight_var].sum()
+
+    print("\nBinning particles into grid...")
     if r_var is None:
         wvar = weight_var
+        integrate = integrate_cart
+        print("\n   - assuming Cartesian geometry")
     else:
         raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
         wvar = "w"
+        integrate = integrate_cyl
+        print("\n   - assuming axisymmetric geometry")
 
     def get_dist(ds):
         part_coords = [ds[var] for var in spatial_dims]
@@ -219,7 +264,13 @@ def parts_into_grid(
             data_origin=raw_ds.attrs["data_origin"],
         )
 
-    units_str = _define_q_units(n0, xi_var, parts)
+    # units_str = _define_q_units(n0, xi_var, parts)
+    # TODO: improve the formatting of the resulting units
+    units_str = _define_q_units_general(axes_ds[spatial_dims], r_var)
+
+    # Multiply by factor to ensure that integral of density matches sum of particle weights
+    factor = total_w / integrate(parts["nb"])
+    parts["nb"] = factor * parts["nb"]
 
     parts["nb"] = parts["nb"].assign_attrs({"long_name": r"$\rho$", "units": units_str})
 
