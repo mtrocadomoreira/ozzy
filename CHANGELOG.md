@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v0.1.2 (2024-09-17)
+
+### Chore
+
+* chore(statistics): add todo&#39;s and hacks as comments ([`3972b19`](https://github.com/mtrocadomoreira/ozzy/commit/3972b1932e1b45bb944d1f04d47e92f78f6cacf6))
+
+* chore(lcode_backend): add todo for reading beamfiles ([`64c1b6b`](https://github.com/mtrocadomoreira/ozzy/commit/64c1b6b2810dcb7025f248186ba213ae7d321319))
+
+### Fix
+
+* fix(statistics): change units of density in parts_into_grid ([`d48785c`](https://github.com/mtrocadomoreira/ozzy/commit/d48785cc737cb874b692002a179416d03fc7c788))
+
+### Refactor
+
+* refactor(lcode_backend): change norm. units of q in particle data ([`0bd8cc1`](https://github.com/mtrocadomoreira/ozzy/commit/0bd8cc1bcfeba8278fab803d7321f48ec483e94b))
+
+* refactor(part_mixin): add axisym argument to get_phase_space ([`1c5d48e`](https://github.com/mtrocadomoreira/ozzy/commit/1c5d48ed97e508b5ae165a0cf9e319a47f4206a3))
+
 ## v0.1.1 (2024-08-13)
 
 ### Documentation
