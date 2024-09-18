@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.4 (2024-09-18)
+
+### Fix
+
+* fix(osiris_backend): change momentum units ([`6e84664`](https://github.com/mtrocadomoreira/ozzy/commit/6e84664fc63914c84a51285cad7f32e5eacf8988))
+
 ## v0.1.3 (2024-09-17)
 
 ### Fix
