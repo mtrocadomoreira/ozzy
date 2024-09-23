@@ -128,7 +128,9 @@ def _define_q_units_general(axes_da, r_var):
 
 
 # TODO: add example (perhaps using sample data?)
-# HACK: maybe adjust values by ensuring that integrated grid corresponds to sum of weights ('q')
+# TODO: reorder dimensions and rechunk such that they make sense (e.g. x2,x1,t)
+# BUG: debug units
+# HACK: move to parts mixin (e.g. bin_into_grid or gridify)
 @stopwatch
 def parts_into_grid(
     raw_ds,
@@ -140,7 +142,7 @@ def parts_into_grid(
     xi_var: str | None = None,
 ):
     r"""
-    Bin particle data into a grid (charge density distribution).
+    Bin particle data into a grid (density distribution).
 
     Parameters
     ----------
