@@ -57,6 +57,8 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 # - Define metadata of different file types -
 # -------------------------------------------
 
+# TODO: redefine names of variables - standardize to x1, x2, etc.
+
 # Coordinates
 default_coord_metadata = {
     "t": {"long_name": r"$t$", "units": r"$\omega_p^{-1}$"},
@@ -399,6 +401,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     """
     ds = xr.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
+    ds = ds.chunk("auto")
     return ds
 
 
@@ -436,9 +439,10 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     """
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         dda = da.from_array(
-            arr[0:-1, :]
+            arr[0:-1, :],
+            chunks=-1,
         )  # last row is excluded because it marks the eof
 
     data_vars = {}
@@ -473,7 +477,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     -----
     The data is flipped along the first dimension (assuming the lineout data is stored in descending order) and expanded to include a `'t'` (time) dimension.
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
 
@@ -546,7 +550,7 @@ def read_grid_single(
         A Dataset containing the specified quantity and coordinates (if provided).
 
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
 
