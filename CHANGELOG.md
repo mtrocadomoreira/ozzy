@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.1.5 (2024-09-23)
+
+### Performance
+
+* perf(lcode_backend): improve concatenation of tb files along time ([`d4d08a5`](https://github.com/mtrocadomoreira/ozzy/commit/d4d08a59979fcbc1a0cd15ed60ca2202ff752fad))
+
+### Refactor
+
+* refactor(statistics): add commented todo&#39;s ([`1816b9b`](https://github.com/mtrocadomoreira/ozzy/commit/1816b9bd834aedd568ced1a699c5c65b44cdb634))
+
 ## v0.1.4 (2024-09-18)
 
 ### Fix
