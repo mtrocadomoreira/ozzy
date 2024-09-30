@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.1.6 (2024-09-30)
+
+### Fix
+
+* fix(statistics): units in parts_into_grid are now fetched from raw_ds argument ([`96a7340`](https://github.com/mtrocadomoreira/ozzy/commit/96a734016ba1ae22f78fe73e6c4aaef9f5a2305d))
+
 ## v0.1.5 (2024-09-23)
 
 ### Performance
