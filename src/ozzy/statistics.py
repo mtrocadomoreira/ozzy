@@ -113,14 +113,16 @@ def _define_q_units(n0, xi_var, dens_ds):
     return units_str
 
 
-def _define_q_units_general(axes_da, r_var):
-    if all("units" in axes_da[each].attrs for each in axes_da.coords):
-        ustrings = [axes_da[each].attrs["units"].strip("$") for each in axes_da.coords]
+def _define_q_units_general(raw_sdims, r_var):
+    if all("units" in raw_sdims[each].attrs for each in raw_sdims.data_vars):
+        ustrings = [
+            raw_sdims[each].attrs["units"].strip("$") for each in raw_sdims.data_vars
+        ]
         extra = ""
         for ustr in ustrings:
             extra += rf"/ {ustr}"
         if r_var is not None:
-            extra += rf"/ {axes_da[r_var].attrs["units"].strip("$")}"
+            extra += rf"/ {raw_sdims[r_var].attrs["units"].strip("$")}"
         units_str = rf"$Q_w {extra}$"
     else:
         units_str = "a.u."
@@ -194,7 +196,6 @@ def parts_into_grid(
 
     _check_n0_input(n0, xi_var)
 
-    # TODO: change this error message; dims might not be space dims (e.g. phase space)
     spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
     if len(spatial_dims) == 0:
         raise KeyError("Did not find any non-time dimensions in input axes dataset")
@@ -257,6 +258,7 @@ def parts_into_grid(
         parts = xr.concat(q_binned, time_dim)
 
     else:
+        # TODO: save units of coords in out file
         dist = get_dist(raw_ds)
         newcoords = {var: axes_ds[var] for var in spatial_dims}
         parts = new_dataset(
@@ -268,7 +270,7 @@ def parts_into_grid(
 
     # units_str = _define_q_units(n0, xi_var, parts)
     # TODO: improve the formatting of the resulting units
-    units_str = _define_q_units_general(axes_ds[spatial_dims], r_var)
+    units_str = _define_q_units_general(raw_ds[spatial_dims], r_var)
 
     # Multiply by factor to ensure that integral of density matches sum of particle weights
     factor = total_w / integrate(parts["nb"])
