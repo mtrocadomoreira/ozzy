@@ -65,8 +65,6 @@ default_coord_metadata = {
     "x1": {"long_name": r"$\xi$", "units": r"$k_p^{-1}$"},
     "x2": {"long_name": r"$r$", "units": r"$k_p^{-1}$"},
 }
-"""A dictionary containing default metadata for coordinate variables in LCODE data.
-"""
 
 # Grid data
 prefix = ["er", "ef", "ez", "bf", "wr", "fi", "nb", "ne", "ni"]
@@ -111,9 +109,9 @@ label = [
 units = [
     r"$k_p^{-1}$",
     r"$k_p^{-1}$",
-    r"$m_\mathrm{sp} c$",
-    r"$m_\mathrm{sp} c$",
-    r"$m_\mathrm{sp} c^2 / \omega_p$",
+    r"$m_e c$",
+    r"$m_e c$",
+    r"$m_e c^2 / \omega_p$",
     "",
     r"$\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$",
     "",
