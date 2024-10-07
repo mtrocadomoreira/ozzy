@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.1.7 (2024-10-07)
+
+### Fix
+
+* fix(part_mixin,statistics): get_phase_space bug fixes
+
+- no error when limits are set automatically and all quantity values are zero
+- make sure that axisymmetric geometry is taken into account correctly when the radius variable isn&#39;t being binned directly ([`6fcd37d`](https://github.com/mtrocadomoreira/ozzy/commit/6fcd37da2e497f119969eec30cea933d4f5568f0))
+
+* fix(lcode_backend): correct units of particle momenta ([`c12f766`](https://github.com/mtrocadomoreira/ozzy/commit/c12f766205346da546da2ab6bbdde1b6420f53e2))
+
 ## v0.1.6 (2024-09-30)
 
 ### Fix
