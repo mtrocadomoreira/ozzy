@@ -265,6 +265,7 @@ class PartMixin:
 
         return result
 
+    # TODO: rename the density variable from "Q" to something that makes more sense
     def get_phase_space(
         self,
         vars: list[str],
@@ -337,6 +338,8 @@ class PartMixin:
                     lims = (-extr, extr)
                 else:
                     lims = (minval, maxval)
+                if lims[0] == lims[1]:
+                    lims = (lims[0] - 0.5, lims[0] + 0.5)
                 extents[v] = lims
 
         if isinstance(nbins, int):

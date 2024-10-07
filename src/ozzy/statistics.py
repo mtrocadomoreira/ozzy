@@ -113,7 +113,7 @@ def _define_q_units(n0, xi_var, dens_ds):
     return units_str
 
 
-def _define_q_units_general(raw_sdims, r_var):
+def _define_q_units_general(raw_sdims, rvar_attrs: dict | None):
     if all("units" in raw_sdims[each].attrs for each in raw_sdims.data_vars):
         ustrings = [
             raw_sdims[each].attrs["units"].strip("$") for each in raw_sdims.data_vars
@@ -121,8 +121,8 @@ def _define_q_units_general(raw_sdims, r_var):
         extra = ""
         for ustr in ustrings:
             extra += rf"/ {ustr}"
-        if r_var is not None:
-            extra += rf"/ {raw_sdims[r_var].attrs["units"].strip("$")}"
+        if rvar_attrs is not None:
+            extra += rf"/ {rvar_attrs["units"].strip("$")}"
         units_str = rf"$Q_w {extra}$"
     else:
         units_str = "a.u."
@@ -230,7 +230,10 @@ def parts_into_grid(
     else:
         raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
         wvar = "w"
-        integrate = integrate_cyl
+        if r_var in axes_ds:
+            integrate = integrate_cyl
+        else:
+            integrate = integrate_cart
         print("\n   - assuming axisymmetric geometry")
 
     def get_dist(ds):
@@ -270,7 +273,11 @@ def parts_into_grid(
 
     # units_str = _define_q_units(n0, xi_var, parts)
     # TODO: improve the formatting of the resulting units
-    units_str = _define_q_units_general(raw_ds[spatial_dims], r_var)
+    if r_var is None:
+        rvar_attrs = None
+    else:
+        rvar_attrs = raw_ds[r_var].attrs
+    units_str = _define_q_units_general(raw_ds[spatial_dims], rvar_attrs)
 
     # Multiply by factor to ensure that integral of density matches sum of particle weights
     factor = total_w / integrate(parts["nb"])
