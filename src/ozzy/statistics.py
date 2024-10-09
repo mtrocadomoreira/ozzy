@@ -285,6 +285,7 @@ def parts_into_grid(
 
     parts["nb"] = parts["nb"].assign_attrs({"long_name": r"$\rho$", "units": units_str})
 
+    # BUG: unit and long_name info should be taken from original dataset, not axes_ds (or perhaps can be overridden by axes_ds)
     for var in parts.coords:
         if var in axes_ds:
             parts.coords[var] = parts.coords[var].assign_attrs(axes_ds[var].attrs)
