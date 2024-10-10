@@ -66,6 +66,8 @@ mkdocs-glightbox = ">=0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 python-semantic-release = "*"
+hypothesis = ">=6.114.1"
+pytest = ">=8.3.3"
 
 [project]
 name = "ozzy"
