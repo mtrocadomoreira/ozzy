@@ -237,6 +237,7 @@ class Backend:
         """
 
         print("\nReading the following files:")
+        files.sort()
         ods = self.parse(files, *args, **kwargs)
 
         if len(files) > 0:
