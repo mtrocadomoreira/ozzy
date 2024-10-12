@@ -55,9 +55,14 @@ dask-expr = ">=1.1.7"
 ipython = ">=8.26.0"
 ipykernel = ">=6.29.5"
 
+
 [tool.poetry.group.optimize.dependencies]
 numpy_groupies = ">=0.10.2"
 numbagg = ">=0.8.1"
+
+[tool.poetry.group.interactive.dependencies]
+hvplot = ">=0.11.0"
+jupyter-bokeh = ">=4.0.5"
 
 [tool.poetry.group.docs.dependencies]
 mkdocstrings-python = ">=1.9.2"
