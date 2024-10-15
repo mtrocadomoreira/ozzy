@@ -12,12 +12,14 @@ import os
 
 import cmcrameri  # noqa
 import matplotlib as mpl
+import matplotlib.animation as manim
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns  # noqa
 import xarray as xr
 from IPython.display import HTML, display
+from tqdm import tqdm
 
 from . import tol_colors as tc
 from .utils import print_file_item
@@ -216,6 +218,51 @@ sns.set_theme(
 
 # Set default colormaps
 xr.set_options(cmap_divergent="cmc.vik", cmap_sequential="cmc.lipari")
+
+# Define module classes
+
+
+class MutablePlotObj:
+    def __init__(
+        self,
+        imo: mpl.artist.Artist,
+        ax: mpl.axes.Axes,
+        da: xr.DataArray,
+        tvar: str,
+        xlim: None | tuple[float, float] = None,
+        ylim: None | tuple[float, float] = None,
+        clim: None | tuple[float, float] = None,
+    ):
+        self.imo = imo
+        self.da = da
+        self.ax = ax
+        self.tvar = tvar
+        self.xlim = xlim
+        self.ylim = ylim
+        self.clim = clim
+        return
+
+    def redraw(self, tval: float) -> None:
+        # Clear the axes
+        if hasattr(self.imo, "colorbar"):
+            self.imo.colorbar.remove()
+        self.ax.clear()
+
+        # Create new plot object
+        new_imo = self.da.sel({self.tvar: tval}, method="nearest").plot(ax=self.ax)
+
+        # Set axis limits
+        if self.xlim is not None:
+            self.ax.set_xlim(self.xlim)
+        if self.ylim is not None:
+            self.ax.set_ylim(self.ylim)
+        if hasattr(new_imo, "set_clim") & (self.clim is not None):
+            new_imo.set_clim(self.clim)
+
+        # Update plot object
+        self.imo = new_imo
+
+        return
 
 
 # Define module functions
@@ -581,3 +628,286 @@ def set_cmap(
 
             pass
     pass
+
+
+# TODO: check that examples work
+def movie(
+    fig: mpl.figure.Figure,
+    plot_objs: dict[mpl.artist.Artist, tuple[xr.DataArray, str]]
+    | dict[mpl.artist.Artist, xr.DataArray],
+    filename: str,
+    fps: int = 5,
+    dpi: int = 300,
+    t_range: None | tuple[float, float] = None,
+    xlim: None | tuple[float, float] = None,
+    ylim: None | tuple[float, float] = None,
+    clim: None | tuple[float, float] = None,
+    clim_fixed: bool = True,
+    writer: str = "ffmpeg",
+    **kwargs,
+) -> None:
+    """
+    Create an animation from matplotlib figure objects.
+
+    Parameters
+    ----------
+    fig : [matplotlib.figure.Figure][]
+        The matplotlib Figure object to animate.
+    plot_objs : dict[[matplotlib.artist.Artist][], tuple[xarray.DataArray, str]] | dict[[matplotlib.artist.Artist][], xarray.DataArray]
+        A dictionary mapping matplotlib Artist objects to either tuples containing a DataArray and the name of its time coordinate or a DataArray (time coordinate is assumed to be `'t'`).
+    filename : str
+        The output filename or filepath for the animation. If the path doesn't exist, the missing folders will be created.
+    fps : int, optional
+        Frames per second for the animation.
+    dpi : int, optional
+        Dots-per-inch resolution for the output.
+    t_range : tuple[float, float] | None, optional
+        The time range for the animation. If `None`, the full time range of the data will be used.
+    xlim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+        The horizontal axis limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
+    ylim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+        The vertical axis limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
+    clim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+        The color scale limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
+    clim_fixed : bool, optional
+        If `False`, color scale limits vary for each time step.
+    writer : str, optional
+        The [`matplotlib` animation writer](https://matplotlib.org/stable/api/animation_api.html#writer-classes) to use. Options are `'ffmpeg'`, `'pillow'`, `'html'`, `'imagemagick'`, and `'frames_png'` (no writer is used, image frames in PNG format are saved to a folder).
+    **kwargs
+        Additional keyword arguments to pass to the `matplotlib` animation writer.
+
+        !!! note
+
+            When [FFMpegWriter][matplotlib.animation.FFMpegWriter] is used (default, `writer='ffmpeg'`), a [constant rate factor](https://trac.ffmpeg.org/wiki/Encode/H.264#crf) of 18 is used by default via `extra_args=['-crf', '18']`.
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    ???+ example "Basic usage with a single plot object"
+        ```python
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        import ozzy as oz
+        import ozzy.plot as oplt
+
+        time = np.arange(0, 10, 0.1)
+        x = np.arange(-20, 0, 0.2)
+        X, T = np.meshgrid(x, time)
+        data = np.sin(X - 0.5 * T)
+        da = oz.DataArray(
+            data, coords={"time": time, "x": x}, dims=["time", "x"], pic_data_type="grid"
+        )
+
+        # Create a figure and plot
+        fig, ax = plt.subplots()
+        line = da.isel(time=0).plot()
+
+        # Create the movie
+        oplt.movie(fig, {line[0]: (da, "time")}, "sine_wave.mp4")
+        # This will create an animation of a sine wave in 'sine_wave.mp4'
+        ```
+
+    ???+ example "Using multiple plot objects and custom limits"
+        ```python
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        import ozzy as oz
+        import ozzy.plot as oplt
+
+        time = np.arange(0, 10, 0.1)
+        x = np.arange(-20, 0, 0.2)
+        X, T = np.meshgrid(x, time)
+        data1 = np.sin(X - 0.5 * T)
+        data2 = np.cos(X - 0.5 * T)
+        da1 = oz.DataArray(
+            data1, coords={"time": time, "x": x}, dims=["time", "x"], pic_data_type="grid"
+        )
+        da2 = oz.DataArray(
+            data2, coords={"time": time, "x": x}, dims=["time", "x"], pic_data_type="grid"
+        )
+
+        # Create a figure with two subplots
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        (line1,) = da1.isel(time=0).plot(ax=ax1)
+        (line2,) = da2.isel(time=0).plot(ax=ax2)
+
+        # Create the movie with custom limits
+        oplt.movie(
+            fig,
+            {line1: (da1, "time"), line2: (da2, "time")},
+            "trig_functions.mp4",
+            xlim={line1: (-5, 0), line2: (-20, -5)},
+            ylim=(-1.5, 1.5),
+            fps=10,
+        )
+        # This will create an animation of sine and cosine waves
+        # with different x-axis limits for each subplot
+        ```
+    """
+    # Define default time variables
+    for k, v in plot_objs.items():
+        if not isinstance(v, tuple):
+            plot_objs[k] = (v, "t")
+        elif isinstance(v, tuple) & (len(v) < 2):
+            plot_objs[k] = (v, "t")
+        if plot_objs[k][1] not in plot_objs[k][0].coords:
+            raise ValueError(
+                f"Could not find {v[1]} variable in {v[0].name} DataArray. Please specify a valid time coordinate for this DataArray in the dictionary of the 'plot_objs' argument."
+            )
+
+    # Define video file's metadata
+    metadata = {"artist": "ozzy"}
+
+    # Process time range
+    if t_range is None:
+        t_range = (None, None)
+
+    # Set tmin and tmax
+    if t_range[0] is None:
+        tmin = list(plot_objs.values())[0][0][list(plot_objs.values())[0][1]][0]
+        for da, tvar in plot_objs.values():
+            if da[tvar][0] < tmin:
+                tmin = da[tvar][0]
+    else:
+        tmin = t_range[0]
+    if t_range[1] is None:
+        tmax = list(plot_objs.values())[0][0][list(plot_objs.values())[0][1]][-1]
+        for da, tvar in plot_objs.values():
+            if da[tvar][-1] > tmax:
+                tmax = da[tvar][-1]
+    else:
+        tmax = t_range[1]
+
+    # Choose time array with the most points
+    da1 = list(plot_objs.values())[0][0]
+    tvar1 = list(plot_objs.values())[0][1]
+    t_arr = da1[tvar1].sel({tvar1: slice(tmin, tmax)})
+    nt = t_arr.size
+    for da, tvar in plot_objs.values():
+        t_new = da[tvar].sel({tvar: slice(tmin, tmax)})
+        nt_curr = t_new.size
+        if nt_curr > nt:
+            nt = nt_curr
+            t_arr = t_new
+
+    # Process axis limits
+
+    def process_lims(arg):
+        if not isinstance(arg, dict):
+            lims_arr = arg
+            lims_out = {}
+            for k in plot_objs.keys():
+                lims_out[k] = lims_arr
+        else:
+            lims_out = arg
+        return lims_out
+
+    def process_clims(arg):
+        if not isinstance(arg, dict):
+            lims_out = {}
+            for k in plot_objs.keys():
+                if (arg is None) & clim_fixed:
+                    lims_out[k] = k.get_clim() if hasattr(k, "get_clim") else None
+                else:
+                    lims_out[k] = arg
+        else:
+            lims_out = arg
+        return lims_out
+
+    xlim = process_lims(xlim)
+    ylim = process_lims(ylim)
+    clim = process_clims(clim)
+
+    # Create mutable plot objects
+
+    mpos = []
+    for k, v in plot_objs.items():
+        mpos.append(MutablePlotObj(k, k.axes, v[0], v[1], xlim[k], ylim[k], clim[k]))
+
+    # Create necessary directories
+
+    folderpath = os.path.dirname(filename)
+    if folderpath != "":
+        os.makedirs(folderpath, exist_ok=True)
+
+    # Select and initialize writer
+
+    error_msg = {}
+    match writer:
+        case "ffmpeg":
+            if "extra_args" in kwargs:
+                if "-crf" in kwargs["extra_args"]:
+                    f_kwargs = kwargs
+                else:
+                    kwargs["extra_args"].append("-crf")
+                    kwargs["extra_args"].append("18")
+                    f_kwargs = kwargs
+            else:
+                kwargs["extra_args"] = ["-crf", "18"]
+                f_kwargs = kwargs
+            mwriter = manim.FFMpegWriter(
+                fps=fps,
+                metadata=metadata,
+                **f_kwargs,
+            )
+            error_msg["ffmpeg"] = (
+                "The FFMpeg library must be installed to save movies. See: https://ffmpeg.org/"
+            )
+        case "pillow":
+            mwriter = manim.PillowWriter(
+                fps=fps,
+                metadata=metadata,
+            )
+            error_msg["pillow"] = ""
+        case "html":
+            mwriter = manim.HTMLWriter(
+                fps=fps,
+                metadata=metadata,
+            )
+            error_msg["html"] = ""
+        case "imagemagick":
+            mwriter = manim.ImageMagickWriter(
+                fps=fps,
+                metadata=metadata,
+            )
+            error_msg["imagemagick"] = ""
+        case "frames_png":
+            mwriter = None
+        case _:
+            raise ValueError(
+                "Unrecognised animation writer. Available options for 'writer' keyword are: 'ffmpeg' (default), 'pillow', 'html', 'imagemagick', and 'frames_png' (save image frames only). See https://matplotlib.org/stable/api/animation_api.html#writer-classes for more info."
+            )
+
+    if mwriter is None:
+        # Save image frames only
+        i = 0
+        for tval in tqdm(t_arr):
+            for obj in mpos:
+                obj.redraw(tval)
+            fig.savefig(f"{folderpath}/frame_{i:04}.png")
+            i += 1
+
+        print(f"\nImage frames saved to folder {folderpath}")
+
+    else:
+        # Use matplotlib writer
+
+        if not mwriter.isAvailable():
+            raise Exception(
+                f"{mwriter.__name__} is not available. " + error_msg[writer]
+            )
+
+        with mwriter.saving(fig, filename, dpi=dpi):
+            for tval in tqdm(t_arr):
+                for obj in mpos:
+                    obj.redraw(tval)
+                mwriter.grab_frame()
+
+        print(f"\nMovie saved to file {filename}")
+
+    return
