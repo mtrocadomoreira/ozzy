@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "ozzy"
-version = "0.1.7"
+version = "0.2.0"
 description = "PIC simulation data analysis for the lazy and impatient"
 authors = [
   "Mariana Moreira <mtrocadomoreira@gmail.com>",
