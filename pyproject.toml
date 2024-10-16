@@ -68,6 +68,7 @@ mkdocstrings-python = ">=1.9.2"
 mkdocs-material = ">=9.5.28"
 mkdocs-git-revision-date-localized-plugin = ">=1.2.6"
 mkdocs-glightbox = ">=0.4.0"
+black = ">=24.10.0"
 
 [tool.poetry.group.dev.dependencies]
 python-semantic-release = "*"
