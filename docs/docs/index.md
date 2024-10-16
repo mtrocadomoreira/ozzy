@@ -42,7 +42,7 @@ Ozzy is a data visualization and data wrangling tool geared towards particle-in-
 
     _Which file was this again?_ Let the code stay organized so you don't have to. Attributes go where the array goes.
 
-    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts#data-objects.md)
+    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts.md#data-objects)
 
 -   :material-arm-flex:{ .lg .middle } __No file size too large__
 

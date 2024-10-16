@@ -109,7 +109,7 @@ def unpack_attr(attr):
 
     This function handles different shapes and data types of NumPy arrays,
     particularly focusing on string (byte string) attributes. It's useful
-    for unpacking attributes read from HDF5 files using h5py.
+    for unpacking attributes read from HDF5 files using [h5py](https://www.h5py.org/).
 
     Parameters
     ----------
@@ -130,7 +130,7 @@ def unpack_attr(attr):
 
     Notes
     -----
-    - For string attributes (dtype.kind == 'S'):
+    - For string attributes (`dtype.kind == 'S'`):
         - 0D arrays: returns the decoded string
         - 1D arrays: returns the first element decoded
         - 2D arrays: returns the first element if size is 1, otherwise the entire array
@@ -222,7 +222,7 @@ def tex_format(str: str) -> str:
 
 def get_regex_snippet(pattern: str, string: str) -> str:
     r"""
-    Extract a regex pattern from a string using [re.search()](https://docs.python.org/3/library/re.html#re.search).
+    Extract a regex pattern from a string using [`re.search`](https://docs.python.org/3/library/re.html#re.search).
 
     !!! tip
         Use [regex101.com](https://regex101.com/) to experiment with and debug regular expressions.
@@ -267,7 +267,7 @@ def get_user_methods(clss: type) -> list[str]:
 
     Returns
     -------
-    methods : list of str
+    methods : list[str]
         A list of user-defined method names in the class.
 
     Examples
@@ -305,7 +305,7 @@ def prep_file_input(files: str | list[str]) -> list[str]:
 
     Parameters
     ----------
-    files : str or list of str
+    files : str | list of str
         The input file(s).
 
     Returns
@@ -356,7 +356,7 @@ def force_str_to_list(var):
 
     Parameters
     ----------
-    var : str or object
+    var : str | object
         The input variable.
 
     Returns
@@ -391,7 +391,7 @@ def recursive_search_for_file(fname: str, path: str = os.getcwd()) -> list[str]:
     fname : str
         The name or name pattern of the file to search for.
     path : str, optional
-        The path to the directory where the search should start. If not specified, uses the current directory.
+        The path to the directory where the search should start. If not specified, uses the current directory via [`os.getcwd`](https://docs.python.org/3/library/os.html#os.getcwd).
 
     Returns
     -------
@@ -491,7 +491,7 @@ def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:
     ----------
     path : str
         The base path.
-    runs_pattern : str or list of str
+    runs_pattern : str | list[str]
         The run directory name or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern(s).
 
     Returns
@@ -670,7 +670,7 @@ def axis_from_extent(nx: int, lims: tuple[float, float]) -> np.ndarray:
     ----------
     nx : int
         The number of cells in the axis.
-    lims : tuple of float
+    lims : tuple[float, float]
         The extent limits (min, max).
 
     Returns
@@ -727,7 +727,7 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
 
     ???+ example "Bin edges from simple axis"
 
-        First we create a simple axis with the [axis_from_extent()][ozzy.utils.axis_from_extent] function:
+        First we create a simple axis with the [`axis_from_extent`][ozzy.utils.axis_from_extent] function:
 
         ```python
         import ozzy as oz

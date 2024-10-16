@@ -48,7 +48,7 @@ def Dataset(
     **kwargs,
 ) -> xr.Dataset:
     """
-    Create a new [Dataset][xarray.Dataset] object with added Ozzy functionality. See [xarray.Dataset][] for more information on `*args` and `**kwargs`.
+    Create a new [Dataset][xarray.Dataset] object with added ozzy functionality. See [xarray.Dataset][] for more information on `*args` and `**kwargs`.
 
     !!! warning
 

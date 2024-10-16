@@ -101,19 +101,21 @@ class Backend:
             The base path to search for files.
         dirs_runs : dict[str, str]
             A dictionary mapping run names to directory paths relative to `path`.
+
+            !!! tip
+
+                The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
+
+                ```python
+                import ozzy as oz
+                dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
+                ```
         quants : str, or list[str], optional
             A quantity name or list of quantity names to search for. The search term may contain the full filename (`'e1-000001.h5'`), only the quantity name (`'e1'`) or any combination with a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern (`'e1-*'`, `'e1-*.h5'`).
             If not provided, any files with the file endings associated with this `Backend` are searched for.
 
 
-        !!! tip
 
-            The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
-
-            ```python
-            import ozzy as oz
-            dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
-            ```
 
         Returns
         -------

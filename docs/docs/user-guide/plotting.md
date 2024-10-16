@@ -22,6 +22,8 @@ Though xarray's plotting capabilities can be used directly, ozzy does some extra
 
 <!-- TODO: examples of lines, scatter, imshow, pcolormesh, etc. -->
 
+<!-- TODO: examples of movie and interactive movie with hvplot -->
+
 
 ## Color maps and schemes
 

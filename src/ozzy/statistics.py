@@ -60,9 +60,9 @@ def _check_n0_input(n0, xi_var):
 
     Parameters
     ----------
-    n0 : float or None
+    n0 : float | None
         Reference density value.
-    xi_var : str or None
+    xi_var : str | None
         Name of the variable representing the xi axis.
 
     Raises
@@ -87,9 +87,9 @@ def _define_q_units(n0, xi_var, dens_ds):
 
     Parameters
     ----------
-    n0 : float or None
+    n0 : float | None
         Reference density value.
-    xi_var : str or None
+    xi_var : str | None
         Name of the variable representing the xi axis.
     dens_ds : xarray.Dataset
         Dataset containing density data.
@@ -163,11 +163,11 @@ def parts_into_grid(
         Name of the time dimension in the input datasets. Default is `'t'`.
     weight_var : str, optional
         Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
-    r_var : str or None, optional
+    r_var : str | None, optional
         Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable. Default is None.
-    n0 : float or None, optional
+    n0 : float | None, optional
         Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge density is converted to physical units. Default is None.
-    xi_var : str or None, optional
+    xi_var : str | None, optional
         Name of the variable representing the longitudinal axis. Required if `n0` is provided.
 
     Returns
@@ -319,9 +319,9 @@ def charge_in_field_quadrants(
         Name of the time dimension in the input datasets. Default is `'t'`.
     weight_var : str, optional
         Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
-    n0 : float or None, optional
+    n0 : float | None, optional
         Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge is converted to physical units. Default is None.
-    xi_var : str or None, optional
+    xi_var : str | None, optional
         Name of the variable representing the longitudinal axis. Required if `n0` is provided.
 
     Returns
@@ -410,7 +410,7 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
         Dataset containing particle data.
     fields_ds : xarray.Dataset
         Dataset containing field data.
-    spatial_dims : list of str, optional
+    spatial_dims : list[str], optional
         List of spatial dimension names in the input datasets. Default is `['x1', 'x2']`.
 
     Returns

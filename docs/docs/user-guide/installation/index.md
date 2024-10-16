@@ -64,7 +64,7 @@ mamba activate ozzy-git
 
 #### Step 4 - Install ozzy with Poetry
 
-We will use [Poetry](https://python-poetry.org/) to install ozzy and its dependencies. Making sure that the virtual environment you created in [Step 3](#step-3---create-a-new-environment) is activated, install Poetry:
+We will use [Poetry](https://python-poetry.org/) to install ozzy and its dependencies. Making sure that the virtual environment you created in [Step 3](#step-3-create-a-new-environment) is activated, install Poetry:
 ```bash
 mamba install poetry
 ```

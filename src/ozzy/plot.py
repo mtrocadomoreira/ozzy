@@ -651,34 +651,39 @@ def movie(
 
     Parameters
     ----------
-    fig : [matplotlib.figure.Figure][]
-        The matplotlib Figure object to animate.
-    plot_objs : dict[[matplotlib.artist.Artist][], tuple[xarray.DataArray, str]] | dict[[matplotlib.artist.Artist][], xarray.DataArray]
-        A dictionary mapping matplotlib Artist objects to either tuples containing a DataArray and the name of its time coordinate or a DataArray (time coordinate is assumed to be `'t'`).
+    fig : matplotlib.figure.Figure
+        The [matplotlib Figure][matplotlib.figure.Figure] object to animate.
+    plot_objs : dict[matplotlib.artist.Artist, tuple[xarray.DataArray, str]] | dict[matplotlib.artist.Artist, xarray.DataArray]
+        A dictionary mapping [matplotlib Artist][matplotlib.artist.Artist] objects to either tuples containing a DataArray and the name of its time coordinate, or to a DataArray (where the time coordinate is assumed to be `'t'`).
     filename : str
-        The output filename or filepath for the animation. If the path doesn't exist, the missing folders will be created.
+        The output file name or path for the animation. If the path doesn't exist, missing folders will be created.
     fps : int, optional
         Frames per second for the animation.
     dpi : int, optional
         Dots-per-inch resolution for the output.
     t_range : tuple[float, float] | None, optional
         The time range for the animation. If `None`, the full time range of the data will be used.
-    xlim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+    xlim : tuple[float, float] | None | dict[matplotlib.artist.Artist, tuple[float,float]], optional
         The horizontal axis limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
-    ylim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+    ylim : tuple[float, float] | None | dict[matplotlib.artist.Artist, tuple[float,float]], optional
         The vertical axis limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
-    clim : tuple[float, float] | None | dict[[matplotlib.artist.Artist][], tuple[float,float]], optional
+    clim : tuple[float, float] | None | dict[matplotlib.artist.Artist, tuple[float,float]], optional
         The color scale limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
     clim_fixed : bool, optional
         If `False`, color scale limits vary for each time step.
     writer : str, optional
-        The [`matplotlib` animation writer](https://matplotlib.org/stable/api/animation_api.html#writer-classes) to use. Options are `'ffmpeg'`, `'pillow'`, `'html'`, `'imagemagick'`, and `'frames_png'` (no writer is used, image frames in PNG format are saved to a folder).
+        The [`matplotlib` animation writer](https://matplotlib.org/stable/api/animation_api.html#writer-classes) to use. Options are `'ffmpeg'`, `'pillow'`, `'html'`, `'imagemagick'`, and `'frames_png'`. When `'frames_png'` is selected, no writer is used and the animation frames are saved to a folder in PNG format.
+
+        !!! info
+
+            The [FFMpeg library](https://ffmpeg.org/) must be installed on the system in order to use [matplotlib's FFMpeg writer][matplotlib.animation.FFMpegWriter].
+
     **kwargs
         Additional keyword arguments to pass to the `matplotlib` animation writer.
 
         !!! note
 
-            When [FFMpegWriter][matplotlib.animation.FFMpegWriter] is used (default, `writer='ffmpeg'`), a [constant rate factor](https://trac.ffmpeg.org/wiki/Encode/H.264#crf) of 18 is used by default via `extra_args=['-crf', '18']`.
+            For `writer='ffmpeg'`, a [constant rate factor](https://trac.ffmpeg.org/wiki/Encode/H.264#crf) of 18 is set by default via `extra_args=['-crf', '18']`. See [FFMpegWriter][matplotlib.animation.FFMpegWriter].
 
     Returns
     -------
