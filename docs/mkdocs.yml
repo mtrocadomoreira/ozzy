@@ -103,6 +103,9 @@ extra:
   #    - accept
   #    - manage
   #    - reject
+    analytics:
+      provider: umami
+      property: foobar
   # analytics:
   #   provider: google
   #   property: ozzy-documentation
