@@ -1,9 +1,12 @@
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 import pytest
+import xarray as xr
 from hypothesis import given
 from hypothesis import strategies as st
 
-from ozzy.plot import _cmap_exists, set_cmap, set_font
+from ozzy.plot import _cmap_exists, movie, set_cmap, set_font
 
 
 def test_set_font_valid():
@@ -77,3 +80,83 @@ def test_set_cmap_multiple():
     assert xr.get_options()["cmap_sequential"] == "cmc.lipari"
     assert "color" in mpl.rcParams["axes.prop_cycle"]
     assert len(mpl.rcParams["axes.prop_cycle"].by_key()["color"]) > 0
+
+
+def sample_data():
+    time = np.arange(0, 10, 0.1)
+    x = np.arange(-20, 0, 0.2)
+    X, T = np.meshgrid(x, time)
+    data = np.sin(X - 0.5 * T)
+    return xr.DataArray(data, coords={"time": time, "x": x}, dims=["time", "x"])
+
+
+def test_movie_basic(tmp_path, sample_data):
+    fig, ax = plt.subplots()
+    line = sample_data.isel(time=0).plot(ax=ax)
+    output_file = tmp_path / "test_movie.mp4"
+    movie(fig, {line[0]: (sample_data, "time")}, str(output_file))
+    assert output_file.exists()
+
+
+def test_movie_multiple_plots(tmp_path, sample_data):
+    fig, (ax1, ax2) = plt.subplots(2, 1)
+    line1 = sample_data.isel(time=0).plot(ax=ax1)
+    line2 = sample_data.isel(time=0).plot(ax=ax2)
+    output_file = tmp_path / "test_movie_multiple.mp4"
+    movie(
+        fig,
+        {line1[0]: (sample_data, "time"), line2[0]: (sample_data, "time")},
+        str(output_file),
+    )
+    assert output_file.exists()
+
+
+def test_movie_custom_limits(tmp_path, sample_data):
+    fig, ax = plt.subplots()
+    line = sample_data.isel(time=0).plot(ax=ax)
+    output_file = tmp_path / "test_movie_limits.mp4"
+    movie(
+        fig,
+        {line[0]: (sample_data, "time")},
+        str(output_file),
+        xlim=(-10, 0),
+        ylim=(-1, 1),
+        clim=(-0.5, 0.5),
+    )
+    assert output_file.exists()
+
+
+def test_movie_invalid_time_variable():
+    fig, ax = plt.subplots()
+    invalid_data = xr.DataArray(np.random.rand(10, 10), dims=["x", "y"])
+    line = invalid_data.plot(ax=ax)
+    with pytest.raises(ValueError):
+        movie(fig, {line[0]: (invalid_data, "time")}, "invalid.mp4")
+
+
+@given(st.integers(1, 60), st.integers(72, 600))
+def test_movie_fps_dpi(fps, dpi, tmp_path, sample_data):
+    fig, ax = plt.subplots()
+    line = sample_data.isel(time=0).plot(ax=ax)
+    output_file = tmp_path / f"test_movie_fps{fps}_dpi{dpi}.mp4"
+    movie(fig, {line[0]: (sample_data, "time")}, str(output_file), fps=fps, dpi=dpi)
+    assert output_file.exists()
+
+
+def test_movie_writer_options(tmp_path, sample_data):
+    fig, ax = plt.subplots()
+    line = sample_data.isel(time=0).plot(ax=ax)
+    writers = ["ffmpeg", "pillow", "html", "imagemagick", "frames_png"]
+    for writer in writers:
+        output_file = tmp_path / f"test_movie_{writer}.mp4"
+        movie(fig, {line[0]: (sample_data, "time")}, str(output_file), writer=writer)
+        if writer == "frames_png":
+            assert (tmp_path / "frame_0000.png").exists()
+        else:
+            assert output_file.exists()
+
+
+def test_movie_invalid_writer():
+    fig, ax = plt.subplots()
+    with pytest.raises(ValueError):
+        movie(fig, {}, "invalid.mp4", writer="invalid_writer")
