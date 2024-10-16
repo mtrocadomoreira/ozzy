@@ -231,8 +231,13 @@ def read(files, **kwargs):
                         join_opt = {"join": "exact"}
                     case b"particles":
                         join_opt = {"join": "outer"}
+                    case b"tracks-2":
+                        raise NotImplementedError(
+                            "Track files have not been implemented yet, sorry."
+                        )
                     case _:
-                        join_opt = {"join": "exact"}
+                        type_str = f.attrs["TYPE"]
+                        raise ValueError(f"Unrecognized OSIRIS data type: {type_str}")
 
             with dask.config.set({"array.slicing.split_large_chunks": True}):
                 ds = xr.open_mfdataset(

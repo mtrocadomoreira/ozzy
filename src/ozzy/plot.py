@@ -569,7 +569,7 @@ def set_cmap(
 
     all_args = {**locals()}
 
-    if all(item[1] is None for item in dict.items()):
+    if all(item[1] is None for item in all_args.items()):
         print(
             "Not sure which colormap to choose?\nRun 'ozzy.plot.show_cmaps()' to see available colormaps."
         )

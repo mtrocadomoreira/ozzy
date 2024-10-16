@@ -55,7 +55,6 @@ dask-expr = ">=1.1.7"
 ipython = ">=8.26.0"
 ipykernel = ">=6.29.5"
 
-
 [tool.poetry.group.optimize.dependencies]
 numpy_groupies = ">=0.10.2"
 numbagg = ">=0.8.1"
@@ -74,6 +73,7 @@ mkdocs-glightbox = ">=0.4.0"
 python-semantic-release = "*"
 hypothesis = ">=6.114.1"
 pytest = ">=8.3.3"
+pytest-mock = ">=3.14.0"
 
 [project]
 name = "ozzy"
@@ -154,3 +154,7 @@ insecure = false
 dist_glob_patterns = ["dist/*"]
 upload_to_vcs_release = true
 
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
