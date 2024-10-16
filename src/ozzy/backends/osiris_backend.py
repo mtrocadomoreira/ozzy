@@ -22,7 +22,12 @@ quants_ignore = None
 
 # TODO: make compatible with particle track data
 
-special_vars = {"ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"]}
+special_vars = {
+    "ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"],
+    "p1": [r"$p_1$", r"$m_\mathrm{sp} c$"],
+    "p2": [r"$p_2$", r"$m_\mathrm{sp} c$"],
+    "p3": [r"$p_3$", r"$m_\mathrm{sp} c$"],
+}
 
 type_mapping = {"particles": "part", "grid": "grid", "tracks-2": "track"}
 

@@ -57,14 +57,14 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 # - Define metadata of different file types -
 # -------------------------------------------
 
+# TODO: redefine names of variables - standardize to x1, x2, etc.
+
 # Coordinates
 default_coord_metadata = {
     "t": {"long_name": r"$t$", "units": r"$\omega_p^{-1}$"},
     "x1": {"long_name": r"$\xi$", "units": r"$k_p^{-1}$"},
     "x2": {"long_name": r"$r$", "units": r"$k_p^{-1}$"},
 }
-"""A dictionary containing default metadata for coordinate variables in LCODE data.
-"""
 
 # Grid data
 prefix = ["er", "ef", "ez", "bf", "wr", "fi", "nb", "ne", "ni"]
@@ -113,7 +113,7 @@ units = [
     r"$m_e c$",
     r"$m_e c^2 / \omega_p$",
     "",
-    r"$e \frac{\Delta \xi}{2 \: r_e}$",
+    r"$\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$",
     "",
 ]
 qinfo_parts = dict()
@@ -399,6 +399,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     """
     ds = xr.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
+    ds = ds.chunk("auto")
     return ds
 
 
@@ -436,9 +437,10 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     """
     parts_cols = list(quant_info["parts"].keys())
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         dda = da.from_array(
-            arr[0:-1, :]
+            arr[0:-1, :],
+            chunks=-1,
         )  # last row is excluded because it marks the eof
 
     data_vars = {}
@@ -473,7 +475,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     -----
     The data is flipped along the first dimension (assuming the lineout data is stored in descending order) and expanded to include a `'t'` (time) dimension.
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
 
@@ -546,7 +548,7 @@ def read_grid_single(
         A Dataset containing the specified quantity and coordinates (if provided).
 
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
 
@@ -680,6 +682,7 @@ def read_agg(
     return ds
 
 
+# TODO: do not raise exception when beamfile.bit is not found and instead assume t=0.0 (and print warning)
 def read_beamfile(files: list[str], file_info: NamedTuple) -> xr.Dataset:
     r"""
     Read particle data from a list of LCODE beam files and return an xarray.Dataset.
@@ -899,17 +902,17 @@ def read(
 class Methods:
     """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
 
-    def convert_q(self, dxi: float, q_var: str = "q", n0: float | None = None) -> None:
-        r"""Convert the charge density variable to physical units.
+    def convert_q(self, dxi: float, n0: float, q_var: str = "q") -> None:
+        r"""Convert the charge variable to physical units (in units of $e$).
 
         Parameters
         ----------
         dxi : float
-            The grid spacing in the x direction, in units of $k_p^{-1}$ or $\mathrm{cm}$. If `dxi` is given in normalized units, `n0` must be given as well.
+            The grid spacing in the longitudinal direction in normalized units, i.e., in units of $k_p^{-1}$. or $\mathrm{cm}$.
+        n0 : float
+            The reference density, in $\mathrm{cm}^{-3}$.
         q_var : str, default 'q'
             Name of the charge density variable.
-        n0 : float, optional
-            The reference density, in $\mathrm{cm}^{-3}$. If not provided, `dxi` is assumed to be in $\mathrm{cm}$.
 
         Returns
         -------
@@ -918,11 +921,13 @@ class Methods:
 
         Notes
         -----
-        The charge in physical units ($\mathrm{C}$) is obtained by multiplying the normalized charge with the factor $\Delta \xi / (2 r_e)$, where $\Delta \xi$ is longitudinal cell size and $r_e$ is the classical electron radius, defined as:
+        The charge in physical units ($\mathrm{C}$) is obtained by multiplying the normalized charge with the factor $\frac{\Delta \hat{\xi}}{2} \frac{I_A}{\omega_p}$, where $\Delta \hat{\xi} = k_p \Delta \xi$ is the normalized longitudinal cell size and $I_A$ is the Alfvén current, defined as:
 
         \[
-        r_e = \frac{1}{4 \pi \varepsilon_0} \frac{e^2}{m_e c^2}
+        I_A = 4 \pi \varepsilon_0 \frac{m_e c^3}{e} \approx 17.045 \ \mathrm{kA}
         \]
+
+        Note that the charge is given in units of the elementary charge $e$ after this method is applied.
 
         Examples
         --------
@@ -932,24 +937,18 @@ class Methods:
             ```python
             import ozzy as oz
             ds = oz.open('lcode', [part example])
-            ds = ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
+            ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
             print(ds)
 
             ```
         """
         # TODO: make this compatible with pint
 
-        print("\n   Converting charge...")
-
-        re = 2.8179403227e-13  # in cm
-        if n0 is None:
-            print("         - assuming dxi is in units of cm")
-            factor = dxi / (2 * re)
-        else:
-            print("         - assuming dxi is in normalized units")
-            distcm = 531760.37819 / np.sqrt(n0)
-            factor = dxi * distcm / (2 * re)
-
+        # Alfven current divided by elementary charge
+        alfven_e = 1.0638708535128997e23  # 1/s
+        # Plasma frequency
+        omega_p = 56414.60231191864 * np.sqrt(n0)  # 1/s
+        factor = dxi * 0.5 * alfven_e / omega_p
         self._obj[q_var] = self._obj[q_var] * factor
         self._obj[q_var].attrs["units"] = "$e$"
 

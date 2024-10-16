@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "ozzy"
-version = "0.1.0"
+version = "0.2.0"
 description = "PIC simulation data analysis for the lazy and impatient"
 authors = [
   "Mariana Moreira <mtrocadomoreira@gmail.com>",
@@ -53,13 +53,15 @@ cmcrameri = ">=1.9"
 seaborn = ">=0.13.2"
 dask-expr = ">=1.1.7"
 ipython = ">=8.26.0"
-pytest = ">=8.2.2"
-hypothesis = ">=6.108.2"
-pytest-mock = "^3.14.0"
+ipykernel = ">=6.29.5"
 
 [tool.poetry.group.optimize.dependencies]
 numpy_groupies = ">=0.10.2"
 numbagg = ">=0.8.1"
+
+[tool.poetry.group.interactive.dependencies]
+hvplot = ">=0.11.0"
+jupyter-bokeh = ">=4.0.5"
 
 [tool.poetry.group.docs.dependencies]
 mkdocstrings-python = ">=1.9.2"
@@ -69,6 +71,9 @@ mkdocs-glightbox = ">=0.4.0"
 
 [tool.poetry.group.dev.dependencies]
 python-semantic-release = "*"
+hypothesis = ">=6.114.1"
+pytest = ">=8.3.3"
+pytest-mock = ">=3.14.0"
 
 [project]
 name = "ozzy"
