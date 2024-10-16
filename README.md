@@ -9,10 +9,10 @@
 
 Ozzy is a data visualization and data wrangling Python package geared towards **particle-in-cell (PIC) simulations** and the **plasma physics** community.
 
-Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
+Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible by building on the powerful features of the [xarray](https://xarray.dev/) package.
 
 > [!WARNING]
-> The first release of ozzy is still in progress. The package is not available on PyPI or conda-forge yet.
+> Due to a naming conflict, ozzy is not available on PyPI or conda-forge yet. Please use the [git + Poetry method](https://mtrocadomoreira.github.io/ozzy/user-guide/installation/#with-git-poetry) to install ozzy while this issue is resolved.
 
 ### **Why ozzy?**
 
