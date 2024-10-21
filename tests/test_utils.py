@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import xarray as xr
 
 from ozzy.utils import (
     axis_from_extent,
@@ -11,6 +12,8 @@ from ozzy.utils import (
     prep_file_input,
     recursive_search_for_file,
     tex_format,
+    get_attr_if_exists,
+    set_attr_if_exists,
 )
 
 
@@ -102,3 +105,80 @@ def test_bins_from_axis():
     axis = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
     bins = bins_from_axis(axis)
     np.testing.assert_allclose(bins, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0], atol=1e-14)
+
+
+@pytest.fixture
+def data_with_attrs():
+    return xr.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+def test_set_attr_if_exists_str(data_with_attrs):
+    da = data_with_attrs
+    # Test with string
+    result = set_attr_if_exists(da, 'units', 'kilometers')
+    assert result.attrs['units'] == 'kilometers'
+    
+def test_set_attr_if_exists_iter(data_with_attrs):
+    da = data_with_attrs
+    # Test with iterable
+    result = set_attr_if_exists(da, 'units', ['Unit: ', ' (SI)'])
+    assert result.attrs['units'] == 'Unit: meters (SI)'
+    
+def test_set_attr_if_exists_call(data_with_attrs):
+    da = data_with_attrs
+    # Test with callable
+    result = set_attr_if_exists(da, 'units', lambda x: x.upper())
+    assert result.attrs['units'] == 'METERS'
+    
+def test_set_attr_if_exists_nonexist(data_with_attrs):
+    da = data_with_attrs
+    # Test non-existing attribute
+    result = set_attr_if_exists(da, 'description', 'New description', 'Default description')
+    assert result.attrs['description'] == 'Default description'
+
+def test_set_attr_if_exists_nonexist_nodefault(data_with_attrs):
+    da = data_with_attrs
+    # Test non-existing attribute without default
+    result = set_attr_if_exists(da, 'category', 'New category')
+    assert 'category' not in result.attrs
+
+def test_set_attr_if_exists_warning(capsys):
+    da = xr.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+    set_attr_if_exists(da, 'units', ['Prefix: ', ' Middle: ', ' Suffix'])
+    captured = capsys.readouterr()
+    assert "WARNING: str_exists argument in set_attr_if_exists has more than two elements" in captured.out
+
+def test_get_attr_if_exists_str(data_with_attrs):
+    da = data_with_attrs
+    # Test with string
+    result = get_attr_if_exists(da, 'units', 'kilometers', 'No unit')
+    assert result == 'kilometers'
+    
+def test_get_attr_if_exists_iter(data_with_attrs):
+    da = data_with_attrs
+    # Test with iterable
+    result = get_attr_if_exists(da, 'units', ['Unit: ', ' (SI)'], 'No unit')
+    assert result == 'Unit: meters (SI)'
+    
+def test_get_attr_if_exists_call(data_with_attrs):
+    da = data_with_attrs
+    # Test with callable
+    result = get_attr_if_exists(da, 'units', lambda x: x.upper(), 'No unit')
+    assert result == 'METERS'
+
+def test_get_attr_if_exists_nonexist(data_with_attrs):
+    da = data_with_attrs
+    # Test non-existing attribute
+    result = get_attr_if_exists(da, 'description', 'Exists', 'Does not exist')
+    assert result == 'Does not exist'
+
+def test_get_attr_if_exists_nonexist_nodefault(data_with_attrs):
+    da = data_with_attrs
+    # Test non-existing attribute without default
+    result = get_attr_if_exists(da, 'category', 'Exists')
+    assert result is None
+
+def test_get_attr_if_exists_warning(capsys):
+    da = xr.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+    get_attr_if_exists(da, 'units', ['Prefix: ', ' Middle: ', ' Suffix'], 'No unit')
+    captured = capsys.readouterr()
+    assert "WARNING: str_exists argument in set_attr_if_exists has more than two elements" in captured.out

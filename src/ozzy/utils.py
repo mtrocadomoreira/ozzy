@@ -751,7 +751,7 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
     return binaxis
 
 
-# TODO: docstring
+# TODO: check examples in docstring
 # TODO: replace bits of code elsewhere that do this
 def set_attr_if_exists(
     da: xr.DataArray,
@@ -759,10 +759,83 @@ def set_attr_if_exists(
     str_exists: str | Iterable[str] | Callable,
     str_doesnt: str | None = None,
 ):
+    """
+    Set or modify an attribute of a [DataArray][ozzy.core.DataArray] if it exists.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The input DataArray.
+    attr : str
+        The name of the attribute to set or modify.
+    str_exists : str | Iterable[str] | Callable
+        The value or function to use if the attribute exists.
+        If `str`: replace the attribute with this string.
+        If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
+        If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+    str_doesnt : str | None, optional
+        The value to set if the attribute doesn't exist. If `None`, no action is taken.
+
+    Returns
+    -------
+    xarray.DataArray
+        The modified DataArray with updated attributes.
+
+    Notes
+    -----
+    If `str_exists` is an `Iterable` with more than two elements, only the first two are used,
+    and a warning is printed.
+
+    Examples
+    --------
+    ???+ example "Set an existing attribute"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        # Set an existing attribute
+        da = set_attr_if_exists(da, 'units', 'kilometers')
+        print(da.attrs['units'])
+        # Output: kilometers
+        ```
+
+    ???+ example "Modify an existing attribute with a function"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'description': 'Random data'})
+
+        # Modify an existing attribute with a function
+        da = set_attr_if_exists(da, 'description', lambda x: x.upper())
+        print(da.attrs['description'])
+        # Output: RANDOM DATA
+        ```
+
+    ???+ example "Set a non-existing attribute"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3))
+
+        # Set a non-existing attribute
+        da = set_attr_if_exists(da, 'units', 'meters', str_doesnt='unknown')
+        print(da.attrs['units'])
+        # Output: unknown
+        ```
+    """
     if attr in da.attrs:
         if isinstance(str_exists, str):
             da.attrs[attr] = str_exists
         elif isinstance(str_exists, Iterable):
+            if len(str_exists) > 2:
+                print("     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored.")
             da.attrs[attr] = str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             da.attrs[attr] = str_exists(da.attrs[attr])
@@ -770,3 +843,92 @@ def set_attr_if_exists(
         if str_doesnt is not None:
             da.attrs[attr] = str_doesnt
     return da
+
+
+# TODO: check examples in docstring
+# TODO: replace bits of code elsewhere that do this
+def get_attr_if_exists(
+    da: xr.DataArray,
+    attr: str,
+    str_exists: str | Iterable[str] | Callable,
+    str_doesnt: str | None = None,
+):
+    """
+    Retrieve an attribute from a xarray DataArray if it exists, or return a specified value otherwise.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The xarray DataArray object to check for the attribute.
+    attr : str
+        The name of the attribute to retrieve.
+    str_exists : str | Iterable[str] | Callable
+        The value or function to use if the attribute exists.
+        If `str`: return as-is.
+        If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
+        If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+    str_doesnt : str | None, optional
+        The value to return if the attribute doesn't exist. If `None`, returns `None`.
+
+    Returns
+    -------
+    str | None
+        The processed attribute value if it exists, `str_doesnt` if it doesn't exist, or `None` if
+        `str_doesnt` is `None` and the attribute doesn't exist.
+
+    Notes
+    -----
+    If `str_exists` is an `Iterable` with more than two elements, only the first two are used,
+    and a warning is printed.
+
+    Examples
+    --------
+    ???+ example "Basic usage with string"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray with an attribute
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        result = get_attr_if_exists(da, 'missing_attr', 'Exists', 'Does not exist')
+        print(result)
+        # Output: Does not exist
+        ```
+
+    ???+ example "Using an Iterable and a Callable"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        # Using an Iterable
+        result = get_attr_if_exists(da, 'units', ['Unit: ', ' (SI)'], 'No unit')
+        print(result)
+        # Output: Unit: meters (SI)
+
+        result = get_attr_if_exists(da, 'units', lambda x: f'The unit is: {x}', 'No unit found')
+        print(result)
+        # Output: The unit is: meters
+
+        # Using a Callable
+        result = get_attr_if_exists(da, 'units', lambda x: x.upper(), 'No unit')
+        print(result)
+        # Output: METERS
+        ```
+    """
+    if attr in da.attrs:
+        if isinstance(str_exists, str):
+            return str_exists
+        elif isinstance(str_exists, Iterable):
+            if len(str_exists) > 2:
+                print("     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored.")
+            return str_exists[0] + da.attrs[attr] + str_exists[1]
+        elif isinstance(str_exists, Callable):
+            return str_exists(da.attrs[attr])
+    else:
+        if str_doesnt is not None:
+            return str_doesnt
+        else:
+            return None
