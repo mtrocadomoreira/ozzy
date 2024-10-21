@@ -8,14 +8,13 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
-
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
 
 from .new_dataobj import new_dataset
 from .statistics import parts_into_grid
-from .utils import axis_from_extent, bins_from_axis
+from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists
 
 
 class PartMixin:
@@ -234,28 +233,25 @@ class PartMixin:
                 )
                 result = result.rename({dim + "_w": dim + "_mean"})
 
-                if "long_name" in self._obj[dim].attrs:
-                    newlname = "mean(" + self._obj[dim].attrs["long_name"] + ")"
-                else:
-                    newlname = "mean"
+                newlname = get_attr_if_exists(
+                    self._obj[dim], "long_name", lambda x: f"mean({x})", "mean"
+                )
                 result[dim + "_mean"].attrs["long_name"] = newlname
 
-                if "units" in self._obj[dim].attrs:
-                    result[dim + "_mean"].attrs["units"] = self._obj[dim].attrs["units"]
+                newunits = get_attr_if_exists(self._obj[dim], "units")
+                if newunits is not None:
+                    result[dim + "_mean"].attrs["units"] = newunits
 
             else:
                 result[dim + "_std"] = np.sqrt(result[dim + "_sqw"])
 
-            # TODO: make function to use long_name and units if existing, otherwise replace with something
+            result[dim + "_std"].attrs["long_name"] = get_attr_if_exists(
+                self._obj[dim], "long_name", lambda x: f"std({x})", "std"
+            )
 
-            if "long_name" in self._obj[dim].attrs:
-                newlname = "std(" + self._obj[dim].attrs["long_name"] + ")"
-            else:
-                newlname = "std"
-            result[dim + "_std"].attrs["long_name"] = newlname
-
-            if "units" in self._obj[dim].attrs:
-                result[dim + "_std"].attrs["units"] = self._obj[dim].attrs["units"]
+            newunits = get_attr_if_exists(self._obj[dim], "units")
+            if newunits is not None:
+                result[dim + "_std"].attrs["units"] = newunits
 
             result = result.drop_vars(dim + "_sqw")
 

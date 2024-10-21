@@ -756,11 +756,11 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
 def set_attr_if_exists(
     da: xr.DataArray,
     attr: str,
-    str_exists: str | Iterable[str] | Callable,
+    str_exists: str | Iterable[str] | Callable | None,
     str_doesnt: str | None = None,
 ):
     """
-    Set or modify an attribute of a [DataArray][ozzy.core.DataArray] if it exists.
+    Set or modify an attribute of a [DataArray][ozzy.core.DataArray] if it exists, or modify if it doesn't exist or is `None`.
 
     Parameters
     ----------
@@ -768,11 +768,12 @@ def set_attr_if_exists(
         The input DataArray.
     attr : str
         The name of the attribute to set or modify.
-    str_exists : str | Iterable[str] | Callable
+    str_exists : str | Iterable[str] | Callable | None, optional
         The value or function to use if the attribute exists.
         If `str`: replace the attribute with this string.
         If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
         If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+        If `None`: do not change the attribute.
     str_doesnt : str | None, optional
         The value to set if the attribute doesn't exist. If `None`, no action is taken.
 
@@ -830,7 +831,7 @@ def set_attr_if_exists(
         # Output: unknown
         ```
     """
-    if attr in da.attrs:
+    if (attr in da.attrs) and (da.attrs[attr] is not None):
         if isinstance(str_exists, str):
             da.attrs[attr] = str_exists
         elif isinstance(str_exists, Iterable):
@@ -839,6 +840,8 @@ def set_attr_if_exists(
             da.attrs[attr] = str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             da.attrs[attr] = str_exists(da.attrs[attr])
+        elif str_exists is None:
+            return da
     else:
         if str_doesnt is not None:
             da.attrs[attr] = str_doesnt
