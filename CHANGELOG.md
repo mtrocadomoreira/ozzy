@@ -1,6 +1,51 @@
 # CHANGELOG
 
 
+## v0.2.1 (2024-10-21)
+
+### Bug Fixes
+
+* fix(lcode_backend): error is now raised when an invalid n0 argument is passed to convert_q ([`0c2bb5f`](https://github.com/mtrocadomoreira/ozzy/commit/0c2bb5f88ca717159a0cda2139615cbff3f7b983))
+
+### Chores
+
+* chore: update package dependencies ([`be27b1f`](https://github.com/mtrocadomoreira/ozzy/commit/be27b1f6530edc260f850bb9093fd49d02bb73e0))
+
+* chore(ci-cd): add black package to docs website deployment ([`428795c`](https://github.com/mtrocadomoreira/ozzy/commit/428795c04e8773114b70d4033286174ab48872fe))
+
+### Documentation
+
+* docs: add feedback widget across pages ([`426b187`](https://github.com/mtrocadomoreira/ozzy/commit/426b187550daa689faf24f429a723d33692bf5d9))
+
+* docs: try to add umami analytics in different way ([`7877d0e`](https://github.com/mtrocadomoreira/ozzy/commit/7877d0edc04c04895f1c3298ff2ddd28f66a26f7))
+
+* docs: add umami analytics for documentation website ([`3e62f7b`](https://github.com/mtrocadomoreira/ozzy/commit/3e62f7b76b4f0b1ee07fe803b363a46828ff91d4))
+
+* docs: add black as project dependency for better formatting of code signatures in documentation ([`ae7b7b3`](https://github.com/mtrocadomoreira/ozzy/commit/ae7b7b379f77f7766f98d3d502ab1b331eb022ec))
+
+* docs: debug and small corrections ([`0bd401b`](https://github.com/mtrocadomoreira/ozzy/commit/0bd401bd85f93aac6873a776460dabac622f8a15))
+
+* docs: change main blurb, include install instructions with git and poetry ([`29be6fd`](https://github.com/mtrocadomoreira/ozzy/commit/29be6fd2c45944b7e59e56582351bb168dc65de0))
+
+### Refactoring
+
+* refactor(utils): add two helper functions to set DataArray attributes depending on whether they already exist or not, + unit tests for these functions ([`a2d20bc`](https://github.com/mtrocadomoreira/ozzy/commit/a2d20bc7ba723f2175275a8c3be61a023a4e71e6))
+
+### Testing
+
+* test: correct failing tests ([`0a0493a`](https://github.com/mtrocadomoreira/ozzy/commit/0a0493a7e91b3d548d1a68baf97724f181de6be6))
+
+* test: add unit tests for movie function in ozzy.plot ([`a097e57`](https://github.com/mtrocadomoreira/ozzy/commit/a097e57faebd402fe5a5e55e4f59affd54d10211))
+
+### Unknown
+
+* Merge pull request #2 from mtrocadomoreira/tests
+
+Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba91e213fbe1c364169ff2b785171))
+
+* Merge branch 'main' into tests ([`7fc0890`](https://github.com/mtrocadomoreira/ozzy/commit/7fc08906ffaca9b1da53e494dedd9f1db09d3022))
+
+
 ## v0.2.0 (2024-10-15)
 
 ### Chores
@@ -30,7 +75,7 @@
 
 ## v0.1.7 (2024-10-07)
 
-### Fixes
+### Bug Fixes
 
 * fix(part_mixin,statistics): get_phase_space bug fixes
 
@@ -42,7 +87,7 @@
 
 ## v0.1.6 (2024-09-30)
 
-### Fixes
+### Bug Fixes
 
 * fix(statistics): units in parts_into_grid are now fetched from raw_ds argument ([`96a7340`](https://github.com/mtrocadomoreira/ozzy/commit/96a734016ba1ae22f78fe73e6c4aaef9f5a2305d))
 
@@ -60,29 +105,29 @@
 
 ## v0.1.4 (2024-09-18)
 
-### Fixes
+### Bug Fixes
 
 * fix(osiris_backend): change momentum units ([`6e84664`](https://github.com/mtrocadomoreira/ozzy/commit/6e84664fc63914c84a51285cad7f32e5eacf8988))
 
 
 ## v0.1.3 (2024-09-17)
 
-### Fixes
+### Bug Fixes
 
 * fix(lcode_backend): change momentum units ([`022b0c4`](https://github.com/mtrocadomoreira/ozzy/commit/022b0c465d5bcaff80658910919ade6b88a07dd9))
 
 
 ## v0.1.2 (2024-09-17)
 
+### Bug Fixes
+
+* fix(statistics): change units of density in parts_into_grid ([`d48785c`](https://github.com/mtrocadomoreira/ozzy/commit/d48785cc737cb874b692002a179416d03fc7c788))
+
 ### Chores
 
 * chore(statistics): add todo's and hacks as comments ([`3972b19`](https://github.com/mtrocadomoreira/ozzy/commit/3972b1932e1b45bb944d1f04d47e92f78f6cacf6))
 
 * chore(lcode_backend): add todo for reading beamfiles ([`64c1b6b`](https://github.com/mtrocadomoreira/ozzy/commit/64c1b6b2810dcb7025f248186ba213ae7d321319))
-
-### Fixes
-
-* fix(statistics): change units of density in parts_into_grid ([`d48785c`](https://github.com/mtrocadomoreira/ozzy/commit/d48785cc737cb874b692002a179416d03fc7c788))
 
 ### Refactoring
 
@@ -93,21 +138,67 @@
 
 ## v0.1.1 (2024-08-13)
 
+### Bug Fixes
+
+* fix(part_mixin): automatic extent calculation for phase space even when min = max ([`fed8f27`](https://github.com/mtrocadomoreira/ozzy/commit/fed8f276a8ddb5969732e34b7f51c82c7b019465))
+
+### Chores
+
+* chore: add pytest and hypothesis to pyproject.toml ([`8aea500`](https://github.com/mtrocadomoreira/ozzy/commit/8aea500d311a5bb20dc5053b9420cc6e20cbefe5))
+
 ### Documentation
 
 * docs: include zenodo reference ([`1ef5d22`](https://github.com/mtrocadomoreira/ozzy/commit/1ef5d22b4f0c7e172eb2d3d16bbba582001448e7))
-
-### Fixes
-
-* fix(part_mixin): automatic extent calculation for phase space even when min = max ([`fed8f27`](https://github.com/mtrocadomoreira/ozzy/commit/fed8f276a8ddb5969732e34b7f51c82c7b019465))
 
 ### Refactoring
 
 * refactor: utils function to set attributes if they exist ([`2d79f50`](https://github.com/mtrocadomoreira/ozzy/commit/2d79f50853de754baf930a05bc836c76f901c8f2))
 
+* refactor(utils): replace ~ with not ([`506f060`](https://github.com/mtrocadomoreira/ozzy/commit/506f060a08e18f543557acc8edefc75ddded3a23))
+
+* refactor: utils function to set attributes if they exist ([`9ce2c8a`](https://github.com/mtrocadomoreira/ozzy/commit/9ce2c8a171e036078c535172dab3a10382dea39c))
+
+### Testing
+
+* test(lcode_backend): add some unit tests written with AI ([`0d0b206`](https://github.com/mtrocadomoreira/ozzy/commit/0d0b2061239420b23db06e1c950c27c71f05f3c0))
+
+* test(osiris_backend): write unit tests, add pytest-mock package ([`7ed30a0`](https://github.com/mtrocadomoreira/ozzy/commit/7ed30a08246d96ad0c540d1b127f35b3b55e2d9b))
+
+* test(ozzy_backend): write unit tests ([`5de5531`](https://github.com/mtrocadomoreira/ozzy/commit/5de55318fa3a4fe1e373c9eb91a95cdba9cd7cc8))
+
+* test(plot): write unit tests ([`e048abe`](https://github.com/mtrocadomoreira/ozzy/commit/e048abe9ff4474ecaa6b18daadd6bdbafacfc473))
+
+* test(backend_interface): write unit tests ([`0f48dfa`](https://github.com/mtrocadomoreira/ozzy/commit/0f48dfade78f641d9524fd501e184390523cb16f))
+
+* test(part_mixin): delete commented part ([`5705d2f`](https://github.com/mtrocadomoreira/ozzy/commit/5705d2f8d5ae518269667fab5fe6b2c880e72a97))
+
+* test(new_dataobj): avoid xarray warnings ([`a01317b`](https://github.com/mtrocadomoreira/ozzy/commit/a01317b124f2c132f4a3e9361a24bf3f661d2647))
+
+* test(new_dataobj): write unit tests ([`48090f4`](https://github.com/mtrocadomoreira/ozzy/commit/48090f485c435de7af2f7e450dc0e1364834bdf1))
+
+* test(part_mixin): write part_mixin unit tests ([`3955f9c`](https://github.com/mtrocadomoreira/ozzy/commit/3955f9ca66be20a06b59f987668a60fa4cf3d1e2))
+
+* test(utils): rewrite utils unit tests ([`9512f58`](https://github.com/mtrocadomoreira/ozzy/commit/9512f586cadbe6949794d539ed78e0ffada1ccb8))
+
+* test(accessors): correct assumption for fft test ([`b87b75f`](https://github.com/mtrocadomoreira/ozzy/commit/b87b75fcca86cebaa1251ced1fff0fd1385baaf7))
+
+* test(grid_mixin): create tests for grid_mixin.py ([`4d64e8e`](https://github.com/mtrocadomoreira/ozzy/commit/4d64e8e3ef53bf484eb1ab3f4b3d21c4a755dd89))
+
+* test(core): create tests for core.py ([`43e5ef9`](https://github.com/mtrocadomoreira/ozzy/commit/43e5ef978f9ab8e449bf21ee95bc2f65a1b2ebd7))
+
+* test(utils): fix tex_format test ([`8b2b204`](https://github.com/mtrocadomoreira/ozzy/commit/8b2b2044357cb919529c08a7973d585757b2ed7d))
+
+* test(accessors): fix fft test ([`e71d39c`](https://github.com/mtrocadomoreira/ozzy/commit/e71d39c60726a139b5ecc35be2bc8d50485bd158))
+
+* test(accessors): correct fft tests ([`6abc8f7`](https://github.com/mtrocadomoreira/ozzy/commit/6abc8f73afa0be456e0804999c679276cc1d6a7d))
+
+* test(accessors): write some tests for fft ([`171d847`](https://github.com/mtrocadomoreira/ozzy/commit/171d84776e6814e04f4c377c29ba7b98165d1258))
+
 ### Unknown
 
 * bug(accessors): fix metadata setting in fft ([`af52467`](https://github.com/mtrocadomoreira/ozzy/commit/af52467bf3bfd92bb13d6d5e3495cd334941032d))
+
+* bug(accessors): fix metadata setting in fft ([`3a947dc`](https://github.com/mtrocadomoreira/ozzy/commit/3a947dc329c4fab3da3e828bf71579f80861b903))
 
 
 ## v0.1.0 (2024-07-16)
@@ -119,13 +210,13 @@
 
 ## v0.0.1 (2024-07-16)
 
+### Bug Fixes
+
+* fix(ozzy.plot): use correct function to register colormap ([`8e5fabd`](https://github.com/mtrocadomoreira/ozzy/commit/8e5fabdf12c0cefc23b6c171f85416b42f256126))
+
 ### Build System
 
 * build: prepare for build with poetry and automatic releases ([`460f18b`](https://github.com/mtrocadomoreira/ozzy/commit/460f18bab5d749097857daa28eac0096e7994588))
-
-### Fixes
-
-* fix(ozzy.plot): use correct function to register colormap ([`8e5fabd`](https://github.com/mtrocadomoreira/ozzy/commit/8e5fabdf12c0cefc23b6c171f85416b42f256126))
 
 
 ## v0.0.0 (2024-07-16)
