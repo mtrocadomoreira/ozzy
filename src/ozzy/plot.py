@@ -630,7 +630,6 @@ def set_cmap(
     pass
 
 
-# TODO: check that examples work
 def movie(
     fig: mpl.figure.Figure,
     plot_objs: dict[mpl.artist.Artist, tuple[xr.DataArray, str]]

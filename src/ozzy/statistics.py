@@ -55,7 +55,7 @@ def _check_raw_and_grid(raw_ds, grid_ds):
 
 
 def _check_n0_input(n0, xi_var):
-    """
+    r"""
     Check if the `xi_var` is provided when `n0` is provided.
 
     Parameters
@@ -63,7 +63,7 @@ def _check_n0_input(n0, xi_var):
     n0 : float | None
         Reference density value.
     xi_var : str | None
-        Name of the variable representing the xi axis.
+        Name of the variable representing the $\xi$ axis.
 
     Raises
     ------
@@ -72,7 +72,7 @@ def _check_n0_input(n0, xi_var):
 
     Notes
     -----
-    If `n0` and `xi_var` are both provided, a warning is printed assuming the xi axis is in normalized units.
+    If `n0` and `xi_var` are both provided, a warning is printed assuming the $\xi$ axis is in normalized units.
     """
     if (n0 is not None) & (xi_var is None):
         raise ValueError("Name of xi variable must be provided when n0 is provided")

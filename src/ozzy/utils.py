@@ -752,7 +752,6 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
 
 
 # TODO: check examples in docstring
-# TODO: replace bits of code elsewhere that do this
 def set_attr_if_exists(
     da: xr.DataArray,
     attr: str,
@@ -836,7 +835,9 @@ def set_attr_if_exists(
             da.attrs[attr] = str_exists
         elif isinstance(str_exists, Iterable):
             if len(str_exists) > 2:
-                print("     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored.")
+                print(
+                    "     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored."
+                )
             da.attrs[attr] = str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             da.attrs[attr] = str_exists(da.attrs[attr])
@@ -849,7 +850,6 @@ def set_attr_if_exists(
 
 
 # TODO: check examples in docstring
-# TODO: replace bits of code elsewhere that do this
 def get_attr_if_exists(
     da: xr.DataArray,
     attr: str,
@@ -926,7 +926,9 @@ def get_attr_if_exists(
             return str_exists
         elif isinstance(str_exists, Iterable):
             if len(str_exists) > 2:
-                print("     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored.")
+                print(
+                    "     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored."
+                )
             return str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             return str_exists(da.attrs[attr])
