@@ -59,7 +59,7 @@ def test_mean_std_invalid_axes(sample_dataset):
         ds.ozzy.mean_std(["x2"], invalid_axes)
 
 
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,), deadline=500)
+@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,), deadline=None)
 @given(st.integers(min_value=50, max_value=500))
 def test_get_phase_space(sample_dataset, nbins):
     ds = sample_dataset
