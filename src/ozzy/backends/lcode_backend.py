@@ -944,6 +944,11 @@ class Methods:
         """
         # TODO: make this compatible with pint
 
+        try:
+            assert isinstance(n0, float)
+        except AssertionError:
+            raise ValueError("n0 argument must be a float")
+
         # Alfven current divided by elementary charge
         alfven_e = 1.0638708535128997e23  # 1/s
         # Plasma frequency
