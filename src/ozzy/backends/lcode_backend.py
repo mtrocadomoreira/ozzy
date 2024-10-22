@@ -403,6 +403,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     return ds
 
 
+# TODO: convert p3 and save with correct units (have to distinguish between 2D cylindrical and cartesian?)
 def read_parts_single(file: str, **kwargs) -> xr.Dataset:
     """Read particle data from a single LCODE file into an xarray.Dataset.
 
@@ -441,7 +442,7 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
         dda = da.from_array(
             arr[0:-1, :],
             chunks=-1,
-        )  # last row is excluded because it marks the eof
+        )  # last row is excluded because it marks the EOF
 
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
