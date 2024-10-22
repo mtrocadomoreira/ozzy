@@ -2,17 +2,74 @@
 
 <!--start-docs-->
 
+
+## v1.0.0 (2024-10-22)
+
+### Breaking
+
+* refactor: replace `statistics.parts_into_grid` with dataset method `bin_into_grid`
+
+Replace `statistics.parts_into_grid` with a Dataset method called `bin_into_grid` accessible to particle data (`pic_data_type = &#39;part&#39;`).
+
+BREAKING CHANGE: `statistics.parts_into_grid` does not work anymore
+
+Please replace the function `statistics.parts_into_grid` with the `ds.ozzy.bin_into_grid` method. As an example, the following code
+
+```python
+import ozzy as oz
+import ozzy.statistics as stats
+import numpy as np
+
+# Create a sample particle dataset
+particles = oz.Dataset(
+    {
+        &#34;x1&#34;: (&#34;pid&#34;, np.random.uniform(0, 10, 10000)),
+        &#34;x2&#34;: (&#34;pid&#34;, np.random.uniform(0, 5, 10000)),
+        &#34;q&#34;: (&#34;pid&#34;, np.ones(10000)),
+    },
+    coords={&#34;pid&#34;: np.arange(10000)},
+    attrs={&#34;pic_data_type&#34;: &#34;part&#34;}
+)
+
+# Create axes for binning
+axes = oz.Dataset(
+    coords={
+        &#34;x1&#34;: np.linspace(0, 10, 101),
+        &#34;x2&#34;: np.linspace(0, 5, 51),
+    },
+    attrs={&#34;pic_data_type&#34;: &#34;grid&#34;}
+)
+
+# Bin into grid, axisymmetric geometry
+binned = stats.parts_into_grid(particles, axes, r_var=&#34;x2&#34;)
+grid_data_axisym = particles.ozzy.bin_into_grid(axes, r_var=&#34;x2&#34;)
+```
+should be replaced by
+
+```python
+import ozzy as oz
+import numpy as np
+...
+# Bin into grid, axisymmetric geometry
+binned = particles.ozzy.bin_into_grid(axes, r_var=&#34;x2&#34;)
+``` ([`093b9bd`](https://github.com/mtrocadomoreira/ozzy/commit/093b9bd81f498a50a48d9aa804dae1dc19168ad0))
+
+### Documentation
+
+* docs: add release notes to website, create custom changelog template ([`2f8de9e`](https://github.com/mtrocadomoreira/ozzy/commit/2f8de9ee1c3b454dcc6db69a0ea637bdff4adcd1))
+
+### Refactoring
+
+* refactor(utils): make str_exists argument of get_attr_if_exists optional ([`5840bc4`](https://github.com/mtrocadomoreira/ozzy/commit/5840bc44884455dbe20508715e52a1cb4321773a))
+
+* refactor: use helper functions to handle DataArray attributes whenever possible ([`5d53830`](https://github.com/mtrocadomoreira/ozzy/commit/5d53830538f88959180e5762b6d4893855d16cc1))
+
+
 ## v0.2.1 (2024-10-21)
 
 ### Bug Fixes
 
 * fix(lcode_backend): error is now raised when an invalid n0 argument is passed to convert_q ([`0c2bb5f`](https://github.com/mtrocadomoreira/ozzy/commit/0c2bb5f88ca717159a0cda2139615cbff3f7b983))
-
-### Chores
-
-* chore: update package dependencies ([`be27b1f`](https://github.com/mtrocadomoreira/ozzy/commit/be27b1f6530edc260f850bb9093fd49d02bb73e0))
-
-* chore(ci-cd): add black package to docs website deployment ([`428795c`](https://github.com/mtrocadomoreira/ozzy/commit/428795c04e8773114b70d4033286174ab48872fe))
 
 ### Documentation
 
@@ -32,44 +89,22 @@
 
 * refactor(utils): add two helper functions to set DataArray attributes depending on whether they already exist or not, + unit tests for these functions ([`a2d20bc`](https://github.com/mtrocadomoreira/ozzy/commit/a2d20bc7ba723f2175275a8c3be61a023a4e71e6))
 
-### Testing
-
-* test: correct failing tests ([`0a0493a`](https://github.com/mtrocadomoreira/ozzy/commit/0a0493a7e91b3d548d1a68baf97724f181de6be6))
-
-* test: add unit tests for movie function in ozzy.plot ([`a097e57`](https://github.com/mtrocadomoreira/ozzy/commit/a097e57faebd402fe5a5e55e4f59affd54d10211))
-
 ### Unknown
 
 * Merge pull request #2 from mtrocadomoreira/tests
 
 Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba91e213fbe1c364169ff2b785171))
 
-* Merge branch 'main' into tests ([`7fc0890`](https://github.com/mtrocadomoreira/ozzy/commit/7fc08906ffaca9b1da53e494dedd9f1db09d3022))
+* Merge branch &#39;main&#39; into tests ([`7fc0890`](https://github.com/mtrocadomoreira/ozzy/commit/7fc08906ffaca9b1da53e494dedd9f1db09d3022))
 
 
 ## v0.2.0 (2024-10-15)
-
-### Chores
-
-* chore: add hvplot and jupyter-bokeh as optional dependencies ([`923e034`](https://github.com/mtrocadomoreira/ozzy/commit/923e0346b47e21d44e2b2d18004c88215d05ab57))
-
-* chore: add ipykernel to pyproject.toml dependencies (flexible version) ([`9438e55`](https://github.com/mtrocadomoreira/ozzy/commit/9438e558d0f9b242b111de7d03508bf5e1b67de7))
-
-* chore: add ipykernel to pyproject.toml requirements ([`715ecd2`](https://github.com/mtrocadomoreira/ozzy/commit/715ecd2ab7fedd4c9d90087bf060911c0f54826e))
-
-* chore: add pytest and hypothesis to pyproject.toml requirements ([`5d1c438`](https://github.com/mtrocadomoreira/ozzy/commit/5d1c4386750766415d5d8ca06bf6b0c1df5e27b3))
-
-### Code Style
-
-* style(backend_interface): sort list of files before passing it on to backend parser ([`2664437`](https://github.com/mtrocadomoreira/ozzy/commit/2664437f28d308fc100cc6e507fbe6dec9beb684))
 
 ### Features
 
 * feat(plot): save movies of ozzy plots ([`b4b61c7`](https://github.com/mtrocadomoreira/ozzy/commit/b4b61c794b92ad71105cc3b7b3e8ce7d6f794b77))
 
 ### Unknown
-
-* chores(statistics): add commented BUG to-do item ([`2e3bcc6`](https://github.com/mtrocadomoreira/ozzy/commit/2e3bcc6b2077f894dd56a7e23e3650225ad5a97c))
 
 * doc(lcode_backend): correct example of correct_q ([`3b980d8`](https://github.com/mtrocadomoreira/ozzy/commit/3b980d865f6a1ab4badb53c1538b823b0fbf6527))
 
@@ -81,7 +116,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 * fix(part_mixin,statistics): get_phase_space bug fixes
 
 - no error when limits are set automatically and all quantity values are zero
-- make sure that axisymmetric geometry is taken into account correctly when the radius variable isn't being binned directly ([`6fcd37d`](https://github.com/mtrocadomoreira/ozzy/commit/6fcd37da2e497f119969eec30cea933d4f5568f0))
+- make sure that axisymmetric geometry is taken into account correctly when the radius variable isn&#39;t being binned directly ([`6fcd37d`](https://github.com/mtrocadomoreira/ozzy/commit/6fcd37da2e497f119969eec30cea933d4f5568f0))
 
 * fix(lcode_backend): correct units of particle momenta ([`c12f766`](https://github.com/mtrocadomoreira/ozzy/commit/c12f766205346da546da2ab6bbdde1b6420f53e2))
 
@@ -101,7 +136,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 ### Refactoring
 
-* refactor(statistics): add commented todo's ([`1816b9b`](https://github.com/mtrocadomoreira/ozzy/commit/1816b9bd834aedd568ced1a699c5c65b44cdb634))
+* refactor(statistics): add commented todo&#39;s ([`1816b9b`](https://github.com/mtrocadomoreira/ozzy/commit/1816b9bd834aedd568ced1a699c5c65b44cdb634))
 
 
 ## v0.1.4 (2024-09-18)
@@ -124,12 +159,6 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * fix(statistics): change units of density in parts_into_grid ([`d48785c`](https://github.com/mtrocadomoreira/ozzy/commit/d48785cc737cb874b692002a179416d03fc7c788))
 
-### Chores
-
-* chore(statistics): add todo's and hacks as comments ([`3972b19`](https://github.com/mtrocadomoreira/ozzy/commit/3972b1932e1b45bb944d1f04d47e92f78f6cacf6))
-
-* chore(lcode_backend): add todo for reading beamfiles ([`64c1b6b`](https://github.com/mtrocadomoreira/ozzy/commit/64c1b6b2810dcb7025f248186ba213ae7d321319))
-
 ### Refactoring
 
 * refactor(lcode_backend): change norm. units of q in particle data ([`0bd8cc1`](https://github.com/mtrocadomoreira/ozzy/commit/0bd8cc1bcfeba8278fab803d7321f48ec483e94b))
@@ -143,10 +172,6 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * fix(part_mixin): automatic extent calculation for phase space even when min = max ([`fed8f27`](https://github.com/mtrocadomoreira/ozzy/commit/fed8f276a8ddb5969732e34b7f51c82c7b019465))
 
-### Chores
-
-* chore: add pytest and hypothesis to pyproject.toml ([`8aea500`](https://github.com/mtrocadomoreira/ozzy/commit/8aea500d311a5bb20dc5053b9420cc6e20cbefe5))
-
 ### Documentation
 
 * docs: include zenodo reference ([`1ef5d22`](https://github.com/mtrocadomoreira/ozzy/commit/1ef5d22b4f0c7e172eb2d3d16bbba582001448e7))
@@ -158,42 +183,6 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 * refactor(utils): replace ~ with not ([`506f060`](https://github.com/mtrocadomoreira/ozzy/commit/506f060a08e18f543557acc8edefc75ddded3a23))
 
 * refactor: utils function to set attributes if they exist ([`9ce2c8a`](https://github.com/mtrocadomoreira/ozzy/commit/9ce2c8a171e036078c535172dab3a10382dea39c))
-
-### Testing
-
-* test(lcode_backend): add some unit tests written with AI ([`0d0b206`](https://github.com/mtrocadomoreira/ozzy/commit/0d0b2061239420b23db06e1c950c27c71f05f3c0))
-
-* test(osiris_backend): write unit tests, add pytest-mock package ([`7ed30a0`](https://github.com/mtrocadomoreira/ozzy/commit/7ed30a08246d96ad0c540d1b127f35b3b55e2d9b))
-
-* test(ozzy_backend): write unit tests ([`5de5531`](https://github.com/mtrocadomoreira/ozzy/commit/5de55318fa3a4fe1e373c9eb91a95cdba9cd7cc8))
-
-* test(plot): write unit tests ([`e048abe`](https://github.com/mtrocadomoreira/ozzy/commit/e048abe9ff4474ecaa6b18daadd6bdbafacfc473))
-
-* test(backend_interface): write unit tests ([`0f48dfa`](https://github.com/mtrocadomoreira/ozzy/commit/0f48dfade78f641d9524fd501e184390523cb16f))
-
-* test(part_mixin): delete commented part ([`5705d2f`](https://github.com/mtrocadomoreira/ozzy/commit/5705d2f8d5ae518269667fab5fe6b2c880e72a97))
-
-* test(new_dataobj): avoid xarray warnings ([`a01317b`](https://github.com/mtrocadomoreira/ozzy/commit/a01317b124f2c132f4a3e9361a24bf3f661d2647))
-
-* test(new_dataobj): write unit tests ([`48090f4`](https://github.com/mtrocadomoreira/ozzy/commit/48090f485c435de7af2f7e450dc0e1364834bdf1))
-
-* test(part_mixin): write part_mixin unit tests ([`3955f9c`](https://github.com/mtrocadomoreira/ozzy/commit/3955f9ca66be20a06b59f987668a60fa4cf3d1e2))
-
-* test(utils): rewrite utils unit tests ([`9512f58`](https://github.com/mtrocadomoreira/ozzy/commit/9512f586cadbe6949794d539ed78e0ffada1ccb8))
-
-* test(accessors): correct assumption for fft test ([`b87b75f`](https://github.com/mtrocadomoreira/ozzy/commit/b87b75fcca86cebaa1251ced1fff0fd1385baaf7))
-
-* test(grid_mixin): create tests for grid_mixin.py ([`4d64e8e`](https://github.com/mtrocadomoreira/ozzy/commit/4d64e8e3ef53bf484eb1ab3f4b3d21c4a755dd89))
-
-* test(core): create tests for core.py ([`43e5ef9`](https://github.com/mtrocadomoreira/ozzy/commit/43e5ef978f9ab8e449bf21ee95bc2f65a1b2ebd7))
-
-* test(utils): fix tex_format test ([`8b2b204`](https://github.com/mtrocadomoreira/ozzy/commit/8b2b2044357cb919529c08a7973d585757b2ed7d))
-
-* test(accessors): fix fft test ([`e71d39c`](https://github.com/mtrocadomoreira/ozzy/commit/e71d39c60726a139b5ecc35be2bc8d50485bd158))
-
-* test(accessors): correct fft tests ([`6abc8f7`](https://github.com/mtrocadomoreira/ozzy/commit/6abc8f73afa0be456e0804999c679276cc1d6a7d))
-
-* test(accessors): write some tests for fft ([`171d847`](https://github.com/mtrocadomoreira/ozzy/commit/171d84776e6814e04f4c377c29ba7b98165d1258))
 
 ### Unknown
 
@@ -215,7 +204,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * fix(ozzy.plot): use correct function to register colormap ([`8e5fabd`](https://github.com/mtrocadomoreira/ozzy/commit/8e5fabdf12c0cefc23b6c171f85416b42f256126))
 
-### Build System
+### Unknown
 
 * build: prepare for build with poetry and automatic releases ([`460f18b`](https://github.com/mtrocadomoreira/ozzy/commit/460f18bab5d749097857daa28eac0096e7994588))
 
@@ -364,7 +353,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * change readme, add pyproject.toml ([`08a4431`](https://github.com/mtrocadomoreira/ozzy/commit/08a4431904d6c127070c81ae3fc263f4eae2168c))
 
-* stopped tracking 'testing' folder ([`25fb7b1`](https://github.com/mtrocadomoreira/ozzy/commit/25fb7b1a64fcff3c906faf829a5dab123fe3e901))
+* stopped tracking &#39;testing&#39; folder ([`25fb7b1`](https://github.com/mtrocadomoreira/ozzy/commit/25fb7b1a64fcff3c906faf829a5dab123fe3e901))
 
 * stopped tracking vscode files ([`e43ad04`](https://github.com/mtrocadomoreira/ozzy/commit/e43ad04981d17f91d5b7cf29ff70d71b4694304c))
 
@@ -392,7 +381,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * add vphi from blocks function ([`ebc7006`](https://github.com/mtrocadomoreira/ozzy/commit/ebc7006fb5ad688744c0b76a461ee73cc42575ad))
 
-* lcode's convert_q now applies to any pic_data_type ([`0c525f1`](https://github.com/mtrocadomoreira/ozzy/commit/0c525f108c7289958687c8f62dbf333ac80cedf9))
+* lcode&#39;s convert_q now applies to any pic_data_type ([`0c525f1`](https://github.com/mtrocadomoreira/ozzy/commit/0c525f108c7289958687c8f62dbf333ac80cedf9))
 
 * small bug in lcode convert_q ([`5c8fe39`](https://github.com/mtrocadomoreira/ozzy/commit/5c8fe395598b13358f113f9891bf714d82b6d42a))
 
@@ -415,8 +404,6 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 * small change to physical units conversion ([`9d0259f`](https://github.com/mtrocadomoreira/ozzy/commit/9d0259f4ea9b3967e6adfac92ef7fecdf751549e))
 
 * lcode: read plzshape ([`cbcda61`](https://github.com/mtrocadomoreira/ozzy/commit/cbcda61fd873c2b0bffc54c4e78cb5d9e31b7367))
-
-* testing utils ([`88982a6`](https://github.com/mtrocadomoreira/ozzy/commit/88982a64ad02ac220c7570cdd930d0928ecdc625))
 
 * started tests ([`206034f`](https://github.com/mtrocadomoreira/ozzy/commit/206034f8d51b6d87a5cafbb8420396519ce42830))
 
@@ -456,11 +443,7 @@ Tests ([`f4900f3`](https://github.com/mtrocadomoreira/ozzy/commit/f4900f35d1bba9
 
 * write vphi_xcorr function ([`cd45184`](https://github.com/mtrocadomoreira/ozzy/commit/cd45184ee901f60e921929a591464f0d911d8bf3))
 
-* testing and debugging phase velocity (ctd) ([`805d98b`](https://github.com/mtrocadomoreira/ozzy/commit/805d98bc54c83a2a42115dddb3f68b80ea480578))
-
 * small changes to plots ([`d1f9bf0`](https://github.com/mtrocadomoreira/ozzy/commit/d1f9bf041841c0d7a1b250366921c0f92994b75d))
-
-* testing and debugging phase velocity diagnostic ([`2064ca6`](https://github.com/mtrocadomoreira/ozzy/commit/2064ca621012dc9fb7ce138fd914c69469234a96))
 
 * add file for fields diagnostics + vphi v0 ([`f6b112e`](https://github.com/mtrocadomoreira/ozzy/commit/f6b112e2fa11d5262db12b45e4468acaff82f0dd))
 
@@ -484,7 +467,7 @@ Code refactoring ([`01bf45b`](https://github.com/mtrocadomoreira/ozzy/commit/01b
 
 * rename folder to ozzy ([`8236235`](https://github.com/mtrocadomoreira/ozzy/commit/823623550a77f77b5072495bda81483ad7ceb089))
 
-* Merge commit '2ad1ba0efcee68172bef38c40d9fd6acd7970d85' into refactor ([`897d04d`](https://github.com/mtrocadomoreira/ozzy/commit/897d04d1d88ecef0459b1476e468cdf70d94d6d0))
+* Merge commit &#39;2ad1ba0efcee68172bef38c40d9fd6acd7970d85&#39; into refactor ([`897d04d`](https://github.com/mtrocadomoreira/ozzy/commit/897d04d1d88ecef0459b1476e468cdf70d94d6d0))
 
 * first working version of refactored code ([`2ad1ba0`](https://github.com/mtrocadomoreira/ozzy/commit/2ad1ba0efcee68172bef38c40d9fd6acd7970d85))
 
@@ -663,3 +646,4 @@ Code refactoring ([`01bf45b`](https://github.com/mtrocadomoreira/ozzy/commit/01b
 * working on statistics functions ([`f7dcc94`](https://github.com/mtrocadomoreira/ozzy/commit/f7dcc94a829b1bdd5995611baba055ab86addcf2))
 
 * submodule for scripts on ozzy objects ([`7ad32df`](https://github.com/mtrocadomoreira/ozzy/commit/7ad32df8beaa171f19111cd5e47cf1cdfcef2148))
+
