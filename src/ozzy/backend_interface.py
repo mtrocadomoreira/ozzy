@@ -26,6 +26,7 @@ def _list_avail_backends():
 # -----------------------------------------------------------------------
 
 # TODO: make longitudinal consistent for all different backends (x1, xi, zeta, etc)
+# HACK: maybe have option to have configuration file to read files (to include info about geometry, axis limits, etc.)
 
 
 class Backend:
