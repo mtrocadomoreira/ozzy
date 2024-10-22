@@ -14,6 +14,7 @@ import re
 
 import xarray as xr  # noqa
 
+from .new_dataobj import new_dataset
 from .utils import recursive_search_for_file
 
 
@@ -26,6 +27,7 @@ def _list_avail_backends():
 # -----------------------------------------------------------------------
 
 # TODO: make longitudinal consistent for all different backends (x1, xi, zeta, etc)
+# TODO: make sure that unit labels are also consistent across different backends
 # HACK: maybe have option to have configuration file to read files (to include info about geometry, axis limits, etc.)
 
 
@@ -239,11 +241,11 @@ class Backend:
 
         """
 
-        print("\nReading the following files:")
-        files.sort()
-        ods = self.parse(files, *args, **kwargs)
-
         if len(files) > 0:
+            print("\nReading the following files:")
+            files.sort()
+            ods = self.parse(files, *args, **kwargs)
+
             # Set metadata
             ods = ods.assign_attrs(
                 {
@@ -255,5 +257,7 @@ class Backend:
                     "data_origin": self.name,
                 }
             )
+        else:
+            ods = new_dataset()
 
         return ods
