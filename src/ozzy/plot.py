@@ -9,6 +9,7 @@
 # *********************************************************
 
 import os
+from collections.abc import Callable
 
 import cmcrameri  # noqa
 import matplotlib as mpl
@@ -229,9 +230,10 @@ class MutablePlotObj:
         ax: mpl.axes.Axes,
         da: xr.DataArray,
         tvar: str,
-        xlim: None | tuple[float, float] = None,
-        ylim: None | tuple[float, float] = None,
-        clim: None | tuple[float, float] = None,
+        xlim: None | tuple[float, float],
+        ylim: None | tuple[float, float],
+        clim: None | tuple[float, float],
+        plot_func: None | Callable,
     ):
         self.imo = imo
         self.da = da
@@ -240,16 +242,20 @@ class MutablePlotObj:
         self.xlim = xlim
         self.ylim = ylim
         self.clim = clim
+        self.pfunc = plot_func
         return
 
     def redraw(self, tval: float) -> None:
         # Clear the axes
         if hasattr(self.imo, "colorbar"):
-            self.imo.colorbar.remove()
+            if hasattr(self.imo.colorbar, "remove"):
+                self.imo.colorbar.remove()
         self.ax.clear()
 
         # Create new plot object
-        new_imo = self.da.sel({self.tvar: tval}, method="nearest").plot(ax=self.ax)
+
+        da_it = self.da.sel({self.tvar: tval}, method="nearest")
+        new_imo = da_it.plot(ax=self.ax)
 
         # Set axis limits
         if self.xlim is not None:
@@ -258,6 +264,11 @@ class MutablePlotObj:
             self.ax.set_ylim(self.ylim)
         if hasattr(new_imo, "set_clim") & (self.clim is not None):
             new_imo.set_clim(self.clim)
+
+        # Run plot_func
+        if self.pfunc is not None:
+            tsel = da_it[self.tvar].to_numpy()
+            self.pfunc(self.ax, new_imo, self.da, self.tvar, tsel)
 
         # Update plot object
         self.imo = new_imo
@@ -630,6 +641,8 @@ def set_cmap(
     pass
 
 
+# TODO: include plot_func in docstring. must be a function of ax, imo, da, tvar, tval (in this order), and should return None. overrides axis limits.
+# HACK: quality seems to be shitty with ffmpeg, don't know how to improve. maybe set frames as default
 def movie(
     fig: mpl.figure.Figure,
     plot_objs: dict[mpl.artist.Artist, tuple[xr.DataArray, str]]
@@ -642,6 +655,7 @@ def movie(
     ylim: None | tuple[float, float] = None,
     clim: None | tuple[float, float] = None,
     clim_fixed: bool = True,
+    plot_func: Callable | dict[mpl.artist.Artist, Callable] | None = None,
     writer: str = "ffmpeg",
     **kwargs,
 ) -> None:
@@ -827,11 +841,23 @@ def movie(
     ylim = process_lims(ylim)
     clim = process_clims(clim)
 
+    # Process plot_func
+
+    if not isinstance(plot_func, dict):
+        new_plot_func = {}
+        for k in plot_objs.keys():
+            new_plot_func[k] = plot_func
+        plot_func = new_plot_func
+
     # Create mutable plot objects
 
     mpos = []
     for k, v in plot_objs.items():
-        mpos.append(MutablePlotObj(k, k.axes, v[0], v[1], xlim[k], ylim[k], clim[k]))
+        mpos.append(
+            MutablePlotObj(
+                k, k.axes, v[0], v[1], xlim[k], ylim[k], clim[k], plot_func[k]
+            )
+        )
 
     # Create necessary directories
 
@@ -889,6 +915,10 @@ def movie(
 
     if mwriter is None:
         # Save image frames only
+
+        folderpath = os.path.abspath(os.path.expanduser(filename))
+        os.makedirs(folderpath, exist_ok=True)
+
         i = 0
         for tval in tqdm(t_arr):
             for obj in mpos:
