@@ -141,6 +141,8 @@ def config_osiris(ds):
                     type=ax_type[i],
                 )
 
+            # Create co-moving coordinate(s)
+
             for i, ifmove in enumerate(ds.attrs["move c"]):
                 if ifmove:
                     coord = "x" + str(i + 1) + "_box"
@@ -197,6 +199,26 @@ def config_osiris(ds):
             else:
                 ds = ds.assign_coords({"pid": ("pid", np.arange(ds.sizes["pid"]))})
                 ds.attrs["unique_pids"] = False
+
+            # Create co-moving coordinate(s)
+
+            for i, ifmove in enumerate(ds.attrs["move c"]):
+                if ifmove:
+                    og_var = "x" + str(i + 1)
+                    new_var = og_var + "_box"
+
+                    ds[new_var] = ds[og_var] - ds.attrs["time"]
+
+                    var_symbol = ds[og_var].attrs["long_name"].strip("$")
+                    if i == 0:
+                        new_lab = tex_format(var_symbol + "- t")
+                    else:
+                        new_lab = tex_format(var_symbol) + " (fixed)"
+
+                    ds[new_var] = ds[new_var].assign_attrs(
+                        long_name=new_lab,
+                        units=ds[og_var].attrs["units"],
+                    )
 
         case "tracks-2":
             raise NotImplementedError(
