@@ -277,10 +277,7 @@ class PartMixin:
 
         return result
 
-    # TODO: add example (perhaps using sample data?)
-    # TODO: reorder dimensions and rechunk such that they make sense (e.g. x2,x1,t)
     # BUG: debug units
-    # HACK: move to parts mixin (e.g. bin_into_grid or gridify)
     @stopwatch
     def bin_into_grid(
         self,
@@ -302,6 +299,10 @@ class PartMixin:
                 ```python
                 axes_ds = fields_ds.coords
                 ```
+
+            ??? note "Note about axis attributes"
+
+                By default, the `long_name` and `units` attributes of the resulting grid axes are taken from the original particle Dataset. But these attributes are overriden if they are passed along with the `axes_ds` Dataset.
 
         time_dim : str, optional
             Name of the time dimension in the input datasets.
@@ -442,7 +443,7 @@ class PartMixin:
                 newcoords = {var: axes_ds[var] for var in spatial_dims}
                 newcoords[time_dim] = ds_i[time_dim]
                 qds_i = new_dataset(
-                    data_vars={"nb": (spatial_dims, dist)},
+                    data_vars={"rho": (spatial_dims, dist)},
                     coords=newcoords,
                     pic_data_type="grid",
                     data_origin=raw_ds.attrs["data_origin"],
@@ -452,11 +453,10 @@ class PartMixin:
             parts = xr.concat(q_binned, time_dim)
 
         else:
-            # TODO: save units of coords in out file
             dist = get_dist(raw_ds)
             newcoords = {var: axes_ds[var] for var in spatial_dims}
             parts = new_dataset(
-                data_vars={"nb": (spatial_dims, dist)},
+                data_vars={"rho": (spatial_dims, dist)},
                 coords=newcoords,
                 pic_data_type="grid",
                 data_origin=raw_ds.attrs["data_origin"],
@@ -470,21 +470,35 @@ class PartMixin:
         units_str = self._define_q_units(raw_ds[spatial_dims], rvar_attrs)
 
         # Multiply by factor to ensure that integral of density matches sum of particle weights
-        factor = total_w / integrate(parts["nb"])
-        parts["nb"] = factor * parts["nb"]
+        factor = total_w / integrate(parts["rho"])
+        parts["rho"] = factor * parts["rho"]
 
-        parts["nb"] = parts["nb"].assign_attrs(
+        parts["rho"] = parts["rho"].assign_attrs(
             {"long_name": r"$\rho$", "units": units_str}
         )
 
-        # BUG: unit and long_name info should be taken from original dataset, not axes_ds (or perhaps can be overridden by axes_ds)
+        # Assign variable attributes
         for var in parts.coords:
-            if var in axes_ds:
-                parts.coords[var] = parts.coords[var].assign_attrs(axes_ds[var].attrs)
+            parts.coords[var].assign_attrs(raw_ds[var].attrs)
+
+            for attr_override in ["long_name", "units"]:
+                label = get_attr_if_exists(axes_ds[var], attr_override)
+                if label is not None:
+                    parts.coords[var].attrs[attr_override] = label
+
+        # Reorder and rechunk dimensions (e.g. x2,x1,t)
+
+        dims_3d = ["x3", "x1", "x2", "t"]
+        dims_2d = ["x2", "x1", "t"]
+        if all([var in parts.coords for var in dims_3d]):
+            parts = parts.transpose(dims_3d).compute()
+            parts = parts.chunk()
+        elif all([var in parts.coords for var in dims_2d]):
+            parts = parts.transpose(dims_2d).compute()
+            parts = parts.chunk()
 
         return parts
 
-    # TODO: rename the density variable from "Q" to something that makes more sense
     def get_phase_space(
         self,
         vars: list[str],
@@ -583,9 +597,7 @@ class PartMixin:
         else:
             r_arg = None
 
-        # ps = parts_into_grid(self._obj, axes_ds, r_var=r_arg)
         ps = self.bin_into_grid(axes_ds, r_var=r_arg)
-        ps = ps.rename_vars({"nb": "Q"})
-        ps["Q"] = ps["Q"].assign_attrs({"units": r"a.u.", "long_name": r"$Q$"})
+        ps["rho"].attrs["units"] = r"a.u."
 
         return ps

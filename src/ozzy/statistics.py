@@ -182,7 +182,6 @@ def charge_in_field_quadrants(
     print("\nBinning particles into a grid...")
 
     # No rvar because we want absolute charge, not density
-    # parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var=None)
     parts = raw_ds.ozzy.bin_into_grid(axes_ds, time_dim, weight_var, r_var=None)
 
     _check_n0_input(n0, xi_var)
