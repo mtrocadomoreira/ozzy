@@ -479,23 +479,25 @@ class PartMixin:
 
         # Assign variable attributes
         for var in parts.coords:
-            parts.coords[var].assign_attrs(raw_ds[var].attrs)
+            parts.coords[var] = parts.coords[var].assign_attrs(raw_ds[var].attrs)
 
-            for attr_override in ["long_name", "units"]:
-                label = get_attr_if_exists(axes_ds[var], attr_override)
-                if label is not None:
-                    parts.coords[var].attrs[attr_override] = label
+            if var in spatial_dims:
+                for attr_override in ["long_name", "units"]:
+                    label = get_attr_if_exists(axes_ds[var], attr_override)
+                    if label is not None:
+                        parts.coords[var].attrs[attr_override] = label
 
         # Reorder and rechunk dimensions (e.g. x2,x1,t)
 
         dims_3d = ["x3", "x1", "x2", "t"]
         dims_2d = ["x2", "x1", "t"]
-        if all([var in parts.coords for var in dims_3d]):
-            parts = parts.transpose(dims_3d).compute()
-            parts = parts.chunk()
-        elif all([var in parts.coords for var in dims_2d]):
-            parts = parts.transpose(dims_2d).compute()
-            parts = parts.chunk()
+        dims_3d_box = ["x3", "x1_box", "x2", "t"]
+        dims_2d_box = ["x2", "x1_box", "t"]
+
+        for option in [dims_2d, dims_2d_box, dims_3d, dims_3d_box]:
+            if all([var in parts.coords for var in option]):
+                parts = parts.transpose(*option).compute()
+                parts = parts.chunk()
 
         return parts
 
