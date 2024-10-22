@@ -55,6 +55,7 @@ seaborn = "^0.13.2"
 ipython = "^8.28.0"
 ipykernel = "^6.29.5"
 
+
 [tool.poetry.group.optimize.dependencies]
 numpy-groupies = "^0.11.2"
 numbagg = "^0.8.2"
@@ -69,6 +70,7 @@ mkdocstrings-python = "^1.12.2"
 mkdocs-git-revision-date-localized-plugin = "^1.2.9"
 mkdocs-glightbox = "^0.4.0"
 black = "^24.10.0"
+mkdocs-include-markdown-plugin = "^7.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
@@ -110,7 +112,7 @@ prerelease = false
 [tool.semantic_release.changelog]
 template_dir = "templates"
 changelog_file = "CHANGELOG.md"
-exclude_commit_patterns = []
+exclude_commit_patterns = ["test", "style", "chore"]
 
 [tool.semantic_release.changelog.environment]
 block_start_string = "{%"
@@ -131,7 +133,7 @@ env = "GIT_COMMIT_AUTHOR"
 default = "semantic-release <semantic-release>"
 
 [tool.semantic_release.commit_parser_options]
-allowed_tags = ["build", "chore", "ci", "docs", "feat", "fix", "perf", "style", "refactor", "test"]
+allowed_tags = ["chore", "docs", "feat", "fix", "perf", "style", "refactor", "test"]
 minor_tags = ["feat"]
 patch_tags = ["fix", "perf"]
 default_bump_level = 0

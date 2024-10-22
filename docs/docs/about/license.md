@@ -3,10 +3,11 @@ Copyright &copy; 2024 Mariana Moreira - All Rights Reserved
 
 You may use, distribute and modify this code under the terms of the MIT License.
 
-???+ abstract "Full license text"
-    ``` {.yaml .no-copy}
-    --8<-- "LICENSE"
-    ```
+??? abstract "Full license text"
+
+    {%
+    include-markdown "./../../../LICENSE"
+    %}
 
 ## Bundled software components
 

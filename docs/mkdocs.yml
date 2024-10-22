@@ -152,6 +152,17 @@ plugins:
       enable_creation_date: true
       fallback_to_build_date: true
   - glightbox
+  - include-markdown:
+      encoding: ascii
+      preserve_includer_indent: true
+      dedent: false
+      trailing_newlines: true
+      comments: true
+      rewrite_relative_urls: true
+      heading_offset: 0
+      start: <!--start-->
+      end: <!--end-->
+      recursive: true
 
 extra_javascript:
   - javascripts/mathjax.js
@@ -200,6 +211,7 @@ nav:
   - About: 
       - about/index.md
       - License: about/license.md
+      - Release Notes: about/release-notes.md
 
 
 

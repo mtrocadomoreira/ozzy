@@ -1,5 +1,6 @@
 # CHANGELOG
 
+<!--start-docs-->
 
 ## v0.2.1 (2024-10-21)
 
