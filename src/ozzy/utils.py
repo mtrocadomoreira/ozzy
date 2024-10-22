@@ -853,7 +853,7 @@ def set_attr_if_exists(
 def get_attr_if_exists(
     da: xr.DataArray,
     attr: str,
-    str_exists: str | Iterable[str] | Callable,
+    str_exists: str | Iterable[str] | Callable | None = None,
     str_doesnt: str | None = None,
 ):
     """
@@ -865,11 +865,12 @@ def get_attr_if_exists(
         The xarray DataArray object to check for the attribute.
     attr : str
         The name of the attribute to retrieve.
-    str_exists : str | Iterable[str] | Callable
+    str_exists : str | Iterable[str] | Callable | None, optional
         The value or function to use if the attribute exists.
         If `str`: return as-is.
         If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
         If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+        If `None`: return attribute if it exists, otherwise return `None`.
     str_doesnt : str | None, optional
         The value to return if the attribute doesn't exist. If `None`, returns `None`.
 
@@ -932,6 +933,8 @@ def get_attr_if_exists(
             return str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             return str_exists(da.attrs[attr])
+        elif str_exists is None:
+            return da.attrs[attr]
     else:
         if str_doesnt is not None:
             return str_doesnt
