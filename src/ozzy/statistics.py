@@ -417,7 +417,7 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
 
     """
 
-    # BUG: (warning) assumes that second element of spatial_dims is the vertical dimension
+    # HACK: assumes that second element of spatial_dims is the vertical dimension, maybe could generalize
 
     t_in_fields = "t" in fields_ds.dims
     t_in_parts = "t" in raw_ds.dims

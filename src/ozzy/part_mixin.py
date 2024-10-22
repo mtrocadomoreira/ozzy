@@ -366,3 +366,25 @@ class PartMixin:
         ps["Q"] = ps["Q"].assign_attrs({"units": r"a.u.", "long_name": r"$Q$"})
 
         return ps
+
+
+# TODO: deal with cartesian v. axisymmetric
+def get_emittance(self, xvar: str, pvar: str):
+    # Process xvar and pvar arguments
+    for ivar in [xvar, pvar]:
+        if ivar not in self._obj.data_vars:
+            raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+    # Calculate emittance
+
+    # - maybe use groupby to bin and perform operation
+
+    # Convert energy to Lorentz factor
+
+    # Get divergence
+
+    # Decide how to deal with Lapostolle etc.
+
+    # Set units and label
+
+    pass
