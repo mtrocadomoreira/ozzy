@@ -33,7 +33,7 @@ jobs:
             mkdocs-material-
 
       - name: Install packages for documentation
-        run: pip install mkdocs-material mkdocstrings-python mkdocs-git-revision-date-localized-plugin mkdocs-glightbox black
+        run: pip install mkdocs-material mkdocstrings-python mkdocs-git-revision-date-localized-plugin mkdocs-glightbox black mkdocs-include-markdown-plugin
 
       - name: Build documentation
         run: mkdocs gh-deploy --force --config-file ./docs/mkdocs.yml
