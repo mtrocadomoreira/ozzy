@@ -9,9 +9,10 @@
 # *********************************************************
 
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 import cmcrameri  # noqa
+import hvplot.xarray
 import matplotlib as mpl
 import matplotlib.animation as manim
 import matplotlib.font_manager as fm
@@ -775,7 +776,7 @@ def movie(
             plot_objs[k] = (v, "t")
         if plot_objs[k][1] not in plot_objs[k][0].coords:
             raise ValueError(
-                f"Could not find {v[1]} variable in {v[0].name} DataArray. Please specify a valid time coordinate for this DataArray in the dictionary of the 'plot_objs' argument."
+                f"Could not find '{v[1]}' variable in {v[0].name} DataArray. Please specify a valid time coordinate for this DataArray in the dictionary of the 'plot_objs' argument."
             )
 
     # Define video file's metadata
@@ -945,3 +946,148 @@ def movie(
         print(f"\nMovie saved to file {filename}")
 
     return
+
+
+def imovie(
+    da: xr.DataArray,
+    tvar: str = "t",
+    clim: str | Iterable[float, float] | None = "first",
+    colormap: str | None = None,
+    widget_location: str = "bottom",
+    **kwargs,
+):
+    """Creates an interactive movie/animation plot from a DataArray using HoloViews.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        Input data array to animate.
+    tvar : str, optional
+        Name of the time coordinate in the DataArray.
+    clim : str | tuple of float, optional
+        Color limits specification. Can be:
+        - `"first"`: Use min/max of first time step
+        - `"global"`: Use global min/max across all time steps
+        - `None`: Color scale changes at every time step
+        - tuple of (min, max) values
+    colormap : str, optional
+        Name of colormap to use. If `None`, automatically selects:
+        - `"cmc.lipari"` for single-signed data
+        - `"cmc.vik"` for data crossing zero
+    widget_location : str, optional
+        Location of the time selection widget.
+    **kwargs : dict
+        Additional keyword arguments passed to [`hvplot`](https://hvplot.holoviz.org/user_guide/Gridded_Data.html).
+
+    Returns
+    -------
+    holoviews.core.spaces.HoloMap
+        Interactive HoloViews plot object.
+
+    Raises
+    ------
+    ValueError
+        If specified time variable is not found in coordinates.
+        If `clim` is invalid type or wrong length.
+
+    Examples
+    --------
+    ???+ example "Basic usage with default settings"
+        ```python
+        import ozzy as oz
+        import ozzy.plot as oplt
+        import numpy as np
+
+        # Create sample data
+        time = np.arange(10)
+        data = np.random.rand(10, 20, 30)
+        da = oz.DataArray(data, coords={'t': time, 'y': range(20), 'x': range(30)})
+
+        # Create interactive plot
+        oplt.imovie(da)
+        ```
+
+    ???+ example "Custom time coordinate and color limits"
+        ```python
+        ... # see example above
+
+        # Create data with custom time coordinate
+        da = oz.DataArray(data, coords={'time': time, 'y': range(20), 'x': range(30)})
+
+        # Plot with custom settings
+        oplt.imovie(da, tvar='time', clim=(-1, 1), colormap='cmc.lisbon')
+        ```
+    """
+
+    hvplot.extension("matplotlib")
+
+    # Check whether tvar is valid
+    if tvar not in da.coords:
+        raise ValueError(
+            f"Could not find '{tvar}' variable in the DataArray. Please specify a valid time coordinate for this DataArray with the 'tvar' keyword argument."
+        )
+
+    # Get clims
+    if isinstance(clim, str) | (clim is None):
+        match clim:
+            case "first":
+                clims = (
+                    da.isel({tvar: 0}).min().compute().to_numpy(),
+                    da.isel({tvar: 0}).max().compute().to_numpy(),
+                )
+            case "global":
+                clims = (
+                    da.min().compute().to_numpy(),
+                    da.max().compute().to_numpy(),
+                )
+            case None:
+                clims = None
+            case _:
+                raise ValueError(
+                    "Keyword argument 'clim' must be one of: None, 'first', 'global', or an iterable containing two elements."
+                )
+    else:
+        if len(clim) != 2:
+            raise ValueError(
+                "Keyword argument 'clim' should be an iterable containing two numbers."
+            )
+        clims = clim
+
+    # Choose colormap
+    if colormap is None:
+        glob_max = da.max()
+        glob_min = da.min()
+
+        signs = [np.sign(glob_max), np.sign(glob_min)]
+        for i, sgn in enumerate(signs):
+            if sgn == 0:
+                signs[i] = signs[i - 1]
+
+        if signs[0] == signs[1]:
+            colormap = "cmc.lipari"
+        else:
+            colormap = "cmc.vik"
+            if isinstance(clim, str):
+                largest = max([abs(val) for val in clims])
+                clims = (-largest, largest)
+
+    # Override widget_type if it is in kwargs
+    if "widget_type" in kwargs:
+        hvobj = da.hvplot(
+            groupby=tvar,
+            clim=clims,
+            widget_location=widget_location,
+            colormap=colormap,
+            **kwargs,
+        )
+    else:
+        hvobj = da.hvplot(
+            groupby=tvar,
+            clim=clims,
+            widget_type="scrubber",
+            widget_location=widget_location,
+            colormap=colormap,
+            **kwargs,
+        )
+
+    return hvobj
