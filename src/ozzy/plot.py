@@ -642,7 +642,6 @@ def set_cmap(
     pass
 
 
-# TODO: include plot_func in docstring. must be a function of ax, imo, da, tvar, tval (in this order), and should return None. overrides axis limits.
 # HACK: quality seems to be shitty with ffmpeg, don't know how to improve. maybe set frames as default
 def movie(
     fig: mpl.figure.Figure,
@@ -685,6 +684,9 @@ def movie(
         The color scale limits. Can be a tuple, `None`, or a dictionary mapping [Artists][matplotlib.artist.Artist] to their respective limits.
     clim_fixed : bool, optional
         If `False`, color scale limits vary for each time step.
+    plot_func : Callable | dict[matplotlib.artist.Artist, Callable] | None, optional
+        A function or dictionary of functions to customize the plot at each time step. Each function must take 5 arguments in this order: `ax` (matplotlib Axes), `imo` (matplotlib Artist), `da` (DataArray), `tvar` (str), `tval` (float), and return None. The function overrides axis limits.
+
     writer : str, optional
         The [`matplotlib` animation writer](https://matplotlib.org/stable/api/animation_api.html#writer-classes) to use. Options are `'ffmpeg'`, `'pillow'`, `'html'`, `'imagemagick'`, and `'frames_png'`. When `'frames_png'` is selected, no writer is used and the animation frames are saved to a folder in PNG format.
 
