@@ -66,7 +66,7 @@ def test_get_phase_space(sample_dataset, nbins):
     result = ds.ozzy.get_phase_space(["p2", "x2"], nbins=nbins)
 
     assert isinstance(result, xr.Dataset)
-    assert "Q" in result.data_vars
+    assert "rho" in result.data_vars
     assert set(result.coords) == {"p2", "x2"}
     assert result.p2.size == nbins
     assert result.x2.size == nbins
