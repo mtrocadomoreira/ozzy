@@ -8,6 +8,9 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
+
+import re
+
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
@@ -604,24 +607,135 @@ class PartMixin:
 
         return ps
 
+    # TODO: assumes that momentum variables follow the pattern "p?"
+    def get_emittance(
+        self,
+        xvar: str = "x2",
+        pvar: str = "p2",
+        wvar: str = "q",
+        p_longit: str = "p1",
+        axisym: bool = False,
+    ) -> xr.DataArray:
+        r"""Calculate normalized RMS beam emittance.
 
-# TODO: deal with cartesian v. axisymmetric
-def get_emittance(self, xvar: str, pvar: str):
-    # Process xvar and pvar arguments
-    for ivar in [xvar, pvar]:
-        if ivar not in self._obj.data_vars:
-            raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+        Computes the normalized RMS emittance based on particle positions and momenta.
+        For axisymmetric beams, returns the Lapostolle[^1] emittance (see also Ref.[^2]).
 
-    # Calculate emittance
+        [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
+        [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
 
+        Parameters
+        ----------
+        xvar : str
+            Variable name for position coordinate in Dataset
+        pvar : str
+            Variable name for momentum coordinate in Dataset
+        wvar : str
+            Variable name for particle weights in Dataset
+        p_longit : str
+            Variable name for longitudinal momentum in Dataset
+        axisym : bool
+            If `True`, calculate Lapostolle emittance for axisymmetric beams
+
+        Returns
+        -------
+        xarray.DataArray
+            Normalized emittance with attributes containing units and label information
+
+        Notes
+        -----
+        The normalized RMS emittance along a given transverse dimension $i$ is calculated according to:
+
+        $\varepsilon_{N,i} = \gamma \sqrt{\left<x_i^2\right> \left<{x'_i}^2\right> - \left(x_i x'_i\right)^2}$
+
+        where $\gamma$ is the average Lorentz factor, $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$.
+
+        For a 2D cylindrical, axisymmetric geometry this function returns the Lapostolle emittance, i.e.:
+
+        $\varepsilon_N = 4 \ \varepsilon_{N,i}$
+
+
+
+        Examples
+        --------
+        ???+ example "Calculate normalized emittance in 2D cyl. geometry"
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a sample particle dataset
+            particles = oz.Dataset(
+                {
+                    "x": ("pid", np.random.uniform(0, 10, 10000)),
+                    "r": ("pid", np.random.uniform(0, 5, 10000)),
+                    "px": ("pid", np.random.uniform(99, 101, 10000)),
+                    "pr": ("pid", np.random.uniform(-2e-4, 2e-4, 10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            emittance = particles.ozzy.get_emittance(xvar="r", pvar="pr", p_longit="px", axisym=True)
+            # Returns DataArray with normalized emittance in k_p^(-1) rad
+            ```
+        """
+
+        ds = self._obj
+
+        # Process xvar and pvar arguments
+        for ivar in [xvar, pvar]:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+        # Calculate geometric emittance
+
+        # - get trace
+        x_prime = ds[pvar] / ds[p_longit]
+
+        # - calculate geometric emittance
+        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid") / ds[wvar].sum(dim="pid")
+        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid") / ds[wvar].sum(dim="pid")
+        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid") / ds[wvar].sum(
+            dim="pid"
+        )
+        emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
+
+        # Get energy
+
+        # - find all momentum variables
+        p_vars = []
+        matches = [re.fullmatch("p[A-Za-z0-9]", var) for var in list(ds.data_vars)]
+        for item in matches:
+            if item is not None:
+                p_vars.append(item.group(0))
+
+        # - calculate average Lorentz factor
+        p_abs_sqr = 0
+        for p_var in p_vars:
+            p_abs_sqr += ds[p_var] ** 2
+
+        gamma_parts = np.sqrt(1 + p_abs_sqr)
+        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
+
+        # Get normalized emittance
+
+        if axisym:
+            # Lapostolle emittance
+            emit_norm = 4 * gamma * emit
+        else:
+            emit_norm = gamma * emit
+
+        # Set units and label
+
+        emit_norm = emit_norm.rename("emit_norm")
+        emit_norm.attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
+        if axisym:
+            emit_norm.attrs["long_name"] = r"$\varepsilon_N$"
+        else:
+            emit_norm.attrs["long_name"] = r"$\varepsilon_{N," + str(pvar[1]) + "}$"
+
+        return emit_norm
+
+    # TODO: slice emittance
     # - maybe use groupby to bin and perform operation
-
-    # Convert energy to Lorentz factor
-
-    # Get divergence
-
-    # Decide how to deal with Lapostolle etc.
-
-    # Set units and label
-
-    pass
