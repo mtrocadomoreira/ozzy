@@ -71,8 +71,8 @@ Once a file has been read by ozzy and translated from a simulation file into a d
 
 
 1.  The `'long_name'` and `'units'` attributes are automatically used by xarray to label plots.
-2.  See [xarray.DataArray.max][]. Note that the result is again a [DataArray](../key-concepts.md#DataArray).
-3.  See [xarray.DataArray.mean][]. Note that the result is again a [DataArray](../key-concepts.md#DataArray).
+2.  See [xarray.DataArray.max][]. Note that the result is again a [DataArray](../key-concepts.md#dataarray).
+3.  See [xarray.DataArray.mean][]. Note that the result is again a [DataArray](../key-concepts.md#dataarray).
 
 
 Explore the examples below to better understand how ozzy works:

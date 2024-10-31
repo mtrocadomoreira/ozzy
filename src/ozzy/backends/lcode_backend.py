@@ -24,6 +24,8 @@ from tqdm import tqdm
 from ..new_dataobj import new_dataset
 from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwatch
 
+# TODO: implement LCODE 3D
+
 # HACK: do this in a more pythonic way (blueprint for new backend)
 
 general_regex_pattern = r"([\w-]*?)(\d{5,6}|\d{5,6}\.\d{3})*?[m|w]?\.([a-z]{3})"
@@ -60,19 +62,17 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 # Coordinates
 default_coord_metadata = {
     "t": {"long_name": r"$t$", "units": r"$\omega_p^{-1}$"},
-    "x1": {"long_name": r"$\xi$", "units": r"$k_p^{-1}$"},
-    "x2": {"long_name": r"$r$", "units": r"$k_p^{-1}$"},
+    "x1": {"long_name": r"$x_1$", "units": r"$k_p^{-1}$"},
+    "x2": {"long_name": r"$x_2$", "units": r"$k_p^{-1}$"},
 }
-"""A dictionary containing default metadata for coordinate variables in LCODE data.
-"""
 
 # Grid data
 prefix = ["er", "ef", "ez", "bf", "wr", "fi", "nb", "ne", "ni"]
 label = [
-    r"$E_r$",
-    r"$E_\theta$",
-    r"$E_z$",
-    r"$B_\theta$",
+    r"$E_2$",
+    r"$E_3$",
+    r"$E_1$",
+    r"$B_3$",
     r"$E_r - c B_\theta$",
     r"$\Phi$",
     r"$\rho_b$",
@@ -95,12 +95,13 @@ for i, pref in enumerate(prefix):
     qinfo_grid[pref] = (label[i], units[i])
 
 # Particle data
-prefix = ["x1", "x2", "p1", "p2", "L", "abs_rqm", "q", "pid"]
+prefix = ["x1", "x2", "p1", "p2", "p3", "L", "abs_rqm", "q", "pid"]
 label = [
     r"$\xi$",
     r"$r$",
-    r"$p_z$",
-    r"$p_r$",
+    r"$p_1$",
+    r"$p_2$",
+    r"$p_3$",
     r"$L$",
     r"$|\mathrm{rqm}|$",
     r"$q$",
@@ -109,6 +110,7 @@ label = [
 units = [
     r"$k_p^{-1}$",
     r"$k_p^{-1}$",
+    r"$m_\mathrm{sp} c$",
     r"$m_\mathrm{sp} c$",
     r"$m_\mathrm{sp} c$",
     r"$m_\mathrm{sp} c^2 / \omega_p$",
@@ -399,10 +401,11 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     """
     ds = xr.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
+    ds = ds.chunk("auto")
     return ds
 
 
-def read_parts_single(file: str, **kwargs) -> xr.Dataset:
+def read_parts_single(file: str, axisym: bool, abs_q: float, **kwargs) -> xr.Dataset:
     """Read particle data from a single LCODE file into an xarray.Dataset.
 
     Parameters
@@ -423,23 +426,25 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
 
     Examples
     --------
-    >>> ds = read_parts_single('tb02500.swp')
+    >>> ds = read_parts_single('tb02500.swp', axisym=True, abs_q = 1.0)
     >>> ds.data_vars
     Data variables:
         x1        (pid) float64 ...
         x2        (pid) float64 ...
         p1        (pid) float64 ...
         p2        (pid) float64 ...
+        p3        (pid) float64 ...
         L         (pid) float64 ...
         abs_rqm   (pid) float64 ...
         q         (pid) float64 ...
     """
-    parts_cols = list(quant_info["parts"].keys())
+    parts_cols = ["x1", "x2", "p1", "p2", "p3", "abs_rqm", "q", "pid"]
     arr = np.fromfile(file).reshape(-1, len(parts_cols))
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         dda = da.from_array(
-            arr[0:-1, :]
-        )  # last row is excluded because it marks the eof
+            arr[0:-1, :],
+            chunks=-1,
+        )  # last row is excluded because it marks the EOF
 
     data_vars = {}
     for i, var in enumerate(parts_cols[0:-1]):
@@ -450,6 +455,18 @@ def read_parts_single(file: str, **kwargs) -> xr.Dataset:
         .expand_dims(dim={"t": 1}, axis=1)
     )
     ds.coords["pid"].attrs["long_name"] = quant_info["parts"]["pid"][0]
+
+    # Convert units of momentum variables from m_e*c to m_sp*c
+
+    meMb = ds["abs_rqm"] / abs_q
+    for var in ["p1", "p2", "p3"]:
+        ds[var] = ds[var] * meMb
+
+    # Add p3 data variable
+
+    if axisym:
+        ds = ds.rename_vars({"p3": "L"})
+        ds["p3"] = ds["L"] / ds["x2"]
 
     return ds
 
@@ -473,7 +490,7 @@ def read_lineout_single(file: str, quant_name: str) -> xr.Dataset:
     -----
     The data is flipped along the first dimension (assuming the lineout data is stored in descending order) and expanded to include a `'t'` (time) dimension.
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf, axis=0)
 
@@ -519,7 +536,7 @@ def read_lineout_post(ds: xr.Dataset, file_info: NamedTuple, fpath: str) -> xr.D
             break
 
     if match is not None:
-        axis_ds = read_lineout_single(file, quant_name="x1")  # .isel(t=0)
+        axis_ds = read_lineout_single(file, quant_name="x1")
         ds = ds.assign_coords({"x1": axis_ds["x1"]})
 
     return ds
@@ -546,7 +563,7 @@ def read_grid_single(
         A Dataset containing the specified quantity and coordinates (if provided).
 
     """
-    with dask.config.set({"array.slicing.split_large_chunks": True}):
+    with dask.config.set({"array.slicing.split_large_chunks": False}):
         ddf = dd_read_table(file)
     ddf = np.flip(ddf.transpose(), axis=1)
 
@@ -680,8 +697,9 @@ def read_agg(
     return ds
 
 
-# TODO: do not raise exception when beamfile.bit is not found and instead assume t=0.0 (and print warning)
-def read_beamfile(files: list[str], file_info: NamedTuple) -> xr.Dataset:
+def read_beamfile(
+    files: list[str], file_info: NamedTuple, axisym: bool, abs_q: float
+) -> xr.Dataset:
     r"""
     Read particle data from a list of LCODE beam files and return an xarray.Dataset.
 
@@ -704,7 +722,11 @@ def read_beamfile(files: list[str], file_info: NamedTuple) -> xr.Dataset:
         print_file_item(file)
         ds = read_parts_single(file)
         bitfile = file.replace(".bin", ".bit")
-        thistime = np.loadtxt(bitfile)
+        try:
+            thistime = np.loadtxt(bitfile)
+        except FileNotFoundError:
+            print(" - WARNING: Could not find 'beamfile.bit'. Assuming t = 0.0")
+            thistime = 0.0
         ds = lcode_append_time(ds, thistime)
         datasets.append(ds)
 
@@ -802,7 +824,11 @@ def read_plzshape(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
 
 
 def read(
-    files: list[str], axes_lims: dict[str, tuple[float, float]] | None = None, **kwargs
+    files: list[str],
+    axes_lims: dict[str, tuple[float, float]] | None = None,
+    axisym: bool = True,
+    abs_q: float = 1.0,
+    **kwargs,
 ) -> xr.Dataset:
     """
     Read one or more LCODE data files and create a Dataset.
@@ -813,6 +839,10 @@ def read(
         A list of file paths to be read.
     axes_lims : dict[str, tuple[float, float]] or None, optional
         A dictionary containing the limits for each axis, or None if no limits are provided (default is None).
+    axisym : bool, optional
+        Whether the data is in 2D axisymmetric/cylindrical geometry.
+    abs_q : float, optional
+        Absolute value of the charge of the bunch particles, in units of the elementary charge $e$.
     **kwargs
         Additional keyword arguments to be passed to the file-specific reader functions.
 
@@ -863,7 +893,9 @@ def read(
                 pic_data_type = "grid"
 
             case "parts":
-                ds = read_agg(files, file_info, read_parts_single, **kwargs)
+                ds = read_agg(
+                    files, file_info, read_parts_single, axisym, abs_q, **kwargs
+                )
                 pic_data_type = "part"
 
             case "extrema":
@@ -875,7 +907,7 @@ def read(
                 pic_data_type = "grid"
 
             case "beamfile":
-                ds = read_beamfile(files, file_info)
+                ds = read_beamfile(files, file_info, axisym, abs_q)
                 pic_data_type = "part"
                 pass
 
@@ -935,12 +967,17 @@ class Methods:
             ```python
             import ozzy as oz
             ds = oz.open('lcode', [part example])
-            ds = ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
+            ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
             print(ds)
 
             ```
         """
         # TODO: make this compatible with pint
+
+        try:
+            assert isinstance(n0, float)
+        except AssertionError:
+            raise ValueError("n0 argument must be a float")
 
         # Alfven current divided by elementary charge
         alfven_e = 1.0638708535128997e23  # 1/s

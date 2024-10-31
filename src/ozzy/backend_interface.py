@@ -14,6 +14,7 @@ import re
 
 import xarray as xr  # noqa
 
+from .new_dataobj import new_dataset
 from .utils import recursive_search_for_file
 
 
@@ -26,6 +27,8 @@ def _list_avail_backends():
 # -----------------------------------------------------------------------
 
 # TODO: make longitudinal consistent for all different backends (x1, xi, zeta, etc)
+# TODO: make sure that unit labels are also consistent across different backends
+# HACK: maybe have option to have configuration file to read files (to include info about geometry, axis limits, etc.)
 
 
 class Backend:
@@ -101,19 +104,21 @@ class Backend:
             The base path to search for files.
         dirs_runs : dict[str, str]
             A dictionary mapping run names to directory paths relative to `path`.
+
+            !!! tip
+
+                The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
+
+                ```python
+                import ozzy as oz
+                dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
+                ```
         quants : str, or list[str], optional
             A quantity name or list of quantity names to search for. The search term may contain the full filename (`'e1-000001.h5'`), only the quantity name (`'e1'`) or any combination with a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern (`'e1-*'`, `'e1-*.h5'`).
             If not provided, any files with the file endings associated with this `Backend` are searched for.
 
 
-        !!! tip
 
-            The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
-
-            ```python
-            import ozzy as oz
-            dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
-            ```
 
         Returns
         -------
@@ -197,8 +202,6 @@ class Backend:
     def parse_data(self, files: list[str], *args, **kwargs) -> xr.Dataset:
         """Read data from files and attach metadata according to the selected [`Backend`][ozzy.backend_interface.Backend].
 
-        When an instance of the `Backend` class is created, ozzy looks for a function called `read` in the respective backend specification file (e.g. `backends/osiris_backend.py`) and stores it as the instance's `parse` method. The method `parse_data` then calls `parse` and therefore the `read` function of the backend specification.
-
         Parameters
         ----------
         files : list[str]
@@ -236,10 +239,11 @@ class Backend:
 
         """
 
-        print("\nReading the following files:")
-        ods = self.parse(files, *args, **kwargs)
-
         if len(files) > 0:
+            print("\nReading the following files:")
+            files.sort()
+            ods = self.parse(files, *args, **kwargs)
+
             # Set metadata
             ods = ods.assign_attrs(
                 {
@@ -251,5 +255,7 @@ class Backend:
                     "data_origin": self.name,
                 }
             )
+        else:
+            ods = new_dataset()
 
         return ods

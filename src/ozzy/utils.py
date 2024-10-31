@@ -109,7 +109,7 @@ def unpack_attr(attr):
 
     This function handles different shapes and data types of NumPy arrays,
     particularly focusing on string (byte string) attributes. It's useful
-    for unpacking attributes read from HDF5 files using h5py.
+    for unpacking attributes read from HDF5 files using [h5py](https://www.h5py.org/).
 
     Parameters
     ----------
@@ -130,7 +130,7 @@ def unpack_attr(attr):
 
     Notes
     -----
-    - For string attributes (dtype.kind == 'S'):
+    - For string attributes (`dtype.kind == 'S'`):
         - 0D arrays: returns the decoded string
         - 1D arrays: returns the first element decoded
         - 2D arrays: returns the first element if size is 1, otherwise the entire array
@@ -222,7 +222,7 @@ def tex_format(str: str) -> str:
 
 def get_regex_snippet(pattern: str, string: str) -> str:
     r"""
-    Extract a regex pattern from a string using [re.search()](https://docs.python.org/3/library/re.html#re.search).
+    Extract a regex pattern from a string using [`re.search`](https://docs.python.org/3/library/re.html#re.search).
 
     !!! tip
         Use [regex101.com](https://regex101.com/) to experiment with and debug regular expressions.
@@ -267,7 +267,7 @@ def get_user_methods(clss: type) -> list[str]:
 
     Returns
     -------
-    methods : list of str
+    methods : list[str]
         A list of user-defined method names in the class.
 
     Examples
@@ -292,7 +292,7 @@ def get_user_methods(clss: type) -> list[str]:
         for func in dir(clss)
         if callable(getattr(clss, func))
         and (func in clss.__dict__)
-        and (~func.startswith("__"))
+        and (not func.startswith("__"))
     ]
 
 
@@ -305,7 +305,7 @@ def prep_file_input(files: str | list[str]) -> list[str]:
 
     Parameters
     ----------
-    files : str or list of str
+    files : str | list of str
         The input file(s).
 
     Returns
@@ -330,11 +330,19 @@ def prep_file_input(files: str | list[str]) -> list[str]:
         globlist = glob.glob(os.path.expanduser(files), recursive=True)
         filelist = [os.path.abspath(f) for f in globlist]
     else:
-        filelist = [os.path.expanduser(f) for f in files]
+        expandlist = [os.path.expanduser(f) for f in files]
         globlist = []
-        for f in filelist:
+        for f in expandlist:
             globlist.append(glob.glob(f, recursive=True))
-        filelist = [os.path.abspath(f) for f in globlist]
+
+        filelist = []
+        for f in globlist:
+            try:
+                os.path.abspath(f)
+            except TypeError:
+                pass
+            else:
+                filelist.append(os.path.abspath(f))
 
     if len(filelist) == 0:
         raise FileNotFoundError("No files were found")
@@ -348,7 +356,7 @@ def force_str_to_list(var):
 
     Parameters
     ----------
-    var : str or object
+    var : str | object
         The input variable.
 
     Returns
@@ -383,7 +391,7 @@ def recursive_search_for_file(fname: str, path: str = os.getcwd()) -> list[str]:
     fname : str
         The name or name pattern of the file to search for.
     path : str, optional
-        The path to the directory where the search should start. If not specified, uses the current directory.
+        The path to the directory where the search should start. If not specified, uses the current directory via [`os.getcwd`](https://docs.python.org/3/library/os.html#os.getcwd).
 
     Returns
     -------
@@ -483,7 +491,7 @@ def find_runs(path: str, runs_pattern: str | list[str]) -> dict[str, str]:
     ----------
     path : str
         The base path.
-    runs_pattern : str or list of str
+    runs_pattern : str | list[str]
         The run directory name or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern(s).
 
     Returns
@@ -662,7 +670,7 @@ def axis_from_extent(nx: int, lims: tuple[float, float]) -> np.ndarray:
     ----------
     nx : int
         The number of cells in the axis.
-    lims : tuple of float
+    lims : tuple[float, float]
         The extent limits (min, max).
 
     Returns
@@ -719,7 +727,7 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
 
     ???+ example "Bin edges from simple axis"
 
-        First we create a simple axis with the [axis_from_extent()][ozzy.utils.axis_from_extent] function:
+        First we create a simple axis with the [`axis_from_extent`][ozzy.utils.axis_from_extent] function:
 
         ```python
         import ozzy as oz
@@ -743,22 +751,192 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
     return binaxis
 
 
-# TODO: docstring
-# TODO: replace bits of code elsewhere that do this
+# TODO: check examples in docstring
 def set_attr_if_exists(
     da: xr.DataArray,
     attr: str,
-    str_exists: str | Iterable[str] | Callable,
+    str_exists: str | Iterable[str] | Callable | None,
     str_doesnt: str | None = None,
 ):
-    if attr in da.attrs:
+    """
+    Set or modify an attribute of a [DataArray][ozzy.core.DataArray] if it exists, or modify if it doesn't exist or is `None`.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The input DataArray.
+    attr : str
+        The name of the attribute to set or modify.
+    str_exists : str | Iterable[str] | Callable | None, optional
+        The value or function to use if the attribute exists.
+        If `str`: replace the attribute with this string.
+        If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
+        If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+        If `None`: do not change the attribute.
+    str_doesnt : str | None, optional
+        The value to set if the attribute doesn't exist. If `None`, no action is taken.
+
+    Returns
+    -------
+    xarray.DataArray
+        The modified DataArray with updated attributes.
+
+    Notes
+    -----
+    If `str_exists` is an `Iterable` with more than two elements, only the first two are used,
+    and a warning is printed.
+
+    Examples
+    --------
+    ???+ example "Set an existing attribute"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        # Set an existing attribute
+        da = set_attr_if_exists(da, 'units', 'kilometers')
+        print(da.attrs['units'])
+        # Output: kilometers
+        ```
+
+    ???+ example "Modify an existing attribute with a function"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'description': 'Random data'})
+
+        # Modify an existing attribute with a function
+        da = set_attr_if_exists(da, 'description', lambda x: x.upper())
+        print(da.attrs['description'])
+        # Output: RANDOM DATA
+        ```
+
+    ???+ example "Set a non-existing attribute"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray
+        da = oz.DataArray(np.random.rand(3, 3))
+
+        # Set a non-existing attribute
+        da = set_attr_if_exists(da, 'units', 'meters', str_doesnt='unknown')
+        print(da.attrs['units'])
+        # Output: unknown
+        ```
+    """
+    if (attr in da.attrs) and (da.attrs[attr] is not None):
         if isinstance(str_exists, str):
             da.attrs[attr] = str_exists
         elif isinstance(str_exists, Iterable):
+            if len(str_exists) > 2:
+                print(
+                    "     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored."
+                )
             da.attrs[attr] = str_exists[0] + da.attrs[attr] + str_exists[1]
         elif isinstance(str_exists, Callable):
             da.attrs[attr] = str_exists(da.attrs[attr])
+        elif str_exists is None:
+            return da
     else:
         if str_doesnt is not None:
             da.attrs[attr] = str_doesnt
     return da
+
+
+# TODO: check examples in docstring
+def get_attr_if_exists(
+    da: xr.DataArray,
+    attr: str,
+    str_exists: str | Iterable[str] | Callable | None = None,
+    str_doesnt: str | None = None,
+):
+    """
+    Retrieve an attribute from a xarray DataArray if it exists, or return a specified value otherwise.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The xarray DataArray object to check for the attribute.
+    attr : str
+        The name of the attribute to retrieve.
+    str_exists : str | Iterable[str] | Callable | None, optional
+        The value or function to use if the attribute exists.
+        If `str`: return as-is.
+        If [`Iterable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable): concatenate the first element, existing value, and second element.
+        If [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable): apply this function to the existing attribute value.
+        If `None`: return attribute if it exists, otherwise return `None`.
+    str_doesnt : str | None, optional
+        The value to return if the attribute doesn't exist. If `None`, returns `None`.
+
+    Returns
+    -------
+    str | None
+        The processed attribute value if it exists, `str_doesnt` if it doesn't exist, or `None` if
+        `str_doesnt` is `None` and the attribute doesn't exist.
+
+    Notes
+    -----
+    If `str_exists` is an `Iterable` with more than two elements, only the first two are used,
+    and a warning is printed.
+
+    Examples
+    --------
+    ???+ example "Basic usage with string"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        # Create a sample DataArray with an attribute
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        result = get_attr_if_exists(da, 'missing_attr', 'Exists', 'Does not exist')
+        print(result)
+        # Output: Does not exist
+        ```
+
+    ???+ example "Using an Iterable and a Callable"
+        ```python
+        import ozzy as oz
+        import numpy as np
+
+        da = oz.DataArray(np.random.rand(3, 3), attrs={'units': 'meters'})
+
+        # Using an Iterable
+        result = get_attr_if_exists(da, 'units', ['Unit: ', ' (SI)'], 'No unit')
+        print(result)
+        # Output: Unit: meters (SI)
+
+        result = get_attr_if_exists(da, 'units', lambda x: f'The unit is: {x}', 'No unit found')
+        print(result)
+        # Output: The unit is: meters
+
+        # Using a Callable
+        result = get_attr_if_exists(da, 'units', lambda x: x.upper(), 'No unit')
+        print(result)
+        # Output: METERS
+        ```
+    """
+    if attr in da.attrs:
+        if isinstance(str_exists, str):
+            return str_exists
+        elif isinstance(str_exists, Iterable):
+            if len(str_exists) > 2:
+                print(
+                    "     WARNING: str_exists argument in set_attr_if_exists has more than two elements. The original attribute is inserted between element 0 and element 1 of str_exists, other elements will be ignored."
+                )
+            return str_exists[0] + da.attrs[attr] + str_exists[1]
+        elif isinstance(str_exists, Callable):
+            return str_exists(da.attrs[attr])
+        elif str_exists is None:
+            return da.attrs[attr]
+    else:
+        if str_doesnt is not None:
+            return str_doesnt
+        else:
+            return None

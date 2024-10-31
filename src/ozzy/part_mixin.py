@@ -8,14 +8,12 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
-
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
 
 from .new_dataobj import new_dataset
-from .statistics import parts_into_grid
-from .utils import axis_from_extent, bins_from_axis
+from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
 
 
 class PartMixin:
@@ -24,6 +22,23 @@ class PartMixin:
     The methods in this class are accessible to a data object when `<data_obj>.attrs['pic_data_type'] == 'part'`.
 
     """
+
+    @staticmethod
+    def _define_q_units(raw_sdims, rvar_attrs: dict | None):
+        if all("units" in raw_sdims[each].attrs for each in raw_sdims.data_vars):
+            ustrings = [
+                raw_sdims[each].attrs["units"].strip("$")
+                for each in raw_sdims.data_vars
+            ]
+            extra = ""
+            for ustr in ustrings:
+                extra += rf"/ {ustr}"
+            if rvar_attrs is not None:
+                extra += rf"/ {rvar_attrs["units"].strip("$")}"
+            units_str = rf"$Q_w {extra}$"
+        else:
+            units_str = "a.u."
+        return units_str
 
     def sample_particles(self, n: int) -> xr.Dataset:
         """Downsample a particle Dataset by randomly choosing particles.
@@ -234,28 +249,25 @@ class PartMixin:
                 )
                 result = result.rename({dim + "_w": dim + "_mean"})
 
-                if "long_name" in self._obj[dim].attrs:
-                    newlname = "mean(" + self._obj[dim].attrs["long_name"] + ")"
-                else:
-                    newlname = "mean"
+                newlname = get_attr_if_exists(
+                    self._obj[dim], "long_name", lambda x: f"mean({x})", "mean"
+                )
                 result[dim + "_mean"].attrs["long_name"] = newlname
 
-                if "units" in self._obj[dim].attrs:
-                    result[dim + "_mean"].attrs["units"] = self._obj[dim].attrs["units"]
+                newunits = get_attr_if_exists(self._obj[dim], "units")
+                if newunits is not None:
+                    result[dim + "_mean"].attrs["units"] = newunits
 
             else:
                 result[dim + "_std"] = np.sqrt(result[dim + "_sqw"])
 
-            # TODO: make function to use long_name and units if existing, otherwise replace with something
+            result[dim + "_std"].attrs["long_name"] = get_attr_if_exists(
+                self._obj[dim], "long_name", lambda x: f"std({x})", "std"
+            )
 
-            if "long_name" in self._obj[dim].attrs:
-                newlname = "std(" + self._obj[dim].attrs["long_name"] + ")"
-            else:
-                newlname = "std"
-            result[dim + "_std"].attrs["long_name"] = newlname
-
-            if "units" in self._obj[dim].attrs:
-                result[dim + "_std"].attrs["units"] = self._obj[dim].attrs["units"]
+            newunits = get_attr_if_exists(self._obj[dim], "units")
+            if newunits is not None:
+                result[dim + "_std"].attrs["units"] = newunits
 
             result = result.drop_vars(dim + "_sqw")
 
@@ -264,6 +276,230 @@ class PartMixin:
         print("\nDone!")
 
         return result
+
+    # BUG: debug units
+    @stopwatch
+    def bin_into_grid(
+        self,
+        axes_ds: xr.Dataset,
+        time_dim: str = "t",
+        weight_var: str = "q",
+        r_var: str | None = None,
+    ):
+        r"""
+        Bin particle data into a grid (density distribution).
+
+        Parameters
+        ----------
+        axes_ds : Dataset
+            Dataset containing grid axes information.
+
+            ??? tip
+                The axis information can be easily obtained from a grid Dataset (for example field data) with
+                ```python
+                axes_ds = fields_ds.coords
+                ```
+
+            ??? note "Note about axis attributes"
+
+                By default, the `long_name` and `units` attributes of the resulting grid axes are taken from the original particle Dataset. But these attributes are overriden if they are passed along with the `axes_ds` Dataset.
+
+        time_dim : str, optional
+            Name of the time dimension in the input datasets.
+        weight_var : str, optional
+            Name of the variable representing particle weights or particle charge.
+        r_var : str | None, optional
+            Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable.
+
+        Returns
+        -------
+        parts : xarray.Dataset
+            Dataset containing the charge density distribution on the grid.
+
+        Raises
+        ------
+        KeyError
+            If no spatial dimensions are found in the input `axes_ds`.
+        ValueError
+            If the `axes_ds` argument does not contain grid data.
+
+        Notes
+        -----
+        The binned density data is multiplied by a factor that ensures that the total volume integral of the density corresponds to the sum of all particle weights $Q_w$. If $w$ is each particle's weight variable and $N_p$ is the total number of particles, then $Q_w$ is defined as:
+
+        \[
+        Q_w = \sum_i^{N_p} w_i
+        \]
+
+        Note that different simulation codes have different conventions in terms of what $Q_w$ corresponds to.
+
+        Examples
+        --------
+
+        ???+ example "Usage"
+
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a sample particle dataset
+            particles = oz.Dataset(
+                {
+                    "x1": ("pid", np.random.uniform(0, 10, 10000)),
+                    "x2": ("pid", np.random.uniform(0, 5, 10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Create axes for binning
+            axes = oz.Dataset(
+                coords={
+                    "x1": np.linspace(0, 10, 101),
+                    "x2": np.linspace(0, 5, 51),
+                },
+                attrs={"pic_data_type": "grid"}
+            )
+
+            # Bin particles into grid (Cartesian geometry)
+            grid_data = particles.ozzy.bin_into_grid(axes)
+
+            # Example 2: Using a different weight variable
+            particles["w"] = ("pid", np.random.uniform(0.5, 1.5, 10000))
+            grid_data_weighted = particles.ozzy.bin_into_grid(axes, weight_var="w")
+
+            # Example 3: Axisymmetric geometry
+            grid_data_axisym = particles.ozzy.bin_into_grid(axes, r_var="x2")
+
+            # Example 4: Time-dependent data
+            time_dependent_particles = particles.expand_dims(dim={"t": [0, 1, 2]})
+            time_dependent_grid = time_dependent_particles.ozzy.bin_into_grid(axes)
+
+            ```
+        """
+
+        # Check grid dataset
+        if "grid" not in axes_ds.attrs["pic_data_type"]:
+            raise ValueError(
+                "Axes Dataset must contain grid data (pic_data_type attribute must contain 'grid')"
+            )
+
+        # Check spatial dims
+        spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
+        if len(spatial_dims) == 0:
+            raise KeyError("Did not find any non-time dimensions in input axes dataset")
+
+        # Get bin edges
+        bin_edges = axes_ds.ozzy.get_bin_edges(time_dim)
+
+        q_binned = []
+        raw_ds = self._obj
+
+        # Multiply weight by radius, if r_var is specified
+
+        def integrate_cart(da):
+            dx_factor = 1
+            for dim in spatial_dims:
+                dx = axes_ds[dim][1] - axes_ds[dim][0]
+                dx_factor = dx_factor * dx
+            return dx_factor * da.sum(dim=spatial_dims)
+
+        def integrate_cyl(da):
+            dx_factor = 1
+            for dim in spatial_dims:
+                dx = axes_ds[dim][1] - axes_ds[dim][0]
+                dx_factor = dx_factor * dx
+            return dx_factor * (da[r_var] * da).sum(dim=spatial_dims)
+
+        total_w = raw_ds[weight_var].sum()
+
+        print("\nBinning particles into grid...")
+        if r_var is None:
+            wvar = weight_var
+            integrate = integrate_cart
+            print("\n   - assuming Cartesian geometry")
+        else:
+            raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
+            wvar = "w"
+            if r_var in axes_ds:
+                integrate = integrate_cyl
+            else:
+                integrate = integrate_cart
+            print("\n   - assuming axisymmetric geometry")
+
+        def get_dist(ds):
+            part_coords = [ds[var] for var in spatial_dims]
+            dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds[wvar])
+            return dist
+
+        # Loop along time
+
+        if "t" in raw_ds.dims:
+            for i in np.arange(0, len(raw_ds[time_dim])):
+                ds_i = raw_ds.isel({time_dim: i})
+                dist = get_dist(ds_i)
+
+                newcoords = {var: axes_ds[var] for var in spatial_dims}
+                newcoords[time_dim] = ds_i[time_dim]
+                qds_i = new_dataset(
+                    data_vars={"rho": (spatial_dims, dist)},
+                    coords=newcoords,
+                    pic_data_type="grid",
+                    data_origin=raw_ds.attrs["data_origin"],
+                )
+                q_binned.append(qds_i)
+
+            parts = xr.concat(q_binned, time_dim)
+
+        else:
+            dist = get_dist(raw_ds)
+            newcoords = {var: axes_ds[var] for var in spatial_dims}
+            parts = new_dataset(
+                data_vars={"rho": (spatial_dims, dist)},
+                coords=newcoords,
+                pic_data_type="grid",
+                data_origin=raw_ds.attrs["data_origin"],
+            )
+
+        # TODO: improve the formatting of the resulting units
+        if r_var is None:
+            rvar_attrs = None
+        else:
+            rvar_attrs = raw_ds[r_var].attrs
+        units_str = self._define_q_units(raw_ds[spatial_dims], rvar_attrs)
+
+        # Multiply by factor to ensure that integral of density matches sum of particle weights
+        factor = total_w / integrate(parts["rho"])
+        parts["rho"] = factor * parts["rho"]
+
+        parts["rho"] = parts["rho"].assign_attrs(
+            {"long_name": r"$\rho$", "units": units_str}
+        )
+
+        # Assign variable attributes
+        for var in parts.coords:
+            parts.coords[var] = parts.coords[var].assign_attrs(raw_ds[var].attrs)
+
+            if var in spatial_dims:
+                for attr_override in ["long_name", "units"]:
+                    label = get_attr_if_exists(axes_ds[var], attr_override)
+                    if label is not None:
+                        parts.coords[var].attrs[attr_override] = label
+
+        # Reorder and rechunk dimensions (e.g. x2,x1,t)
+
+        dims_3d = ["x3", "x1", "x2", "t"]
+        dims_2d = ["x2", "x1", "t"]
+        dims_3d_box = ["x3", "x1_box", "x2", "t"]
+        dims_2d_box = ["x2", "x1_box", "t"]
+
+        for option in [dims_2d, dims_2d_box, dims_3d, dims_3d_box]:
+            if all([var in parts.coords for var in option]):
+                parts = parts.transpose(*option).compute()
+                parts = parts.chunk()
+
+        return parts
 
     def get_phase_space(
         self,
@@ -337,6 +573,8 @@ class PartMixin:
                     lims = (-extr, extr)
                 else:
                     lims = (minval, maxval)
+                if lims[0] == lims[1]:
+                    lims = (lims[0] - 0.5, lims[0] + 0.5)
                 extents[v] = lims
 
         if isinstance(nbins, int):
@@ -361,9 +599,8 @@ class PartMixin:
         else:
             r_arg = None
 
-        ps = parts_into_grid(self._obj, axes_ds, r_var=r_arg)
-        ps = ps.rename_vars({"nb": "Q"})
-        ps["Q"] = ps["Q"].assign_attrs({"units": r"a.u.", "long_name": r"$Q$"})
+        ps = self.bin_into_grid(axes_ds, r_var=r_arg)
+        ps["rho"].attrs["units"] = r"a.u."
 
         return ps
 

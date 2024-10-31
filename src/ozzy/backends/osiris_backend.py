@@ -22,7 +22,12 @@ quants_ignore = None
 
 # TODO: make compatible with particle track data
 
-special_vars = {"ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"]}
+special_vars = {
+    "ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"],
+    "p1": [r"$p_1$", r"$m_\mathrm{sp} c$"],
+    "p2": [r"$p_2$", r"$m_\mathrm{sp} c$"],
+    "p3": [r"$p_3$", r"$m_\mathrm{sp} c$"],
+}
 
 type_mapping = {"particles": "part", "grid": "grid", "tracks-2": "track"}
 
@@ -136,6 +141,8 @@ def config_osiris(ds):
                     type=ax_type[i],
                 )
 
+            # Create co-moving coordinate(s)
+
             for i, ifmove in enumerate(ds.attrs["move c"]):
                 if ifmove:
                     coord = "x" + str(i + 1) + "_box"
@@ -193,6 +200,26 @@ def config_osiris(ds):
                 ds = ds.assign_coords({"pid": ("pid", np.arange(ds.sizes["pid"]))})
                 ds.attrs["unique_pids"] = False
 
+            # Create co-moving coordinate(s)
+
+            for i, ifmove in enumerate(ds.attrs["move c"]):
+                if ifmove:
+                    og_var = "x" + str(i + 1)
+                    new_var = og_var + "_box"
+
+                    ds[new_var] = ds[og_var] - ds.attrs["time"]
+
+                    var_symbol = ds[og_var].attrs["long_name"].strip("$")
+                    if i == 0:
+                        new_lab = tex_format(var_symbol + "- t")
+                    else:
+                        new_lab = tex_format(var_symbol) + " (fixed)"
+
+                    ds[new_var] = ds[new_var].assign_attrs(
+                        long_name=new_lab,
+                        units=ds[og_var].attrs["units"],
+                    )
+
         case "tracks-2":
             raise NotImplementedError(
                 "Tracks have not been implemented in the OSIRIS backend yet"
@@ -226,8 +253,13 @@ def read(files, **kwargs):
                         join_opt = {"join": "exact"}
                     case b"particles":
                         join_opt = {"join": "outer"}
+                    case b"tracks-2":
+                        raise NotImplementedError(
+                            "Track files have not been implemented yet, sorry."
+                        )
                     case _:
-                        join_opt = {"join": "exact"}
+                        type_str = f.attrs["TYPE"]
+                        raise ValueError(f"Unrecognized OSIRIS data type: {type_str}")
 
             with dask.config.set({"array.slicing.split_large_chunks": True}):
                 ds = xr.open_mfdataset(

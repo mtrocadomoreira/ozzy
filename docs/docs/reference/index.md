@@ -1,3 +1,9 @@
+---
+hide:
+  - feedback
+---
+
+
 # Welcome to the ozzy Code Reference!
 
 <div class="grid cards" markdown>

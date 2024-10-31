@@ -165,9 +165,10 @@ def _coord_to_physical_distance(
 def _save(instance, path):
     dobj = instance._obj
     for metadata in ["pic_data_type", "data_origin"]:
-        if metadata in dobj.attrs:
-            if dobj.attrs[metadata] is None:
-                dobj.attrs[metadata] = ""
+        dobj = set_attr_if_exists(dobj, metadata, str_doesnt="")
+        # if metadata in dobj.attrs:
+        #     if dobj.attrs[metadata] is None:
+        #         dobj.attrs[metadata] = ""
 
     instance._obj.to_netcdf(path, engine="h5netcdf", compute=True, invalid_netcdf=True)
     print('     -> Saved file "' + path + '" ')

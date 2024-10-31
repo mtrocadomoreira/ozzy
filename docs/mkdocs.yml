@@ -1,9 +1,6 @@
 site_name: Ozzy Documentation
 site_url: https://mtrocadomoreira.github.io/ozzy/
 copyright: Copyright &copy; 2024 Mariana Moreira
-# copyright: >
-#   Copyright &copy; 2024 Mariana Moreira –
-#   <a href="#__consent">Change cookie settings</a>
 theme:
   name: material
   custom_dir: overrides
@@ -92,34 +89,24 @@ markdown_extensions:
 extra:
   status:
     in-progress: Page under development
-  # consent:
-  #   title: Cookie consent
-  #   description: >- 
-  #     We use cookies to recognize your repeated visits and preferences, as well
-  #     as to measure the effectiveness of our documentation and whether users
-  #     find what they're searching for. With your consent, you're helping us to
-  #     make our documentation better.
-  #   actions:
-  #    - accept
-  #    - manage
-  #    - reject
-  # analytics:
-  #   provider: google
-  #   property: ozzy-documentation
-  #     feedback:
-  #     title: Was this page helpful?
-  #     ratings:
-  #       - icon: material/emoticon-happy-outline
-  #         name: This page was helpful
-  #         data: 1
-  #         note: >-
-  #           Thanks for your feedback!
-  #       - icon: material/emoticon-sad-outline
-  #         name: This page could be improved
-  #         data: 0
-  #         note: >- 
-  #           Thanks for your feedback! Help us improve this page by
-  #           using our <a href="..." target="_blank" rel="noopener">feedback form</a>.
+  analytics: 
+    provider: umami
+    property: views
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >- 
+            Thanks for your feedback! Help us improve this page by
+            using our <a href="https://tally.so/r/w7VQq6?title={title}&url={url}" target="_blank" rel="noopener">feedback form</a>.
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+
 
 extra_css:
   - stylesheets/extra.css
@@ -165,13 +152,23 @@ plugins:
       enable_creation_date: true
       fallback_to_build_date: true
   - glightbox
-  # - privacy:
-  #   enabled: !ENV [CI, false]
+  - include-markdown:
+      encoding: ascii
+      preserve_includer_indent: true
+      dedent: false
+      trailing_newlines: true
+      comments: true
+      rewrite_relative_urls: true
+      heading_offset: 0
+      start: <!--start-->
+      end: <!--end-->
+      recursive: true
 
 extra_javascript:
   - javascripts/mathjax.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/feedback.js
 
 # Page tree
 nav:
@@ -214,6 +211,7 @@ nav:
   - About: 
       - about/index.md
       - License: about/license.md
+      - Release Notes: about/release-notes.md
 
 
 

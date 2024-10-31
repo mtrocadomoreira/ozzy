@@ -1,3 +1,8 @@
+---
+hide:
+  - feedback
+---
+
 # Welcome to
 
 <figure markdown="span">
@@ -6,11 +11,12 @@
   <figcaption>PIC simulation data analysis for the lazy and impatient</figcaption>
 </figure>
 
-Ozzy is a data visualization and data wrangling tool geared towards particle-in-cell (PIC) simulations and the plasma physics community. Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible.
+Ozzy is a data visualization and data wrangling tool geared towards particle-in-cell (PIC) simulations and the plasma physics community. Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible by building on the powerful features of the [xarray](https://xarray.dev/) package.
 
-Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other upstream packages to make data manipulation as lazy as possible.
+<p markdown="span" style="margin:2em; text-align:center;"> 
+    [Get started](user-guide/installation/index.md){ .md-button .md-button--primary}
+</p>
 
-[Get started](user-guide/installation/index.md){ .md-button .md-button--primary}
 
 ## Why ozzy?
 
@@ -40,7 +46,7 @@ Ozzy exploits the [xarray](https://xarray.dev/) package as well as several other
 
     _Which file was this again?_ Let the code stay organized so you don't have to. Attributes go where the array goes.
 
-    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts#data-objects.md)
+    [:octicons-arrow-right-24: Data objects](user-guide/key-concepts.md#data-objects)
 
 -   :material-arm-flex:{ .lg .middle } __No file size too large__
 

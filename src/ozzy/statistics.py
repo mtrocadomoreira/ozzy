@@ -19,9 +19,7 @@ import xarray as xr
 from .new_dataobj import new_dataset
 from .utils import stopwatch
 
-# HACK: think whether all of this should go into the part mixin class (methods for particle data)
-
-# TODO: add function to get histogram (counts or otherwise) as function of axes_ds object
+# HACK: add function to get histogram (counts or otherwise) as function of axes_ds object
 # e.g. example for counts:
 # def get_histogram(da, ax_da, tvar = 't'):
 #     bin_edges = ax_da.ozzy.get_bin_edges(tvar)
@@ -55,15 +53,15 @@ def _check_raw_and_grid(raw_ds, grid_ds):
 
 
 def _check_n0_input(n0, xi_var):
-    """
+    r"""
     Check if the `xi_var` is provided when `n0` is provided.
 
     Parameters
     ----------
-    n0 : float or None
+    n0 : float | None
         Reference density value.
-    xi_var : str or None
-        Name of the variable representing the xi axis.
+    xi_var : str | None
+        Name of the variable representing the $\xi$ axis.
 
     Raises
     ------
@@ -72,7 +70,7 @@ def _check_n0_input(n0, xi_var):
 
     Notes
     -----
-    If `n0` and `xi_var` are both provided, a warning is printed assuming the xi axis is in normalized units.
+    If `n0` and `xi_var` are both provided, a warning is printed assuming the $\xi$ axis is in normalized units.
     """
     if (n0 is not None) & (xi_var is None):
         raise ValueError("Name of xi variable must be provided when n0 is provided")
@@ -87,9 +85,9 @@ def _define_q_units(n0, xi_var, dens_ds):
 
     Parameters
     ----------
-    n0 : float or None
+    n0 : float | None
         Reference density value.
-    xi_var : str or None
+    xi_var : str | None
         Name of the variable representing the xi axis.
     dens_ds : xarray.Dataset
         Dataset containing density data.
@@ -113,14 +111,16 @@ def _define_q_units(n0, xi_var, dens_ds):
     return units_str
 
 
-def _define_q_units_general(axes_da, r_var):
-    if all("units" in axes_da[each].attrs for each in axes_da.coords):
-        ustrings = [axes_da[each].attrs["units"].strip("$") for each in axes_da.coords]
+def _define_q_units_general(raw_sdims, rvar_attrs: dict | None):
+    if all("units" in raw_sdims[each].attrs for each in raw_sdims.data_vars):
+        ustrings = [
+            raw_sdims[each].attrs["units"].strip("$") for each in raw_sdims.data_vars
+        ]
         extra = ""
         for ustr in ustrings:
             extra += rf"/ {ustr}"
-        if r_var is not None:
-            extra += rf"/ {axes_da[r_var].attrs["units"].strip("$")}"
+        if rvar_attrs is not None:
+            extra += rf"/ {rvar_attrs["units"].strip("$")}"
         units_str = rf"$Q_w {extra}$"
     else:
         units_str = "a.u."
@@ -128,160 +128,7 @@ def _define_q_units_general(axes_da, r_var):
 
 
 # TODO: add example (perhaps using sample data?)
-# HACK: maybe adjust values by ensuring that integrated grid corresponds to sum of weights ('q')
-@stopwatch
-def parts_into_grid(
-    raw_ds,
-    axes_ds,
-    time_dim: str = "t",
-    weight_var: str = "q",
-    r_var: str | None = None,
-    n0: float | None = None,
-    xi_var: str | None = None,
-):
-    r"""
-    Bin particle data into a grid (charge density distribution).
-
-    Parameters
-    ----------
-    raw_ds : xarray.Dataset
-        Dataset containing particle data.
-    axes_ds : xarray.Dataset
-        Dataset containing grid axes information.
-
-        ??? tip
-            The axis information can be easily obtained from a grid dataset (for example field data) with
-            ```python
-            axes_ds = fields_ds.coords
-            ```
-
-    time_dim : str, optional
-        Name of the time dimension in the input datasets. Default is `'t'`.
-    weight_var : str, optional
-        Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
-    r_var : str or None, optional
-        Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable. Default is None.
-    n0 : float or None, optional
-        Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge density is converted to physical units. Default is None.
-    xi_var : str or None, optional
-        Name of the variable representing the longitudinal axis. Required if `n0` is provided.
-
-    Returns
-    -------
-    parts : xarray.Dataset
-        Dataset containing the charge density distribution on the grid.
-
-    Raises
-    ------
-    KeyError
-        If no spatial dimensions are found in the input `axes_ds`.
-    ValueError
-        If the input datasets do not contain particle and grid data, respectively, or if `n0` is provided but `xi_var` is not.
-
-    Notes
-    -----
-    The binned density data is multiplied by a factor that ensures that the total volume integral of the density corresponds to the sum of all particle weights $Q_w$. If $w$ is each particle's weight variable and $N_p$ is the total number of particles, then $Q_w$ is defined as:
-
-    \[
-    Q_w = \sum_i^{N_p} w_i
-    \]
-
-    Note that different simulation codes have different conventions in terms of what $Q_w$ corresponds to.
-    """
-    _check_raw_and_grid(raw_ds, axes_ds)
-
-    _check_n0_input(n0, xi_var)
-
-    # TODO: change this error message; dims might not be space dims (e.g. phase space)
-    spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
-    if len(spatial_dims) == 0:
-        raise KeyError("Did not find any non-time dimensions in input axes dataset")
-
-    bin_edges = axes_ds.ozzy.get_bin_edges(time_dim)
-
-    q_binned = []
-
-    # Multiply weight by radius, if r_var is specified
-
-    def integrate_cart(da):
-        dx_factor = 1
-        for dim in spatial_dims:
-            dx = axes_ds[dim][1] - axes_ds[dim][0]
-            dx_factor = dx_factor * dx
-        return dx_factor * da.sum(dim=spatial_dims)
-
-    def integrate_cyl(da):
-        dx_factor = 1
-        for dim in spatial_dims:
-            dx = axes_ds[dim][1] - axes_ds[dim][0]
-            dx_factor = dx_factor * dx
-        return dx_factor * (da[r_var] * da).sum(dim=spatial_dims)
-
-    total_w = raw_ds[weight_var].sum()
-
-    print("\nBinning particles into grid...")
-    if r_var is None:
-        wvar = weight_var
-        integrate = integrate_cart
-        print("\n   - assuming Cartesian geometry")
-    else:
-        raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
-        wvar = "w"
-        integrate = integrate_cyl
-        print("\n   - assuming axisymmetric geometry")
-
-    def get_dist(ds):
-        part_coords = [ds[var] for var in spatial_dims]
-        dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds[wvar])
-        return dist
-
-    # Loop along time
-
-    if "t" in raw_ds.dims:
-        for i in np.arange(0, len(raw_ds[time_dim])):
-            ds_i = raw_ds.isel({time_dim: i})
-            dist = get_dist(ds_i)
-
-            newcoords = {var: axes_ds[var] for var in spatial_dims}
-            newcoords[time_dim] = ds_i[time_dim]
-            qds_i = new_dataset(
-                data_vars={"nb": (spatial_dims, dist)},
-                coords=newcoords,
-                pic_data_type="grid",
-                data_origin=raw_ds.attrs["data_origin"],
-            )
-            q_binned.append(qds_i)
-
-        parts = xr.concat(q_binned, time_dim)
-
-    else:
-        dist = get_dist(raw_ds)
-        newcoords = {var: axes_ds[var] for var in spatial_dims}
-        parts = new_dataset(
-            data_vars={"nb": (spatial_dims, dist)},
-            coords=newcoords,
-            pic_data_type="grid",
-            data_origin=raw_ds.attrs["data_origin"],
-        )
-
-    # units_str = _define_q_units(n0, xi_var, parts)
-    # TODO: improve the formatting of the resulting units
-    units_str = _define_q_units_general(axes_ds[spatial_dims], r_var)
-
-    # Multiply by factor to ensure that integral of density matches sum of particle weights
-    factor = total_w / integrate(parts["nb"])
-    parts["nb"] = factor * parts["nb"]
-
-    parts["nb"] = parts["nb"].assign_attrs({"long_name": r"$\rho$", "units": units_str})
-
-    for var in parts.coords:
-        if var in axes_ds:
-            parts.coords[var] = parts.coords[var].assign_attrs(axes_ds[var].attrs)
-
-    return parts
-
-
-# TODO: add example (perhaps using sample data?)
+# TODO: remove use of n0 and charge unit conversion
 @stopwatch
 def charge_in_field_quadrants(
     raw_ds,
@@ -307,9 +154,9 @@ def charge_in_field_quadrants(
         Name of the time dimension in the input datasets. Default is `'t'`.
     weight_var : str, optional
         Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
-    n0 : float or None, optional
+    n0 : float | None, optional
         Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge is converted to physical units. Default is None.
-    xi_var : str or None, optional
+    xi_var : str | None, optional
         Name of the variable representing the longitudinal axis. Required if `n0` is provided.
 
     Returns
@@ -335,7 +182,7 @@ def charge_in_field_quadrants(
     print("\nBinning particles into a grid...")
 
     # No rvar because we want absolute charge, not density
-    parts = parts_into_grid(raw_ds, axes_ds, time_dim, weight_var, r_var=None)
+    parts = raw_ds.ozzy.bin_into_grid(axes_ds, time_dim, weight_var, r_var=None)
 
     _check_n0_input(n0, xi_var)
 
@@ -398,7 +245,7 @@ def field_space(raw_ds, fields_ds, spatial_dims=["x1", "x2"]):
         Dataset containing particle data.
     fields_ds : xarray.Dataset
         Dataset containing field data.
-    spatial_dims : list of str, optional
+    spatial_dims : list[str], optional
         List of spatial dimension names in the input datasets. Default is `['x1', 'x2']`.
 
     Returns

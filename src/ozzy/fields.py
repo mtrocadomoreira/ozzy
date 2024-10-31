@@ -103,7 +103,7 @@ def vphi_from_fit(
         The name of the time or propagation dimension. Default is `'t'`.
     window_len : float, optional
         The length of the window (in units of the plasma wavelength) over which to perform the fit. Default is `1.0`.
-    k : float or str, optional
+    k : float | str, optional
         The wavenumber to use in the definition of the window length. If `'fft'`, the wavenumber will be calculated from the FFT of the data. Default is `1.0`.
     boundary : str, optional
         How to handle boundaries when coarsening the data into blocks. One of `'trim'`, `'pad'`, or `'drop'`. See [xarray.DataArray.coarsen][].

@@ -49,10 +49,12 @@ class GridMixin:
             da = da.ozzy.coords_from_extent(mapping)
             ```
         """
+        ds_new = self._obj
         for k, v in mapping.items():
             nx = self._obj.sizes[k]
             ax = axis_from_extent(nx, v)
-        return self._obj.assign_coords({k: ax})
+            ds_new = ds_new.assign_coords({k: ax})
+        return ds_new
 
     def get_space_dims(self, time_dim: str = "t"):
         """Get names of spatial dimensions.
@@ -81,7 +83,7 @@ class GridMixin:
             print(spatial_dims)
             ```
         """
-        return list(set(list(self._obj.coords)) - {time_dim})
+        return list(set(list(self._obj.dims)) - {time_dim})
 
     def get_bin_edges(self, time_dim: str = "t"):
         """Get bin edges along each spatial axis.

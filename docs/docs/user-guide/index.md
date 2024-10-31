@@ -1,3 +1,8 @@
+---
+hide:
+  - feedback
+---
+
 # Welcome to the ozzy User Guide!
 
 

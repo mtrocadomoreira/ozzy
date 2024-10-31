@@ -54,7 +54,7 @@ If `None`, no variables are ignored.
 def read(files: list[str], **kwargs) -> xr.Dataset:
     """
     Read a list of files and return a [Dataset][xarray.Dataset].
-    If an OSError occurs during the reading process, a new empty Dataset should be created and returned.
+    If an `OSError` occurs during the reading process, a new empty Dataset should be created and returned.
     """
     try:
         # code to read list of files
