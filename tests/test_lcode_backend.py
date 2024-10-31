@@ -69,9 +69,9 @@ def mock_parts_file(tmp_path):
 
 
 def test_read_parts_single(mock_parts_file):
-    result = read_parts_single(mock_parts_file)
+    result = read_parts_single(mock_parts_file, axisym=True, abs_q=1.0)
     assert isinstance(result, xr.Dataset)
-    assert set(result.data_vars) == {"x1", "x2", "p1", "p2", "L", "abs_rqm", "q"}
+    assert set(result.data_vars) == {"x1", "x2", "p1", "p2", "p3", "L", "abs_rqm", "q"}
     assert "pid" in result.coords
 
 
@@ -112,6 +112,7 @@ def test_read_empty_file_list():
     assert isinstance(result, xr.Dataset)
     assert len(result.data_vars) == 0
 
+
 @pytest.fixture
 def sample_dataset_with_q():
     return xr.Dataset(
@@ -119,11 +120,13 @@ def sample_dataset_with_q():
         coords={"x": range(5)},
     )
 
+
 def test_convert_q_with_valid_inputs(sample_dataset_with_q):
     sample_dataset_with_q.attrs["data_origin"] = "lcode"
     sample_dataset_with_q.ozzy.convert_q(dxi=0.01, n0=2e14)
     assert sample_dataset_with_q["q"].attrs["units"] == "$e$"
     assert np.all(sample_dataset_with_q["q"].values != 0)
+
 
 def test_convert_q_with_custom_q_var(sample_dataset_with_q):
     sample_dataset_with_q = sample_dataset_with_q.rename({"q": "custom_q"})
@@ -131,10 +134,12 @@ def test_convert_q_with_custom_q_var(sample_dataset_with_q):
     sample_dataset_with_q.ozzy.convert_q(dxi=0.01, n0=2e14, q_var="custom_q")
     assert sample_dataset_with_q["custom_q"].attrs["units"] == "$e$"
 
+
 def test_convert_q_with_zero_dxi(sample_dataset_with_q):
     sample_dataset_with_q.attrs["data_origin"] = "lcode"
     sample_dataset_with_q.ozzy.convert_q(dxi=0, n0=2e14)
     assert np.all(sample_dataset_with_q["q"].values == 0)
+
 
 def test_convert_q_with_very_small_n0(sample_dataset_with_q):
     sample_dataset_with_q.attrs["data_origin"] = "lcode"
@@ -142,11 +147,13 @@ def test_convert_q_with_very_small_n0(sample_dataset_with_q):
     assert sample_dataset_with_q["q"].attrs["units"] == "$e$"
     assert np.all(np.isfinite(sample_dataset_with_q["q"].values))
 
+
 def test_convert_q_with_very_large_n0(sample_dataset_with_q):
     sample_dataset_with_q.attrs["data_origin"] = "lcode"
     sample_dataset_with_q.ozzy.convert_q(dxi=0.01, n0=1e30)
     assert sample_dataset_with_q["q"].attrs["units"] == "$e$"
     assert np.all(np.isfinite(sample_dataset_with_q["q"].values))
+
 
 def test_convert_q_invalid_n0():
     ds = xr.Dataset({"q": (["x"], np.random.rand(5))})
@@ -154,11 +161,16 @@ def test_convert_q_invalid_n0():
     with pytest.raises(ValueError, match="n0 argument must be a float"):
         ds.ozzy.convert_q(dxi=0.01, n0="invalid")
 
+
 def test_convert_q_multiple_calls(sample_dataset_with_q):
     sample_dataset_with_q.attrs["data_origin"] = "lcode"
     original_values = sample_dataset_with_q["q"].values.copy()
     sample_dataset_with_q.ozzy.convert_q(dxi=0.01, n0=2e14)
     first_conversion = sample_dataset_with_q["q"].values.copy()
     sample_dataset_with_q.ozzy.convert_q(dxi=0.01, n0=2e14)
-    assert np.allclose(sample_dataset_with_q["q"].values, first_conversion * (0.01 * 0.5 * 1.0638708535128997e23 / (56414.60231191864 * np.sqrt(2e14))))
+    assert np.allclose(
+        sample_dataset_with_q["q"].values,
+        first_conversion
+        * (0.01 * 0.5 * 1.0638708535128997e23 / (56414.60231191864 * np.sqrt(2e14))),
+    )
     assert not np.allclose(sample_dataset_with_q["q"].values, original_values)

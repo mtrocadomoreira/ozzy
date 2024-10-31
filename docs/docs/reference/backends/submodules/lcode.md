@@ -2,7 +2,7 @@
 
 ## Available file types
 
-At the moment, the following LCODE file types can be read by ozzy:
+At the moment, the following LCODE 2D file types can be read by ozzy:
 
 - [x] plasma density profile along propagation (`plzshape.dat`)
 - [x] particle information at a single timestep (`tb?????.swp`,`beamfile.bin`)

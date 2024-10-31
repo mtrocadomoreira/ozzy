@@ -202,8 +202,6 @@ class Backend:
     def parse_data(self, files: list[str], *args, **kwargs) -> xr.Dataset:
         """Read data from files and attach metadata according to the selected [`Backend`][ozzy.backend_interface.Backend].
 
-        When an instance of the `Backend` class is created, ozzy looks for a function called `read` in the respective backend specification file (e.g. `backends/osiris_backend.py`) and stores it as the instance's `parse` method. The method `parse_data` then calls `parse` and therefore the `read` function of the backend specification.
-
         Parameters
         ----------
         files : list[str]
