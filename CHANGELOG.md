@@ -3,6 +3,18 @@
 <!--start-docs-->
 
 
+## v1.0.3 (04-11-2024)
+
+### Documentation
+
+* [`1c50582`](https://github.com/mtrocadomoreira/ozzy/commit/1c505822c1096fb0d6bf1c3a9ff390ff84f48216): Correct changelog template
+
+
+
+
+
+
+
 ## v1.0.2 (04-11-2024)
 
 ### Documentation
