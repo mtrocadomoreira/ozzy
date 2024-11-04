@@ -1,16 +1,27 @@
 {#
-#}{%  for type_, commits in commit_objects
+#}{%  for type_, commits in commit_objects if type_ != "unknown"
 %}{{
         "\n### %s\n" | format(type_ | title)
 
 }}{%    for commit in commits
 %}{{
-          "\n* %s ([`%s`](%s))\n" | format(
-              commit.message.rstrip(),
+          "\n* [`%s`](%s): %s\n" | format(
               commit.short_hash,
               commit.hexsha | commit_hash_url,
+              commit.descriptions[0] | capitalize,
           )
 
-}}{%    endfor
+}}
+{% set message = commit.message.split('\n\n', 1)[1] %}
+{{
+    "\n%s\n" | format(
+         message
+    ) | replace(
+        "BREAKING CHANGE: ", "**Breaking change:** "
+    ) | safe | indent(
+        width=4
+    )
+}}
+{%    endfor
 %}{%  endfor
 %}

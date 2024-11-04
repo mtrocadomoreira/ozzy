@@ -153,7 +153,7 @@ plugins:
       fallback_to_build_date: true
   - glightbox
   - include-markdown:
-      encoding: ascii
+      encoding: utf-8
       preserve_includer_indent: true
       dedent: false
       trailing_newlines: true

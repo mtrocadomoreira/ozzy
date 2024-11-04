@@ -1,12 +1,14 @@
 {#
 
-## **vX.X.X** (YYYY-MMM-DD)
+## **Version X.X.X** (YYYY-MMM-DD)
+
+Released DD-MM-YYYY
 
 #}{{
 
       "## %s (%s)\n" | format(
         release.version.as_semver_tag(),
-        release.tagged_date.strftime("%Y-%m-%d")
+        release.tagged_date.strftime("%d-%m-%Y")
       )
 
 }}{%  set commit_objects = release["elements"] | dictsort
