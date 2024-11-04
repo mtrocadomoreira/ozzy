@@ -72,6 +72,13 @@
 
 ### Documentation
 
+* [`28e05c2`](https://github.com/mtrocadomoreira/ozzy/commit/28e05c22f5e153482030258ba265b7c7649b7993): Change template for automatic changelog generation
+
+
+
+
+
+
 * [`d91795b`](https://github.com/mtrocadomoreira/ozzy/commit/d91795b8a0eb531013abf7fd842ac04ae88b3eb2): Add `plot_func` argument to `movie` docstring
 
 
@@ -87,6 +94,13 @@
 
 
 ### Features
+
+* [`10abc79`](https://github.com/mtrocadomoreira/ozzy/commit/10abc79ae06d6bba0b78f1fa48b02868943897ef): Publish package on pypi with as `ozzy-pic`
+
+
+
+
+
 
 * [`361f9c0`](https://github.com/mtrocadomoreira/ozzy/commit/361f9c04e4160bda67784bee430f9f067fdf45fe): Add function to get beam emittance
 
