@@ -894,7 +894,12 @@ def read(
 
             case "parts":
                 ds = read_agg(
-                    files, file_info, read_parts_single, axisym, abs_q, **kwargs
+                    files,
+                    file_info,
+                    read_parts_single,
+                    axisym=axisym,
+                    abs_q=abs_q,
+                    **kwargs,
                 )
                 pic_data_type = "part"
 

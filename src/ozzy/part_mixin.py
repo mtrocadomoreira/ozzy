@@ -608,6 +608,7 @@ class PartMixin:
         return ps
 
     # TODO: assumes that momentum variables follow the pattern "p?"
+    # TODO: add unit tests
     def get_emittance(
         self,
         xvar: str = "x2",

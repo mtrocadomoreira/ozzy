@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "ozzy"
+name = "ozzy-pic"
 version = "1.0.0"
 description = "PIC simulation data analysis for the lazy and impatient"
 authors = [
@@ -54,15 +54,14 @@ cmcrameri = "^1.9"
 seaborn = "^0.13.2"
 ipython = "^8.28.0"
 ipykernel = "^6.29.5"
-
-
-[tool.poetry.group.optimize.dependencies]
-numpy-groupies = "^0.11.2"
-numbagg = "^0.8.2"
-
-[tool.poetry.group.interactive.dependencies]
 hvplot = "^0.11.1"
 jupyter-bokeh = "^4.0.5"
+# Optional packages
+numpy-groupies = {version = "^0.11.2", optional = true}
+numbagg = {version = "^0.8.2", optional = true}
+
+[tool.poetry.extras]
+perf = ["numpy-groupies", "numbagg"]
 
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.42"
@@ -78,12 +77,6 @@ hypothesis = "^6.115.3"
 pytest-mock = "^3.14.0"
 python-semantic-release = "^9.12.0"
 ruff = "^0.7.0"
-
-[project]
-name = "ozzy"
-dynamic = ["version"]
-dependencies = [
-]
 
 [tool.semantic_release]
 version_variables = [
@@ -112,7 +105,7 @@ prerelease = false
 [tool.semantic_release.changelog]
 template_dir = "templates"
 changelog_file = "CHANGELOG.md"
-exclude_commit_patterns = ["test", "style", "chore"]
+exclude_commit_patterns = ["test", "style", "chore", '''Merge? .*''']
 
 [tool.semantic_release.changelog.environment]
 block_start_string = "{%"
