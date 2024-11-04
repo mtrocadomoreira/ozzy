@@ -3,7 +3,7 @@
 <!--start-docs-->
 
 
-## Unreleased
+## v1.0.1 (04-11-2024)
 
 ### Breaking
 
