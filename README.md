@@ -11,8 +11,6 @@ Ozzy is a data visualization and data wrangling Python package geared towards **
 
 Ozzy's philosophy is to make the analysis of simulation data originating from multiple simulation codes and often contained in large files as easy as possible by building on the powerful features of the [xarray](https://xarray.dev/) package.
 
-> [!WARNING]
-> Due to a naming conflict, ozzy is not available on PyPI or conda-forge yet. Please use the [git + Poetry method](https://mtrocadomoreira.github.io/ozzy/user-guide/installation/#with-git-poetry) to install ozzy while this issue is resolved.
 
 ### **Why ozzy?**
 
@@ -49,13 +47,13 @@ We highly recommend installing ozzy in its own virtual environment.
 ### conda (recommended)
 
 ```bash
-conda install ozzy
+conda install ozzy-pic
 ```
 
 ### pip
 
 ```bash
-python3 -m pip install ozzy
+python3 -m pip install ozzy-pic
 ```
 
 
