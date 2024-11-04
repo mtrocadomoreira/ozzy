@@ -3,6 +3,18 @@
 <!--start-docs-->
 
 
+## v1.0.2 (04-11-2024)
+
+### Documentation
+
+* [`2d1afe0`](https://github.com/mtrocadomoreira/ozzy/commit/2d1afe079632a6ef7188378746f55bc4f1482ddc): Update installation instructions
+
+
+
+
+
+
+
 ## v1.0.1 (04-11-2024)
 
 ### Breaking
