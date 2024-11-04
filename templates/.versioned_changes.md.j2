@@ -6,8 +6,8 @@ Released DD-MM-YYYY
 
 #}{{
 
-      "## %s (%s)\n" | format(
-        release.version.as_semver_tag(),
+      "## Version %s \n\nReleased %s \n" | format(
+        release.version.as_semver_tag() | replace("v",""),
         release.tagged_date.strftime("%d-%m-%Y")
       )
 

@@ -3,7 +3,9 @@
 <!--start-docs-->
 
 
-## v1.0.3 (04-11-2024)
+## Version 1.0.3 
+
+Released 04-11-2024 
 
 ### Documentation
 
@@ -15,7 +17,9 @@
 
 
 
-## v1.0.2 (04-11-2024)
+## Version 1.0.2 
+
+Released 04-11-2024 
 
 ### Documentation
 
@@ -27,7 +31,9 @@
 
 
 
-## v1.0.1 (04-11-2024)
+## Version 1.0.1 
+
+Released 04-11-2024 
 
 ### Breaking
 
@@ -197,7 +203,9 @@
 
 
 
-## v0.2.1 (21-10-2024)
+## Version 0.2.1 
+
+Released 21-10-2024 
 
 ### Bug Fixes
 
@@ -262,7 +270,9 @@
 
 
 
-## v0.2.0 (15-10-2024)
+## Version 0.2.0 
+
+Released 15-10-2024 
 
 ### Features
 
@@ -274,7 +284,9 @@
 
 
 
-## v0.1.7 (07-10-2024)
+## Version 0.1.7 
+
+Released 07-10-2024 
 
 ### Bug Fixes
 
@@ -295,7 +307,9 @@
 
 
 
-## v0.1.6 (30-09-2024)
+## Version 0.1.6 
+
+Released 30-09-2024 
 
 ### Bug Fixes
 
@@ -307,7 +321,9 @@
 
 
 
-## v0.1.5 (23-09-2024)
+## Version 0.1.5 
+
+Released 23-09-2024 
 
 ### Performance Improvements
 
@@ -328,7 +344,9 @@
 
 
 
-## v0.1.4 (18-09-2024)
+## Version 0.1.4 
+
+Released 18-09-2024 
 
 ### Bug Fixes
 
@@ -365,7 +383,9 @@
 
 
 
-## v0.1.3 (17-09-2024)
+## Version 0.1.3 
+
+Released 17-09-2024 
 
 ### Bug Fixes
 
@@ -377,7 +397,9 @@
 
 
 
-## v0.1.2 (17-09-2024)
+## Version 0.1.2 
+
+Released 17-09-2024 
 
 ### Bug Fixes
 
@@ -405,7 +427,9 @@
 
 
 
-## v0.1.1 (13-08-2024)
+## Version 0.1.1 
+
+Released 13-08-2024 
 
 ### Bug Fixes
 
@@ -435,7 +459,9 @@
 
 
 
-## v0.1.0 (16-07-2024)
+## Version 0.1.0 
+
+Released 16-07-2024 
 
 ### Features
 
@@ -447,7 +473,9 @@
 
 
 
-## v0.0.1 (16-07-2024)
+## Version 0.0.1 
+
+Released 16-07-2024 
 
 ### Bug Fixes
 
@@ -459,7 +487,9 @@
 
 
 
-## v0.0.0 (16-07-2024)
+## Version 0.0.0 
+
+Released 16-07-2024 
 
 ### Documentation
 
