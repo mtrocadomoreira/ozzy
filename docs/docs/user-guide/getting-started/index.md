@@ -1,8 +1,8 @@
 # Getting started
 
-Ozzy's main strength is that it is built on the [xarray][] package. The logic behind xarray (and therefore ozzy) consists of handling numerical data as a "package" that includes the axis information and other metadata besides the actual data itself (similarly to the HDF5 file format, for example), as opposed to a simple array with numbers. This package can take the form of either a DataArray or a Dataset (see [*Data objects* in *Key concepts*](../key-concepts.md#data-objects) for more details).
+Ozzy's main strength is that it is built on the [xarray][] package. The logic behind xarray (and therefore ozzy) consists of handling numerical data as a "package" that includes the axis information and other metadata besides the actual data itself (similarly to the HDF5 file format, for example). This package can take the form of either a DataArray or a Dataset (see [*Data objects* in *Key concepts*](../key-concepts.md#data-objects) for more details).
 
-Once a file has been read by ozzy and translated from a simulation file into a data object, we can take advantage of xarray's vast repertoire of built-in methods and functions. This generally includes all the operations that you would otherwise perform on a [NumPy][numpy] array (an [`ndarray`][numpy.ndarray]), as well as [xarray's plotting shortcuts](https://docs.xarray.dev/en/stable/user-guide/plotting.html).
+Once a file has been read by ozzy and translated into a data object (either a DataArray or a Dataset), we can take advantage of xarray's vast repertoire of built-in methods and functions. This generally includes all the operations that you would otherwise perform on a [NumPy][numpy] array (an [`ndarray`][numpy.ndarray]), as well as [xarray's plotting shortcuts](https://docs.xarray.dev/en/stable/user-guide/plotting.html).
 
 
 !!! example annotate "Quick example"
@@ -13,10 +13,10 @@ Once a file has been read by ozzy and translated from a simulation file into a d
     import matplotlib.pyplot as plt
     import numpy as np
     import ozzy as oz
-    import ozzy.plot
+    import ozzy.plot #(5)!
 
-    # Create some sample data
-    t = np.linspace(0, 100, 300)
+    # ------------------ Create sample data ------------------ 
+    t = np.linspace(0, 100, 300) #(4)!
     x = np.linspace(-10, 0, 200)
     Ex = np.outer(np.exp(-0.001 * t**2), np.sin(x))
 
@@ -30,6 +30,7 @@ Once a file has been read by ozzy and translated from a simulation file into a d
     )
     da["t"] = da["t"].assign_attrs(long_name=r"$t$", units=r"$\omega_p^{-1}$")
     da["x"] = da["x"].assign_attrs(long_name=r"$x$", units=r"$c / \omega_p$")
+    # --------------------------------------------------------
 
     # Take maximum and median of data
     da_max = da.max(dim="x")  #(2)!
@@ -47,6 +48,9 @@ Once a file has been read by ozzy and translated from a simulation file into a d
     plt.grid()
     plt.legend()
     plt.show()
+
+    # Save second plot
+    plt.savefig("Ex_max_mean.png")
 
     # Save result as a Dataset
     ds_out = oz.Dataset(
@@ -73,6 +77,12 @@ Once a file has been read by ozzy and translated from a simulation file into a d
 1.  The `'long_name'` and `'units'` attributes are automatically used by xarray to label plots.
 2.  See [xarray.DataArray.max][]. Note that the result is again a [DataArray](../key-concepts.md#dataarray).
 3.  See [xarray.DataArray.mean][]. Note that the result is again a [DataArray](../key-concepts.md#dataarray).
+4.  This is where you would usually load simulation files, for example with:
+    ```python
+    ds = oz.open_series("osiris", "/path/to/simulation/file/e1-*.h5")
+    da = ds['e1']
+    ```
+5.  Loading `ozzy.plot` ensures that the ozzy's styling is applied to all plots.
 
 
 Explore the examples below to better understand how ozzy works:

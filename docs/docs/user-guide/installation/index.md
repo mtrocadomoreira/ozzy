@@ -5,15 +5,15 @@ Ozzy is a Python package. We recommend installing ozzy in its own virtual enviro
 
 <!-- Ozzy is available both on [PyPI](https://pypi.org/) (via `pip`) and on [conda-forge](https://conda-forge.org/) (via `conda` or `mamba`). -->
 
-!!! warning
-
-    Due to a naming conflict, ozzy has not been published on [PyPI](https://pypi.org/) or [conda-forge](https://conda-forge.org/) yet. While this is resolved, please use the [git + Poetry](#with-git-poetry) installation method.
-
 ## Requirements
 
 - Python >= 3.10
 
 ## with conda <small>(recommended)</small>
+
+!!! warning
+
+    Ozzy is awaiting approval to be uploaded to [`conda-forge`](https://conda-forge.org/), but should be available to install via `conda`/`mamba` soon.
 
 !!! note "Note about mamba"
 
@@ -36,6 +36,8 @@ python3 -m pip install ozzy
 
 
 ## with git + Poetry
+
+This installation method can be used as a fallback, or in case the user wants to have access to the latest commit.
 
 #### Step 1 - Requirements
 
