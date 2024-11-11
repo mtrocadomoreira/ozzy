@@ -10,7 +10,7 @@ It is extremely easy to plot [xarray data objects](key-concepts.md#data-objects)
 
     It is also very easy to produce [interactive plots of xarray data objects with hvPlot](https://hvplot.holoviz.org/user_guide/Gridded_Data.html).
 
-Though xarray's plotting capabilities can be used directly, ozzy does some extra aesthetic tinkering when the plotting submodule, [`ozzy.plot`](../reference/plot.md), is loaded. This submodule activates the following defaults:
+Though xarray's plotting capabilities can be used directly, ozzy does some extra aesthetic tinkering when the plotting submodule, [`ozzy.plot`](../reference/plot.md), is loaded. This submodule activates the following defaults (among others):
 
 | Defaults | | 
 |------|----|
@@ -61,10 +61,12 @@ Ozzy's plotting submodule also bundles a few different open-source fonts:
 Alternatively, LaTeX font can be used for all text and labels with:
 
 ```python
-import ozzy.plot as oplt
-import matplotlib.pyplot as plt
-plt.rcParams["text.usetex"] = True
+import ozzy.plot as oplt #(2)!
+oplt.plt.rcParams["text.usetex"] = True #(1)!
 ```
+
+1.  The `'long_name'` and `'units'` attributes are automatically used by xarray to label plots.
+2.  Note that `matplotlib` is imported into `ozzy.plot` as `plt`.
 
 To see all available fonts on the system, use:
 
