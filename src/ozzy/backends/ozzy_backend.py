@@ -31,7 +31,52 @@ def config_ozzy(ds):
 
 
 @stopwatch
-def read(files, **kwargs):
+def read(files):
+    """Read and process data files into a Dataset.
+
+    Parameters
+    ----------
+    files : str | list[str]
+        Path or list of paths to data files to be read.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset containing the processed data with these additional attributes:
+        - `'source'`: common path of input files
+        - `'files_prefix'`: common prefix of input filenames
+
+
+    Examples
+    --------
+
+    !!! warning
+
+        Note that you would not usually call this function directly, except in advanced use cases such as debugging. The examples below are included for completeness.
+
+        In general, please use [ozzy's file-reading functions][reading-files] along with the backend specification instead, for example:
+        ```python
+        data = oz.open('ozzy', 'path/to/file.h5')
+        ```
+
+    ??? example "Reading a single file"
+        ```python
+        from ozzy.backends.ozzy_backend import read
+        file_path = "data/processed_data.h5"
+        dataset = read(file_path)
+        print(dataset.attrs)
+        # {'source': 'data', 'files_prefix': 'processed_data', ... }
+        ```
+
+    ??? example "Reading multiple files"
+        ```python
+        from ozzy.backends.ozzy_backend import read
+        file_paths = ["data/sim_1.h5", "data/sim_2.h5"]
+        dataset = read(file_paths)
+        print(dataset.dims)
+        # Dimensions showing concatenated data along time axis
+        ```
+    """
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:

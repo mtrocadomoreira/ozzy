@@ -65,9 +65,8 @@ class Backend:
 
     """
 
-    def __init__(self, file_type, *args, **kwargs):  # axes_lims=None
+    def __init__(self, file_type, *args, **kwargs):
         self.name = file_type
-        # self.axes_lims = axes_lims
 
         match file_type:
             case "osiris":
@@ -210,6 +209,12 @@ class Backend:
             Positional arguments to be passed to the `read` function of the backend specification.
         **kwargs
             Keyword arguments to be passed to the `read` function of the backend specification.
+
+            See available keyword arguments for each backend:
+
+            * [LCODE][ozzy.backends.lcode_backend.read]
+            * [OSIRIS][ozzy.backends.osiris_backend.read]
+            * [ozzy][ozzy.backends.ozzy_backend.read]
 
         Returns
         -------

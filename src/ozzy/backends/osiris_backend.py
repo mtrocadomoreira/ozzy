@@ -241,7 +241,58 @@ def config_osiris(ds):
 
 
 @stopwatch
-def read(files, **kwargs):
+def read(files):
+    """Read OSIRIS HDF5 data files and return a Dataset.
+
+    Parameters
+    ----------
+    files : list[str]
+        List of paths to OSIRIS HDF5 data files
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset containing the OSIRIS simulation data with appropriate coordinates and attributes
+
+    Raises
+    ------
+    NotImplementedError
+        If data type is `'tracks-2'` which is not yet implemented
+    ValueError
+        If OSIRIS data type is unrecognized
+    OSError
+        If no valid files are provided or files cannot be opened
+
+
+    Examples
+    --------
+
+    !!! warning
+
+        Note that you would not usually call this function directly, except in advanced use cases such as debugging. The examples below are included for completeness.
+
+        In general, please use [ozzy's file-reading functions][reading-files] along with the backend specification instead, for example:
+        ```python
+        data = oz.open('osiris', 'path/to/file.h5')
+        ```
+
+    ??? example "Reading grid data files"
+        ```python
+        from ozzy.backends.osiris_backend import read
+        files = ['charge-electrons-000000.h5', 'charge-electrons-000001.h5']
+        dataset = read(files)
+        # Returns Dataset with grid data
+        ```
+
+    ??? example "Reading particle data files"
+        ```python
+        from ozzy.backends.osiris_backend import read
+        particle_files = ['RAW-electrons-000010.h5']
+        dataset = read(particle_files)
+        # Returns Dataset with particle data
+        ```
+    """
+
     [print_file_item(file) for file in files]
 
     try:

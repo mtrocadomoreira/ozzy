@@ -210,6 +210,7 @@ def open(
     file_type: str,
     path: str | list[str],
     axes_lims: dict[str, tuple[float, float]] | None = None,
+    **kwargs,
 ) -> xr.Dataset | xr.DataArray:
     """
     Open a data file and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
@@ -220,8 +221,14 @@ def open(
         The type of data file to open. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
     path : str | list[str]
         The path to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
-    axes_lims : dict[str, tuple[float, float]] | None, optional
-        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+    **kwargs :
+        Additional keyword arguments to be passed to the backend-specific reader function.
+
+        See available keyword arguments for each backend:
+
+        * [LCODE][ozzy.backends.lcode_backend.read]
+        * [OSIRIS][ozzy.backends.osiris_backend.read]
+        * [ozzy][ozzy.backends.ozzy_backend.read]
 
     Returns
     -------
@@ -260,13 +267,13 @@ def open(
     # initialize the backend object (it deals with the error handling)
     bknd = Backend(file_type, as_series=False)
 
-    ods = bknd.parse_data(filelist, axes_lims=axes_lims)
+    ods = bknd.parse_data(filelist, axes_lims=axes_lims, **kwargs)
 
     return ods
 
 
 @stopwatch
-def open_series(file_type, files, axes_lims=None, nfiles=None):
+def open_series(file_type, files, nfiles=None, **kwargs):
     """
     Open a series of data files and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
 
@@ -276,10 +283,16 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
         The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
     files : str | list
         The path(s) to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
-    axes_lims : dict, optional
-        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
     nfiles : int, optional
         The maximum number of files to open. If not provided, all files will be opened.
+    **kwargs :
+        Additional keyword arguments to be passed to the backend-specific reader function.
+
+        See available keyword arguments for each backend:
+
+        * [LCODE][ozzy.backends.lcode_backend.read]
+        * [OSIRIS][ozzy.backends.osiris_backend.read]
+        * [ozzy][ozzy.backends.ozzy_backend.read]
 
     Returns
     -------
@@ -324,7 +337,7 @@ def open_series(file_type, files, axes_lims=None, nfiles=None):
     for run, run_dir in dirs_runs.items():
         for quant, quant_files in bknd._quant_files.items():
             filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
-            ds.append(bknd.parse_data(filepaths[:nfiles], axes_lims=axes_lims))
+            ds.append(bknd.parse_data(filepaths[:nfiles], **kwargs))
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ods = xr.merge(ds)
@@ -341,7 +354,7 @@ def open_compare(
     path: str = os.getcwd(),
     runs: str | list[str] = "*",
     quants: str | list[str] = "*",
-    axes_lims: dict[str, tuple[float, float]] | None = None,
+    **kwargs,
 ) -> pd.DataFrame:
     """
     Open and compare data files of different types and from different runs.
@@ -356,8 +369,14 @@ def open_compare(
         A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the run folder names. Default is '*' to match all folders.
     quants : str | list[str], optional
         A string or [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern to match the quantity names. Default is '*' to match all quantities.
-    axes_lims : dict[str, tuple[float, float]] | None, optional
-        A dictionary specifying the limits for each axis in the data (only used for `'lcode'` data type, optionally). Keys are axis names, and values are tuples of (min, max) values.
+    **kwargs :
+        Additional keyword arguments to be passed to the backend-specific reader function.
+
+        See available keyword arguments for each backend:
+
+        * [LCODE][ozzy.backends.lcode_backend.read]
+        * [OSIRIS][ozzy.backends.osiris_backend.read]
+        * [ozzy][ozzy.backends.ozzy_backend.read]
 
     Returns
     -------
@@ -456,7 +475,7 @@ def open_compare(
 
     # Search for quantities and read data
 
-    bknds = [Backend(ftype, axes_lims) for ftype in file_types]
+    bknds = [Backend(ftype) for ftype in file_types]
     for bk in bknds:
         files_quants = bk._load_quant_files(path, dirs_runs, quants)
         print(f"Found {len(files_quants)} quantities with '{bk.name}' backend:")
@@ -479,7 +498,7 @@ def open_compare(
                 ]
 
                 # Read found files
-                ods = bk.parse_data(filepaths, axes_lims=axes_lims, quant_name=quant)
+                ods = bk.parse_data(filepaths, quant_name=quant, **kwargs)
                 ods.attrs["run"] = run
 
                 if quant not in df.columns:
