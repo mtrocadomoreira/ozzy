@@ -36,4 +36,9 @@ for k, v in oz.backends.lcode_backend.quant_info.items():
         print(f'    units: {v1[1]}')
 ```
 
+## Entry-point `read` function
 
+::: ozzy.backends.lcode_backend
+    options:
+      members:
+      - read

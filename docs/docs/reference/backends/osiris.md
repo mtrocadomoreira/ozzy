@@ -69,3 +69,10 @@ import ozzy as oz
 print(oz.backends.osiris_backend.special_vars)
 # {'ene': ['$E_{\\mathrm{kin}}$', '$m_\\mathrm{sp} c^2$']}
 ```
+
+## Entry-point `read` function
+
+::: ozzy.backends.osiris_backend
+    options:
+      members:
+      - read

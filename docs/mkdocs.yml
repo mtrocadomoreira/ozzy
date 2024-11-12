@@ -115,6 +115,7 @@ repo_url: https://github.com/mtrocadomoreira/ozzy
 
 plugins:
   - search
+  - autorefs
  # - privacy # mathjax equations are not rendered correctly when this is active
   - mkdocstrings:
       default_handler: python
@@ -197,11 +198,9 @@ nav:
       - Backend-specific methods: reference/data-objects/backend-methods.md
     - Backends: 
       - reference/backends/index.md
-      - Submodules: 
-        - reference/backends/submodules/index.md
-        - LCODE: reference/backends/submodules/lcode.md
-        - OSIRIS: reference/backends/submodules/osiris.md
-        - Ozzy: reference/backends/submodules/ozzy.md
+      - LCODE: reference/backends/lcode.md
+      - OSIRIS: reference/backends/osiris.md
+      - ozzy: reference/backends/ozzy.md
     - ozzy.plot: reference/plot.md
     - ozzy.statistics: reference/statistics.md
     - ozzy.fields: reference/fields.md
