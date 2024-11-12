@@ -621,10 +621,7 @@ class PartMixin:
         r"""Calculate normalized RMS beam emittance.
 
         Computes the normalized RMS emittance based on particle positions and momenta.
-        For axisymmetric beams, returns the Lapostolle[^1] emittance (see also Ref.[^2]).
-
-        [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
-        [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
+        For axisymmetric beams, returns the emittance (see _Notes_ below).
 
         Parameters
         ----------
@@ -652,9 +649,14 @@ class PartMixin:
 
         where $\gamma$ is the average Lorentz factor, $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$.
 
-        For a 2D cylindrical, axisymmetric geometry this function returns the Lapostolle emittance, i.e.:
+        For a 2D cylindrical, axisymmetric geometry this function returns the Lapostolle emittance[^1]<sup>,</sup>[^2], i.e.:
 
         $\varepsilon_N = 4 \ \varepsilon_{N,i}$
+
+
+        [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
+        [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
+
 
 
 

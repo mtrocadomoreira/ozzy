@@ -2,7 +2,7 @@
 
 One of the main motivations behind ozzy is to be able to easily integrate different simulation file formats into the same plotting and analysis workflow (in this case with Python). In addition, we try to make it easy to add new backend instructions to ozzy to parse new file formats.
 
-Here is a list of simulation file formats that ozzy can read currently or which will be implemented soon (besides [ozzy's own format](../reference/backends/submodules/ozzy.md), of course):
+Here is a list of simulation file formats that ozzy can read currently or which will be implemented soon (besides [ozzy's own format](../reference/backends/ozzy.md), of course):
 
 <div class="annotate" markdown>
 
@@ -12,8 +12,8 @@ Here is a list of simulation file formats that ozzy can read currently or which 
 
 </div>
 
-1.  Please see the reference page for the [OSIRIS backend submodule](../reference/backends/submodules/osiris.md) for more details. Not all types of simulation output may be available yet.
-2.  Please see the reference page for the [LCODE backend submodule](../reference/backends/submodules/lcode.md). Not all types of simulation output may be available yet.
+1.  Please see the reference page for the [OSIRIS backend submodule](../reference/backends/osiris.md) for more details. Not all types of simulation output may be available yet.
+2.  Please see the reference page for the [LCODE backend submodule](../reference/backends/lcode.md). Not all types of simulation output may be available yet.
    
 
 There are three main functions to open simulation files:
