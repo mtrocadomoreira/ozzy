@@ -405,7 +405,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     return ds
 
 
-def read_parts_single(file: str, axisym: bool, abs_q: float, **kwargs) -> xr.Dataset:
+def read_parts_single(file: str, axisym: bool, abs_q: float) -> xr.Dataset:
     """Read particle data from a single LCODE file into an xarray.Dataset.
 
     Parameters
@@ -654,6 +654,7 @@ def read_agg(
     file_info: NamedTuple,
     parser_func: Callable,
     post_func: Callable = None,
+    *args,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -681,7 +682,7 @@ def read_agg(
     ds_t = []
     [print_file_item(file) for file in files]
     for file in tqdm(files):
-        ds_tmp = parser_func(file, **kwargs)
+        ds_tmp = parser_func(file, *args, **kwargs)
         ds_tmp = lcode_append_time_from_fname(ds_tmp, file)
         ds_t.append(ds_tmp)
     print("  Concatenating along time...")
@@ -710,7 +711,6 @@ def read_beamfile(
     file_info : NamedTuple
         An object (a Pandas DataFrame row returned by [`pandas.DataFrame.itertuples`][pandas.DataFrame.itertuples]) containing information about the file type and regex pattern.
 
-
     Returns
     -------
     xr.Dataset
@@ -720,7 +720,7 @@ def read_beamfile(
     datasets = []
     for file in files:
         print_file_item(file)
-        ds = read_parts_single(file)
+        ds = read_parts_single(file, axisym=axisym, abs_q=abs_q)
         bitfile = file.replace(".bin", ".bit")
         try:
             thistime = np.loadtxt(bitfile)
@@ -823,28 +823,28 @@ def read_plzshape(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
     return ds
 
 
+# TODO: maybe print warning in case abs_q is not provided (momentum normalization may be wrong/units may be wrong)
 def read(
     files: list[str],
     axes_lims: dict[str, tuple[float, float]] | None = None,
     axisym: bool = True,
     abs_q: float = 1.0,
-    **kwargs,
 ) -> xr.Dataset:
-    """
+    r"""
     Read one or more LCODE data files and create a Dataset.
 
     Parameters
     ----------
     files : list[str]
         A list of file paths to be read.
-    axes_lims : dict[str, tuple[float, float]] or None, optional
-        A dictionary containing the limits for each axis, or None if no limits are provided (default is None).
+    axes_lims : dict[str, tuple[float, float]] | None, optional
+        A dictionary specifying the limits for each axis in the data. Keys are axis names, and values are tuples of (min, max) values.
     axisym : bool, optional
         Whether the data is in 2D axisymmetric/cylindrical geometry.
     abs_q : float, optional
         Absolute value of the charge of the bunch particles, in units of the elementary charge $e$.
-    **kwargs
-        Additional keyword arguments to be passed to the file-specific reader functions.
+
+        This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.
 
     Returns
     -------
@@ -853,10 +853,36 @@ def read(
 
     Examples
     --------
-    >>> from ozzy.backends.lcode_backend import read
-    >>> files = ['/path/to/grid_file1.dat', '/path/to/grid_file2.dat']
-    >>> axes_lims = {'x1': (0, 10), 'x2': (-5, 5)}
-    >>> ds = read(files, axes_lims)
+
+    !!! warning
+
+        Note that you would not usually call this function directly, except in advanced use cases such as debugging. The examples below are included for completeness.
+
+        In general, please use [ozzy's file-reading functions][reading-files] along with the backend specification instead, for example:
+        ```python
+        data = oz.open('lcode', 'path/to/file.swp')
+        ```
+
+    ??? example "Reading grid files with axis limits"
+        ```python
+        from ozzy.backends.lcode_backend import read
+
+        files = ['grid_file1.swp', 'grid_file2.swp']
+        axes_lims = {'x1': (0, 10), 'x2': (-5, 5)}
+        ds = read(files, axes_lims)
+        # Returns Dataset with grid data and axis coordinates
+        ```
+
+    ??? example "Reading particle data with custom charge"
+
+        The `abs_q` keyword argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ (instead of LCODE's default of $m_e c$).
+
+        ```python
+        from ozzy.backends.lcode_backend import read
+        files = ['tb00200.swp']
+        ds = read(files, axisym=True, abs_q=2.0)
+        # Returns Dataset with particle momenta normalized to the species mass times the speed of light
+        ```
     """
     if len(files) == 0:
         ds = new_dataset()
@@ -894,12 +920,7 @@ def read(
 
             case "parts":
                 ds = read_agg(
-                    files,
-                    file_info,
-                    read_parts_single,
-                    axisym=axisym,
-                    abs_q=abs_q,
-                    **kwargs,
+                    files, file_info, read_parts_single, axisym=axisym, abs_q=abs_q
                 )
                 pic_data_type = "part"
 
