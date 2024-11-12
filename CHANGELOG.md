@@ -3,6 +3,59 @@
 <!--start-docs-->
 
 
+## Version 1.0.4 
+
+Released 12-11-2024 
+
+### Bug Fixes
+
+* [`5cd488c`](https://github.com/mtrocadomoreira/ozzy/commit/5cd488cbaf6819eabe91cf75e4d16c7bfd1ae3ff): Fix error thrown by `bin_into_grid` when called on a data object that didn&#39;t contain a `&#39;t&#39;` coordinate
+
+
+
+
+
+
+* [`776a1a2`](https://github.com/mtrocadomoreira/ozzy/commit/776a1a2f0e6754aa4a0aaf2d7a5fda7b9bd91416): Fix missing-argument error when trying to read `beamfile.bin` files
+
+
+
+
+
+
+### Documentation
+
+* [`b43f5dc`](https://github.com/mtrocadomoreira/ozzy/commit/b43f5dcd8f169e7f13e358e4baf115b518be7044): Update documentation
+
+
+
+
+
+
+* [`6c726a5`](https://github.com/mtrocadomoreira/ozzy/commit/6c726a56eba8a465246a5df1c6805e61b979edaa): Update &#34;installation&#34; and &#34;getting started&#34; page
+
+
+
+
+
+
+* [`1bf9a95`](https://github.com/mtrocadomoreira/ozzy/commit/1bf9a954efc837d543557360dab6dddf7ca4db42): Change heading formatting of changelog template
+
+
+
+
+
+
+### Refactoring
+
+* [`825b7ab`](https://github.com/mtrocadomoreira/ozzy/commit/825b7abbe60d9876d6a4c260f8cb39c0882deaaf): Change how backend-specific arguments are passed from the `open` functions to each backend (easier to extend)
+
+
+
+
+
+
+
 ## Version 1.0.3 
 
 Released 04-11-2024 
@@ -34,55 +87,6 @@ Released 04-11-2024
 ## Version 1.0.1 
 
 Released 04-11-2024 
-
-### Breaking
-
-* [`d7da0c8`](https://github.com/mtrocadomoreira/ozzy/commit/d7da0c893acfe8d9eb22917dd4eb07643d92aa8f): Replace `statistics.parts_into_grid` with dataset method `bin_into_grid`
-
-
-
-    Replace `statistics.parts_into_grid` with a Dataset method called `bin_into_grid` accessible to particle data (`pic_data_type = 'part'`).
-
-    **Breaking change:** `statistics.parts_into_grid` does not work anymore
-
-    Please replace the function `statistics.parts_into_grid` with the `ds.ozzy.bin_into_grid` method. As an example, the following code
-
-    ```python
-    import ozzy as oz
-    import ozzy.statistics as stats
-    import numpy as np
-
-    particles = oz.Dataset(
-        {
-            "x1": ("pid", np.random.uniform(0, 10, 10000)),
-            "x2": ("pid", np.random.uniform(0, 5, 10000)),
-            "q": ("pid", np.ones(10000)),
-        },
-        coords={"pid": np.arange(10000)},
-        attrs={"pic_data_type": "part"}
-    )
-
-    axes = oz.Dataset(
-        coords={
-            "x1": np.linspace(0, 10, 101),
-            "x2": np.linspace(0, 5, 51),
-        },
-        attrs={"pic_data_type": "grid"}
-    )
-
-    binned = stats.parts_into_grid(particles, axes, r_var="x2")
-    grid_data_axisym = particles.ozzy.bin_into_grid(axes, r_var="x2")
-    ```
-    should be replaced by
-
-    ```python
-    import ozzy as oz
-    import numpy as np
-    ...
-    binned = particles.ozzy.bin_into_grid(axes, r_var="x2")
-    ```
-
-
 
 ### Bug Fixes
 
@@ -185,6 +189,53 @@ Released 04-11-2024
     The third momentum component in LCODE particle data corresponds to either $p_z$ in Cartesian geometry or the angular momentum $L$ in axisymmetric/cylindrical geometry. This is now taken into account via the boolean parameter `axisym` (`True` by default). In cylindrical geometry the third momentum component is renamed and a new `'p3'` variable is added to the dataset, corresponding to $p_\theta = L / r$.
 
     In addition, all momenta in LCODE particle data are normalised to $m_e \ c$. The units are now converted to $m_\mathrm{sp} \ c$, using the charge-to-mass ratio in the data and the new argument `abs_q` (absolute value of the normalised bunch particle charge).
+
+
+
+* [`d7da0c8`](https://github.com/mtrocadomoreira/ozzy/commit/d7da0c893acfe8d9eb22917dd4eb07643d92aa8f): Replace `statistics.parts_into_grid` with dataset method `bin_into_grid`
+
+
+
+    Replace `statistics.parts_into_grid` with a Dataset method called `bin_into_grid` accessible to particle data (`pic_data_type = 'part'`).
+
+    **Breaking change:** `statistics.parts_into_grid` does not work anymore
+
+    Please replace the function `statistics.parts_into_grid` with the `ds.ozzy.bin_into_grid` method. As an example, the following code
+
+    ```python
+    import ozzy as oz
+    import ozzy.statistics as stats
+    import numpy as np
+
+    particles = oz.Dataset(
+        {
+            "x1": ("pid", np.random.uniform(0, 10, 10000)),
+            "x2": ("pid", np.random.uniform(0, 5, 10000)),
+            "q": ("pid", np.ones(10000)),
+        },
+        coords={"pid": np.arange(10000)},
+        attrs={"pic_data_type": "part"}
+    )
+
+    axes = oz.Dataset(
+        coords={
+            "x1": np.linspace(0, 10, 101),
+            "x2": np.linspace(0, 5, 51),
+        },
+        attrs={"pic_data_type": "grid"}
+    )
+
+    binned = stats.parts_into_grid(particles, axes, r_var="x2")
+    grid_data_axisym = particles.ozzy.bin_into_grid(axes, r_var="x2")
+    ```
+    should be replaced by
+
+    ```python
+    import ozzy as oz
+    import numpy as np
+    ...
+    binned = particles.ozzy.bin_into_grid(axes, r_var="x2")
+    ```
 
 
 
