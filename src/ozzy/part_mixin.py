@@ -492,14 +492,15 @@ class PartMixin:
 
         # Reorder and rechunk dimensions (e.g. x2,x1,t)
 
-        dims_3d = ["x3", "x1", "x2", "t"]
-        dims_2d = ["x2", "x1", "t"]
-        dims_3d_box = ["x3", "x1_box", "x2", "t"]
-        dims_2d_box = ["x2", "x1_box", "t"]
+        dims_3d = ["x3", "x1", "x2"]
+        dims_2d = ["x2", "x1"]
+        dims_3d_box = ["x3", "x1_box", "x2"]
+        dims_2d_box = ["x2", "x1_box"]
 
         for option in [dims_2d, dims_2d_box, dims_3d, dims_3d_box]:
-            if all([var in parts.coords for var in option]):
-                parts = parts.transpose(*option).compute()
+            if all([var in parts.dims for var in option]):
+                new_coords = option + ["t"] if "t" in parts.dims else option
+                parts = parts.transpose(*new_coords).compute()
                 parts = parts.chunk()
 
         return parts
