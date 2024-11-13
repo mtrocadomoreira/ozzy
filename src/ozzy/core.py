@@ -498,7 +498,7 @@ def open_compare(
                 ]
 
                 # Read found files
-                ods = bk.parse_data(filepaths, quant_name=quant, **kwargs)
+                ods = bk.parse_data(filepaths, **kwargs)
                 ods.attrs["run"] = run
 
                 if quant not in df.columns:
