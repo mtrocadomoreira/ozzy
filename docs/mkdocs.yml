@@ -35,8 +35,9 @@ theme:
     - content.code.annotate
     - content.tooltips
     - navigation.indexes
-    - navigation.instant
-    - navigation.instant.progress
+    # Instant navigation causes the feedback widget to only show after reloading the page
+    # - navigation.instant
+    # - navigation.instant.progress
     - navigation.tabs
     - navigation.path
     - toc.follow
