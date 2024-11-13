@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.0.6 
+
+Released 13-11-2024 
+
+### Bug Fixes
+
+* [`65c7549`](https://github.com/mtrocadomoreira/ozzy/commit/65c7549571e5130dac7656eb055d854ea936e4b8): Expression with double quotes inside double quotes was throwing an error for python 3.10
+
+
+
+
+
+
+
 ## Version 1.0.5 
 
 Released 13-11-2024 
