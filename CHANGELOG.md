@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 1.0.5 
+
+Released 13-11-2024 
+
+### Bug Fixes
+
+* [`2c5fa8e`](https://github.com/mtrocadomoreira/ozzy/commit/2c5fa8eb4c939c17143ad80d8c3faf22e1eb2aae): Remove obsolete argument for `backend.parse_data` that was being called from `ozzy.open_compare` and raising an error
+
+
+
+
+
+
+### Documentation
+
+* [`60afa7d`](https://github.com/mtrocadomoreira/ozzy/commit/60afa7d34ca879633c0d650242b8bd1749b41a77): Fix some broken links after update
+
+
+
+
+
+
+
 ## Version 1.0.4 
 
 Released 12-11-2024 
