@@ -37,7 +37,7 @@ class PartMixin:
             for ustr in ustrings:
                 extra += rf"/ {ustr}"
             if rvar_attrs is not None:
-                extra += rf"/ {rvar_attrs["units"].strip("$")}"
+                extra += rf"/ {rvar_attrs['units'].strip('$')}"
             units_str = rf"$Q_w {extra}$"
         else:
             units_str = "a.u."
