@@ -42,12 +42,12 @@ Ozzy's philosophy is to make the analysis of simulation data originating from mu
 
 A detailed guide is available in the ["Installation" page of the documentation](https://mtrocadomoreira.github.io/ozzy/user-guide/installation/).
 
-We highly recommend installing ozzy in its own virtual environment.
+We highly recommend installing ozzy [in its own virtual environment](https://mtrocadomoreira.github.io/ozzy/user-guide/installation/virtual-environments/).
 
 ### conda (recommended)
 
 ```bash
-conda install ozzy-pic
+conda install --channel=conda-forge ozzy-pic
 ```
 
 ### pip

@@ -8,7 +8,7 @@
           "\n* [`%s`](%s): %s\n" | format(
               commit.short_hash,
               commit.hexsha | commit_hash_url,
-              commit.descriptions[0] | capitalize,
+              commit.descriptions[0] | capitalize | safe,
           )
 
 }}

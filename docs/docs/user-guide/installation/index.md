@@ -11,10 +11,6 @@ Ozzy is a Python package. We recommend installing ozzy in its own virtual enviro
 
 ## with conda <small>(recommended)</small>
 
-!!! warning
-
-    Ozzy is awaiting approval to be uploaded to [`conda-forge`](https://conda-forge.org/), but should be available to install via `conda`/`mamba` soon.
-
 !!! note "Note about mamba"
 
     Feel free to replace the `conda` command with `mamba`. [Mamba](https://mamba.readthedocs.io/en/latest/index.html) is a faster version of the conda package manager, and is installed by default with [miniforge](https://github.com/conda-forge/miniforge).
@@ -23,7 +19,7 @@ Ozzy is a Python package. We recommend installing ozzy in its own virtual enviro
 After you have activated a new virtual environment, run:
 
 ```bash
-conda install ozzy
+conda install --channel=conda-forge ozzy-pic
 ```
 
 ## with pip
@@ -31,7 +27,7 @@ conda install ozzy
 After you have activated a new virtual environment, run:
 
 ```bash
-python3 -m pip install ozzy
+python3 -m pip install ozzy-pic
 ```
 
 
