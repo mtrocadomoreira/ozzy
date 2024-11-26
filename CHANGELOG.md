@@ -3,6 +3,36 @@
 <!--start-docs-->
 
 
+## Version 1.0.7 
+
+Released 26-11-2024 
+
+### Bug Fixes
+
+* [`48d0b14`](https://github.com/mtrocadomoreira/ozzy/commit/48d0b14622414cea5005699e6511f85393558544): Fix bug that would throw error when using `open_compare` with multiple backends and with backend-specific keyword arguments
+
+
+
+
+
+
+### Documentation
+
+* [`25b11d8`](https://github.com/mtrocadomoreira/ozzy/commit/25b11d86a7b349ef9c22d58948741383dbd4b88d): Disable [instant loading](https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading) since this causes the feedback widget to only show after reloading the page
+
+
+
+
+
+
+* [`e2c93ce`](https://github.com/mtrocadomoreira/ozzy/commit/e2c93ce354c3f6b01599dfecee05c785872d218d): Update installation instructions (now available on `conda-forge`) and update package dependencies (especially `makedocs-material`)
+
+
+
+
+
+
+
 ## Version 1.0.6 
 
 Released 13-11-2024 
