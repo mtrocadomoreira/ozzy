@@ -31,7 +31,7 @@ def config_ozzy(ds):
 
 
 @stopwatch
-def read(files):
+def read(files, **kwargs):
     """Read and process data files into a Dataset.
 
     Parameters

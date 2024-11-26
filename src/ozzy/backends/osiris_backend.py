@@ -241,7 +241,7 @@ def config_osiris(ds):
 
 
 @stopwatch
-def read(files):
+def read(files, **kwargs):
     """Read OSIRIS HDF5 data files and return a Dataset.
 
     Parameters

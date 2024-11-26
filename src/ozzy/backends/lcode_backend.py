@@ -829,6 +829,7 @@ def read(
     axes_lims: dict[str, tuple[float, float]] | None = None,
     axisym: bool = True,
     abs_q: float = 1.0,
+    **kwargs,
 ) -> xr.Dataset:
     r"""
     Read one or more LCODE data files and create a Dataset.
