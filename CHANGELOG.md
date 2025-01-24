@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 1.0.8 
+
+Released 24-01-2025 
+
+### Bug Fixes
+
+* [`83329ef`](https://github.com/mtrocadomoreira/ozzy/commit/83329ef6253cfcfb652229b522bc097aa45898e7): Fft method was throwing error due to data being a chunked dask array
+
+
+
+
+
+
+### Documentation
+
+* [`85a5f71`](https://github.com/mtrocadomoreira/ozzy/commit/85a5f7125310c90b245a0b624b07784123418085): Small formatting corrections
+
+
+
+
+
+
+
 ## Version 1.0.7 
 
 Released 26-11-2024 
@@ -731,9 +754,3 @@ Released 16-07-2024
 
 
 * [`0ecd710`](https://github.com/mtrocadomoreira/ozzy/commit/0ecd7109385025f822fde66ce2800e87da2b3098): Finish license and about
-
-
-
-
-
-
