@@ -234,7 +234,9 @@ def _fft(da: xr.DataArray, axes=None, dims: list[str] | None = None, **kwargs):
 
     # Calculate FFT
 
-    fftdata = abs(np.fft.fftshift(np.fft.fftn(da.data, axes=axes, **kwargs), axes=axes))
+    fftdata = abs(
+        np.fft.fftshift(np.fft.fftn(da.to_numpy(), axes=axes, **kwargs), axes=axes)
+    )
 
     # Define new DataArray object
 
