@@ -13,14 +13,14 @@ As [mentioned before](getting-started/index.md), [xarray][xarray] offers two typ
 
 ### DataArray
 
-A [DataArray][xarray.DataArray] is the smallest unit of a data object in xarray. In the analogy of the data objects as plots, a DataArray would correspond to a single curve in a chart.
+A [DataArray][xarray.DataArray] is the smallest unit of a data object in xarray. In the analogy of the data objects as plots, a DataArray would correspond to a single curve on a chart.
 
 A DataArray has the following properties:
 
 |  DataArray `da`    |                          |
 | :---------- | :----------------------------------- |
-| `da.values`       | the data, in the form of an [ndarray][numpy.ndarray] |
-| `da.dims`       | the names of the data's dimensions (e.g. `'y','x'` instead of `0,1`) |
+| `da.values`       | the data, in the form of an [`ndarray`][numpy.ndarray] |
+| `da.dims`       | the names of the data's dimensions (e.g. `'y'`, `'x'` instead of `0`, `1`) |
 | `da.coords`    | the axes for each dimension (there may be several for the same dimension), which are called [Coordinates][xarray.Coordinates] in xarray |
 | `da.attrs` | any other user-defined metadata |
 
