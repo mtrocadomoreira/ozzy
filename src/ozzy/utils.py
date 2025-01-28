@@ -755,7 +755,7 @@ def bins_from_axis(axis: np.ndarray) -> np.ndarray:
 def set_attr_if_exists(
     da: xr.DataArray,
     attr: str,
-    str_exists: str | Iterable[str] | Callable | None,
+    str_exists: str | Iterable[str] | Callable | None = None,
     str_doesnt: str | None = None,
 ):
     """
