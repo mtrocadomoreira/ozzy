@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.0.9 
+
+Released 28-01-2025 
+
+### Bug Fixes
+
+* [`a3cfe10`](https://github.com/mtrocadomoreira/ozzy/commit/a3cfe10f77172817294f7330690d665a7a1a71a9): One argument of `set_attr_if_exists` was missing its default value, which was throwing an error e.g. when `ds.ozzy.save` was called
+
+
+
+
+
+
+
 ## Version 1.0.8 
 
 Released 24-01-2025 
