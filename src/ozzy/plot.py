@@ -193,7 +193,6 @@ ozparams = {
     "font.serif": ["Noto Serif", "Source Serif 4", "serif"],
     "font.sans-serif": ["Arial", "Helvetica", "sans"],
     "text.usetex": False,
-    "axes.grid": False,
     "axes.prop_cycle": plt.cycler("color", color_wheel),
     "grid.color": ".9",
     "axes.linewidth": "0.75",
@@ -210,10 +209,13 @@ ozparams = {
     "savefig.transparent": True,
     "savefig.dpi": "300",
     "savefig.bbox": "tight",
+    "xtick.bottom": True,  # draw ticks on the bottom side
+    "ytick.left": True,  # draw ticks on the left side
+    "axes.edgecolor": "black",
 }
 
 sns.set_theme(
-    style="ticks",
+    style="whitegrid",
     font="serif",
     rc=ozparams,
 )
