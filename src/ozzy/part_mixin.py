@@ -298,9 +298,24 @@ class PartMixin:
             Dataset containing grid axes information.
 
             ??? tip
-                The axis information can be easily obtained from a grid Dataset (for example field data) with
+                The axis information can be created for example with:
                 ```python
-                axes_ds = fields_ds.coords
+                import ozzy as oz
+                nx = 200
+                ny = 150
+                xlims = (0.0, 30.0)
+                ylims = (-4.0, 4.0)
+                axes_ds = oz.Dataset(
+                    coords={
+                        "x1": oz.utils.axis_from_extent(nx, xlims),
+                        "x2": oz.utils.axis_from_extent(ny, ylims),
+                    },
+                    pic_data_type = "grid")
+                ```
+                Or it can be obtained from an existing grid data object with:
+                ```python
+                # fields may be an existing Dataset or DataArray
+                axes_ds = fields.coords
                 ```
 
             ??? note "Note about axis attributes"
@@ -359,10 +374,10 @@ class PartMixin:
             # Create axes for binning
             axes = oz.Dataset(
                 coords={
-                    "x1": np.linspace(0, 10, 101),
-                    "x2": np.linspace(0, 5, 51),
+                    "x1": oz.utils.axis_from_extent(100, (0.0, 10.0)),
+                    "x2": oz.utils.axis_from_extent(50, (0.0, 5.0)),
                 },
-                attrs={"pic_data_type": "grid"}
+                pic_data_type = "grid",
             )
 
             # Bin particles into grid (Cartesian geometry)
