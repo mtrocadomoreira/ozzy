@@ -3,6 +3,80 @@
 <!--start-docs-->
 
 
+## Version 1.1.0 
+
+Released 17-02-2025 
+
+### Documentation
+
+* [`a156af7`](https://github.com/mtrocadomoreira/ozzy/commit/a156af7dff24e2217eb0d8afece365c811a78ecf): Instruct users to use the function `ozzy.utils.axis_from_extent` to create the axes dataset required for `bin_into_grid`
+
+
+
+
+
+
+### Features
+
+* [`06d0869`](https://github.com/mtrocadomoreira/ozzy/commit/06d08695fadecc894a05a2ca42a31fde1b244b30): Add functions to plot distributions of particle data
+
+
+
+    Add `ozzy.plot.hist` and `ozzy.plot.hist_proj` to easily plot density distributions (histograms) of particle data, taking advantage of the seaborn functions [`seaborn.histplot`](https://seaborn.pydata.org/generated/seaborn.histplot.html) and [`seaborn.jointplot`](https://seaborn.pydata.org/generated/seaborn.jointplot.html).
+
+    Previously it would have been necessary to bin the data first, and then plot, e.g.:
+    ```python
+    import ozzy as oz
+    import ozzy.plot as oplt
+    # A particle data Dataset
+    ds = oz.Dataset(..., pic_data_type="part")
+    ds_ps = ds.ozzy.get_phase_space(["p2", "x2"])
+    ds_ps["rho"].plot()
+    ```
+    While now the following code is enough:
+    ```python
+    import ozzy as oz
+    import ozzy.plot as oplt
+    ds = oz.Dataset(..., pic_data_type='part')
+    oplt.hist(ds, x="x2", y="p2")
+    ```
+
+
+* [`7c39207`](https://github.com/mtrocadomoreira/ozzy/commit/7c392077b1f0f54e76963cfd99614b0239138c7f): Add functions to plot distributions of particle data
+
+
+
+    Add `ozzy.plot.hist` and `ozzy.plot.hist_proj` to easily plot density distributions (histograms) of particle data, taking advantage of the seaborn functions [`seaborn.histplot`](https://seaborn.pydata.org/generated/seaborn.histplot.html) and [`seaborn.jointplot`](https://seaborn.pydata.org/generated/seaborn.jointplot.html).
+
+    Previously it would have been necessary to bin the data first, and then plot, e.g.:
+    ```python
+    import ozzy as oz
+    import ozzy.plot as oplt
+    # A particle data Dataset
+    ds = oz.Dataset(..., pic_data_type="part")
+    ds_ps = ds.ozzy.get_phase_space(["p2", "x2"])
+    ds_ps["rho"].plot()
+    ```
+    While now the following code is enough:
+    ```python
+    import ozzy as oz
+    import ozzy.plot as oplt
+    ds = oz.Dataset(..., pic_data_type='part')
+    oplt.hist(ds, x="x2", y="p2")
+    ```
+
+
+
+### Refactoring
+
+* [`703dfd3`](https://github.com/mtrocadomoreira/ozzy/commit/703dfd33f8c071a252a5525cc86323efe50dc3ca): Change `ozzy.plot` defaults to display a plot grid
+
+
+
+
+
+
+
 ## Version 1.0.9 
 
 Released 28-01-2025 
