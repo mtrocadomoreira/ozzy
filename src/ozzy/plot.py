@@ -193,7 +193,6 @@ ozparams = {
     "font.serif": ["Noto Serif", "Source Serif 4", "serif"],
     "font.sans-serif": ["Arial", "Helvetica", "sans"],
     "text.usetex": False,
-    "axes.grid": False,
     "axes.prop_cycle": plt.cycler("color", color_wheel),
     "grid.color": ".9",
     "axes.linewidth": "0.75",
@@ -210,10 +209,13 @@ ozparams = {
     "savefig.transparent": True,
     "savefig.dpi": "300",
     "savefig.bbox": "tight",
+    "xtick.bottom": True,  # draw ticks on the bottom side
+    "ytick.left": True,  # draw ticks on the left side
+    "axes.edgecolor": "black",
 }
 
 sns.set_theme(
-    style="ticks",
+    style="whitegrid",
     font="serif",
     rc=ozparams,
 )
@@ -1093,3 +1095,215 @@ def imovie(
         )
 
     return hvobj
+
+
+def hist(
+    do: xr.Dataset | xr.DataArray,
+    x: str | None = None,
+    y: str | None = None,
+    weight_var: str | None = "q",
+    bins: str | int | Iterable = "auto",
+    cmap: str | None = "cmc.bamako",
+    cbar: bool = False,
+    **kwargs,
+) -> mpl.axes.Axes:
+    """Create a weighted histogram plot using [`seaborn.histplot`][seaborn.histplot].
+
+    Parameters
+    ----------
+    do : xarray.Dataset | xarray.DataArray
+        Input Dataset or DataArray to plot
+    x : str | None
+        Variable name for x-axis
+    y : str | None
+        Variable name for y-axis
+    weight_var : str | None
+        Variable name to use as weights
+    bins : str | int | Iterable
+        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+    cmap : str | None
+        Colormap name. Uses `'cmc.bamako'` or the `ozzy.plot` sequential default
+    cbar : bool
+        Whether to display colorbar
+    **kwargs
+        Additional keyword arguments passed to [`seaborn.histplot()`][seaborn.histplot]
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The plot axes object
+
+    Examples
+    --------
+    ???+ example "Basic histogram"
+        ```python
+        import ozzy as oz
+        import ozzy.plot as oplt
+        ds = oz.Dataset(...)
+        ax = oplt.hist(ds, x='p2')
+        ```
+
+    ???+ example "2D histogram with colorbar"
+        ```python
+        import ozzy as oz
+        import ozzy.plot as oplt
+        ds = oz.Dataset(...)
+        ax = oplt.hist(ds, x='x2', y='p2', cbar=True)
+        ```
+    """
+    if cmap is None:
+        cmap = xr.get_options()["cmap_sequential"]
+
+    cmap_opts = {}
+    if (x is not None) and (y is not None):
+        cmap_opts["cmap"] = cmap
+
+    if (weight_var is not None) and (bins == "auto"):
+        bins = 200
+
+    ax = sns.histplot(
+        do.to_dataframe(),
+        x=x,
+        y=y,
+        weights=weight_var,
+        bins=bins,
+        cbar=cbar,
+        **cmap_opts,
+        **kwargs,
+    )
+
+    if x is not None:
+        if "long_name" in do[x].attrs:
+            xlab = do[x].attrs["long_name"]
+        else:
+            xlab = x
+
+        if "units" in do[x].attrs:
+            xun = f" [{do[x].attrs['units']}]"
+        else:
+            xun = ""
+
+        ax.set_xlabel(xlab + xun)
+
+    if y is not None:
+        if "long_name" in do[y].attrs:
+            ylab = do[y].attrs["long_name"]
+        else:
+            ylab = y
+
+        if "units" in do[y].attrs:
+            yun = f" [{do[y].attrs['units']}]"
+        else:
+            yun = ""
+
+        ax.set_ylabel(ylab + yun)
+
+    return ax
+
+
+def hist_proj(
+    do: xr.Dataset | xr.DataArray,
+    x: str,
+    y: str,
+    weight_var: str | None = "q",
+    bins: str | int | Iterable = "auto",
+    cmap: str | None = "cmc.bamako",
+    space: float = 0,
+    refline: bool = False,
+    refline_kwargs: dict = {"x": 0, "y": 0, "linewidth": 1.0, "alpha": 0.5},
+    **kwargs,
+) -> sns.JointGrid:
+    """Create a 2D histogram plot with projected distributions using [`seaborn.jointplot(kind="hist")`][seaborn.jointplot].
+
+    Parameters
+    ----------
+    do : xarray.Dataset | xarray.DataArray
+        Input Dataset or DataArray to plot
+    x : str
+        Variable name for x-axis
+    y : str
+        Variable name for y-axis
+    weight_var : str | None
+        Variable name to use as weights
+    bins : str | int | Iterable
+        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+    cmap : str | None
+        Colormap name. Uses `'cmc.bamako'` or the `ozzy.plot` sequential default
+    space : float
+        Space between 2D plot and marginal projection plots
+    refline : bool
+        Whether to add reference lines (see [`seaborn.JointGrid.refline`][seaborn.JointGrid.refline])
+    refline_kwargs : dict
+        Keyword arguments for reference lines (see [`seaborn.JointGrid.refline`][seaborn.JointGrid.refline])
+    **kwargs
+        Additional keyword arguments passed to [`seaborn.jointplot()`][seaborn.jointplot]
+
+    Returns
+    -------
+    seaborn.JointGrid
+        The joint grid plot object
+
+    Examples
+    --------
+    ???+ example "2D histogram with projected distributions"
+        ```python
+        import ozzy as oz
+        import ozzy.plot as oplt
+        ds = oz.Dataset(...)
+        jg = oplt.hist_proj(ds, x='x2', y='p2')
+        ```
+
+    ???+ example "2D histogram with projected distributions and reference lines"
+        ```python
+        import ozzy as oz
+        import ozzy.plot as oplt
+        ds = oz.Dataset(...)
+        jg = oplt.hist_proj(ds, x='x2', y='p2',
+                            refline=True,
+                            refline_kwargs={'x': 0, 'y': 0})
+        ```
+    """
+    if cmap is None:
+        cmap = xr.get_options()["cmap_sequential"]
+
+    if (weight_var is not None) and (bins == "auto"):
+        bins = 200
+
+    jg = sns.jointplot(
+        do.to_dataframe(),
+        x=x,
+        y=y,
+        weights=weight_var,
+        bins=bins,
+        space=space,
+        cmap=cmap,
+        kind="hist",
+        color=mpl.colormaps[cmap](
+            0.0
+        ),  # choose the lower bound of the color scale as the color for the projected bins
+        **kwargs,
+    )
+
+    if refline:
+        jg.refline(**refline_kwargs)
+
+    lab = {}
+    un = {}
+    for var in [x, y]:
+        if "long_name" in do[var].attrs:
+            lab[var] = do[var].attrs["long_name"]
+        else:
+            lab[var] = var
+        if "units" in do[var].attrs:
+            un[var] = f" [{do[var].attrs['units']}]"
+        else:
+            un[var] = ""
+
+    jg.set_axis_labels(
+        xlabel=lab[x] + un[x],
+        ylabel=lab[y] + un[y],
+    )
+    jg.ax_marg_x.grid(False)
+    jg.ax_marg_y.grid(False)
+
+    return jg
