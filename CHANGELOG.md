@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.1.1 
+
+Released 17-02-2025 
+
+### Bug Fixes
+
+* [`6066a3f`](https://github.com/mtrocadomoreira/ozzy/commit/6066a3fc3dd7bfe8a5dac1413713bc1bce42abe7): Update package dependencies so that package works with python 3.13
+
+
+
+
+
+
+
 ## Version 1.1.0 
 
 Released 17-02-2025 
