@@ -148,6 +148,7 @@ plugins:
           - https://pandas.pydata.org/docs/objects.inv
           - https://docs.h5py.org/en/stable/objects.inv
           - https://matplotlib.org/stable/objects.inv
+          - https://seaborn.pydata.org/objects.inv
 
   - git-revision-date-localized:
       enabled: true #!ENV [CI, false]
