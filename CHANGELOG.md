@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.1.2 
+
+Released 17-02-2025 
+
+### Bug Fixes
+
+* [`46d59fc`](https://github.com/mtrocadomoreira/ozzy/commit/46d59fcc5236b4f79f0c44ccc550b28bad3f5ae2): Trigger new release to publish python-3.13-compatible update to pypi
+
+
+
+
+
+
+
 ## Version 1.1.1 
 
 Released 17-02-2025 
