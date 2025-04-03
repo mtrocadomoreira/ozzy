@@ -15,7 +15,9 @@ This submodule includes functions to analyze field data.
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
+from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
+from scipy.signal import find_peaks
 from tqdm import tqdm
 
 from .utils import stopwatch
@@ -68,6 +70,240 @@ def _coarsen_into_blocks(
     return da_blocks
 
 
+def _copy_time_var(
+    ds_t: xr.Dataset | xr.DataArray, ds: xr.Dataset | xr.DataArray, time_var: str
+):
+    """
+    Copy a time variable from one xarray object to another by expanding dimensions.
+
+    Parameters
+    ----------
+    ds_t : xarray.Dataset or xarray.DataArray
+        Source xarray object containing the time variable to be copied.
+    ds : xarray.Dataset or xarray.DataArray
+        Target xarray object to which the time variable will be added.
+    time_var : str
+        Name of the time variable to copy.
+
+    Returns
+    -------
+    xarray.Dataset or xarray.DataArray
+        The input dataset with an expanded dimension for the time variable.
+    """
+    ds_out = ds.expand_dims({time_var: [ds_t[time_var]]})
+    ds_out[time_var].attrs = ds_t[time_var].attrs
+
+    return ds_out
+
+
+def _convert_coords_to_period_index(
+    peak_data: xr.DataArray,
+    comoving_var: str,
+    new_data_var: str,
+    period_var: str,
+):
+    """
+    Convert coordinate variables to a dataset with a period index.
+
+    Parameters
+    ----------
+    peak_data : xarray.DataArray
+        DataArray containing the peak data with coordinates.
+    comoving_var : str
+        Name of the comoving coordinate variable.
+    new_data_var : str
+        Name for the new data variable in the output dataset.
+    period_var : str
+        Name for the period dimension in the output dataset.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset with the peak data converted to use period indexing.
+    """
+    ds_out = xr.Dataset(data_vars={new_data_var: (period_var, peak_data.data)})
+    ds_out[new_data_var].attrs = peak_data[comoving_var].attrs
+
+    # Convert other coordinate variables with positions of zero crossings into data variables
+    # (there may be more than one coordinate, e.g. with different units, or e.g. "x1" and "x1_box")
+    for coord in peak_data.coords:
+        if (peak_data[comoving_var].dims == peak_data[coord].dims) and (
+            coord != comoving_var
+        ):
+            new_var = f"{new_data_var}_{coord}"
+            ds_out = ds_out.assign({new_var: (period_var, peak_data[coord].data)})
+            ds_out[new_var].attrs = peak_data[coord].attrs
+
+    return ds_out
+
+
+def _sectionalize_field_data(
+    da_t: xr.DataArray,
+    comoving_var: str,
+    max_periods_per_mw: int | float,
+    expected_wvl: float,
+):
+    """
+    Divide field data into sections based on expected wavelength.
+
+    Parameters
+    ----------
+    da_t : xarray.DataArray
+        DataArray containing the field data.
+    comoving_var : str
+        Name of the comoving coordinate variable.
+    max_periods_per_mw : int or float
+        Maximum number of periods per moving window.
+    expected_wvl : float
+        Expected wavelength of the oscillations.
+
+    Returns
+    -------
+    xarray.core.groupby.DataArrayGroupByBins
+        DataArray grouped by bins along the comoving coordinate.
+
+    Examples
+    --------
+    ???+ example "Divide field data into sections"
+        ```python
+        import xarray as xr
+        import numpy as np
+
+        # Create a sample field
+        x = np.linspace(0, 100, 1000)
+        y = np.sin(2 * np.pi * x / 10)  # wavelength of 10
+        field = xr.DataArray(y, coords={"x1": x}, dims="x1")
+
+        # Divide into sections with max 3 periods per section
+        sections = _sectionalize_field_data(
+            field,
+            comoving_var="x1",
+            max_periods_per_mw=3,
+            expected_wvl=10
+        )
+
+        print(len(sections))
+        # Output will depend on the number of sections created
+        ```
+    """
+    xmin = da_t[comoving_var].min().compute().to_numpy()
+    xmax = da_t[comoving_var].max().compute().to_numpy()
+
+    total_len = xmax - xmin
+    sections = np.ceil(total_len / (max_periods_per_mw * expected_wvl))
+
+    axis_bins = np.linspace(xmin, xmax, int(sections) + 1, endpoint=True)
+    grp_sections = da_t.groupby_bins(comoving_var, axis_bins)
+    return grp_sections
+
+
+def _find_zero_crossings(
+    da_t: xr.DataArray,
+    comoving_var: str,
+    amplitude_mode: str,
+    period_var: str,
+    expected_wvl: float | None = None,
+):
+    """
+    Find zero crossings in field data.
+
+    Parameters
+    ----------
+    da_t : xarray.DataArray
+        DataArray containing the field data.
+    comoving_var : str
+        Name of the comoving coordinate variable.
+    amplitude_mode : str
+        Mode for finding zero crossings. Options are `'noisy'` or `'smooth'`.
+    period_var : str
+        Name for the period dimension in the output dataset.
+    expected_wvl : float or None, optional
+        Expected wavelength of the oscillations, required for `'noisy'` mode.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset containing the positions of zero crossings.
+    """
+    data = -1 * abs(da_t)
+
+    if amplitude_mode == "noisy":
+        dx1 = da_t[comoving_var][1] - da_t[comoving_var][0]
+
+        min_height = float(abs(data.min().compute()) / 10)
+        min_distance = np.round(0.95 * expected_wvl / 2 / dx1)
+
+        options = {"height": [-min_height, 0.0], "distance": min_distance}
+
+    elif amplitude_mode == "smooth":
+        options = {}
+        pass
+
+    peaks, _ = find_peaks(data.to_numpy(), **options)
+    zeros_locs = data[comoving_var][peaks]
+
+    ds_zcr = _convert_coords_to_period_index(
+        zeros_locs, comoving_var, "zero_crossings", period_var
+    )
+
+    return ds_zcr
+
+
+def _find_amplitude_maxima(
+    da_t: xr.DataArray,
+    comoving_var: str,
+    amplitude_mode: str,
+    period_var: str,
+    expected_wvl: float | None = None,
+):
+    """
+    Find amplitude maxima in field data.
+
+    Parameters
+    ----------
+    da_t : xarray.DataArray
+        DataArray containing the field data.
+    comoving_var : str
+        Name of the comoving coordinate variable.
+    amplitude_mode : str
+        Mode for finding amplitude maxima. Options are `'noisy'` or `'smooth'`.
+    period_var : str
+        Name for the period dimension in the output dataset.
+    expected_wvl : float or None, optional
+        Expected wavelength of the oscillations, required for `'noisy'` mode.
+
+    Returns
+    -------
+    xarray.Dataset
+        Dataset containing the positions and values of amplitude maxima.
+    """
+    if amplitude_mode == "noisy":
+        dx1 = da_t[comoving_var][1] - da_t[comoving_var][0]
+
+        min_height = float(da_t.std().compute()) * 2 / 3
+        min_distance = np.round(0.95 * expected_wvl / dx1)
+
+        options = {"height": min_height, "distance": min_distance}
+
+    elif amplitude_mode == "smooth":
+        options = {}
+        pass
+
+    peaks, _ = find_peaks(da_t.to_numpy(), **options)
+
+    peak_locs = da_t[comoving_var][peaks]
+    peak_vals = da_t[peaks]
+
+    ds_max = _convert_coords_to_period_index(
+        peak_locs, comoving_var, "max_locs", period_var
+    )
+    ds_max["max_amplitude"] = xr.DataArray(
+        peak_vals.data, dims=period_var, attrs=peak_vals.attrs
+    )
+
+    return ds_max
+
+
 # --- Diagnostics ---
 
 
@@ -75,11 +311,13 @@ def _coarsen_into_blocks(
 # TODO: explain what phi_err is exactly
 # TODO: explain how fit works exactly
 # TODO: add example (perhaps using sample data?)
+# TODO: throw error if data isn't waterfall (2D with t and x1_box)
+# TODO: if xvar is not the horizontal index coordinate, fails with a weird error (delta_x becomes an array) -> better error handling, or maybe make xvar the index first
 @stopwatch
 def vphi_from_fit(
     da: xr.DataArray,
     x_zero: float,
-    xvar: str = "x1",
+    xvar: str = "x1_box",
     tvar: str = "t",
     window_len: float = 1.0,
     k: float | str = 1.0,
@@ -206,8 +444,13 @@ def vphi_from_fit(
                 f, ax = plt.subplots()
                 ax.plot(axis, window, label="data")
                 ax.plot(axis, fit_func(k, x_zero)(axis, pars[0], pars[1]), label="fit")
+                plt.title(f"Fit window #{i}, at time index {j}")
+                plt.ylabel("Field")
+                plt.xlabel(f"Longitudinal coordinate ({xvar})")
                 plt.legend()
                 plt.show()
+                # TODO: add more information to input prompt e.g.:
+                # Getting error of fit > 1. Here are plots of the fit. Please press enter to proceed.
                 input()
 
             phi[j, i] = pars[0]
@@ -234,7 +477,7 @@ def vphi_from_fit(
     for i in np.arange(0, nw):
         x_blocks[i] = (
             da_blocks.isel({"window": i, tvar: 0})
-            .dropna(xvar + "_window")["x1"]
+            .dropna(xvar + "_window")[xvar]
             .mean()
             .data
         )
@@ -242,7 +485,11 @@ def vphi_from_fit(
     # Create Dataset object
 
     res = xr.Dataset(
-        {"vphi": (da.dims, vphi), "phi": (da.dims, phi), "phi_err": (da.dims, phi_err)},
+        {
+            "vphi": ([tvar, xvar], vphi),
+            "phi": ([tvar, xvar], phi),
+            "phi_err": ([tvar, xvar], phi_err),
+        },
         coords={tvar: da.coords[tvar].data, xvar: x_blocks},
     )
     for var in res.coords:
@@ -256,3 +503,366 @@ def vphi_from_fit(
     print("\nDone!")
 
     return res
+
+
+# TODO: check examples
+def local_maxima_and_zero_crossings(
+    da,
+    comoving_var: str = "x1_box",
+    transv_var: str = "x2",
+    tvar: str = "t",
+    transv_range=None,
+    transv_irange=None,
+    transv_pos=None,
+    transv_ipos=None,
+    amplitude_mode="noisy",
+    expected_wvl: float = 2 * np.pi,
+    amplitude_max_for="negative_charge",
+):
+    """
+    Find local field maxima and zero crossings in a DataArray.
+
+    This function analyzes a field (typically an electric field) to identify
+    local maxima and zero crossings along a specified dimension. It can process
+    the data in different ways depending on whether the field data is noisy or smooth.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        The data array containing the field to analyze.
+    comoving_var : str
+        The name of the coordinate representing the comoving dimension.
+    transv_var : str
+        The name of the coordinate representing the transverse dimension.
+    tvar : str
+        The name of the coordinate representing time.
+    transv_range : tuple | list | numpy.ndarray, optional
+        Range of transverse positions to average over, specified as (min, max).
+    transv_irange : tuple | list | numpy.ndarray, optional
+        Range of transverse indices to average over, specified as (min, max).
+    transv_pos : float, optional
+        Specific transverse position to analyze.
+    transv_ipos : int, optional
+        Specific transverse index to analyze.
+    amplitude_mode : str
+        Method for handling amplitude analysis. Must be either `'noisy'` or `'smooth'`.
+        For `'noisy'` data, a moving window average is applied before analysis.
+    expected_wvl : float
+        Expected wavelength of the oscillations in the field in normalized units (i.e. $k_p^{-1}$) used for window sizing.
+    amplitude_max_for : str
+        Specifies which charge sign to find the maximum accelerating amplitude for.
+        Must be either `'negative_charge'` or `'positive_charge'`.
+
+    Returns
+    -------
+    tuple
+        A tuple containing two xarray.Dataset objects:
+        - First element: Dataset with zero crossing information
+        - Second element: Dataset with local maxima information
+
+    Raises
+    ------
+    ValueError
+        If required coordinates are missing from the DataArray.
+        If invalid options are provided for `amplitude_mode` or `amplitude_max_for`.
+        If invalid ranges or positions are specified for transverse selection.
+
+    Notes
+    -----
+    The function processes data differently based on the `amplitude_mode`:
+    - For `'noisy'` data: Applies a moving window average before analysis
+    - For `'smooth'` data: Analyzes the raw data directly
+
+    Examples
+    --------
+    ???+ example "Basic usage with default parameters"
+        ```python
+        import xarray as xr
+        import numpy as np
+
+        # Create a sample dataset with a sinusoidal field
+        x = np.linspace(0, 10*np.pi, 1000)
+        y = np.linspace(-5, 5, 20)
+        t = np.array([0.0, 1.0, 2.0])
+
+        # Create field data with some noise
+        field = np.zeros((len(t), len(y), len(x)))
+        for i in range(len(t)):
+            for j in range(len(y)):
+                field[i, j, :] = np.sin(x) + 0.1*np.random.randn(len(x))
+
+        # Create DataArray
+        da = xr.DataArray(
+            field,
+            coords={'t': t, 'x2': y, 'x1_box': x},
+            dims=['t', 'x2', 'x1_box']
+        )
+
+        # Find zero crossings and maxima
+        zeros, maxima = local_maxima_and_zero_crossings(da)
+
+        # The returned datasets contain information about zero crossings and maxima
+        # zeros contains 'zero_crossings' coordinate
+        # maxima contains 'max_locs' and 'max_vals' coordinates
+        ```
+
+    ???+ example "Using custom parameters for a smooth field"
+        ```python
+        import xarray as xr
+        import numpy as np
+
+        # Create a sample dataset with a clean sinusoidal field
+        x = np.linspace(0, 10*np.pi, 1000)
+        y = np.linspace(-5, 5, 20)
+        t = np.array([0.0, 1.0, 2.0])
+
+        # Create clean field data
+        field = np.zeros((len(t), len(y), len(x)))
+        for i in range(len(t)):
+            for j in range(len(y)):
+                field[i, j, :] = np.sin(x)
+
+        # Create DataArray
+        da = xr.DataArray(
+            field,
+            coords={'t': t, 'x2': y, 'x1_box': x},
+            dims=['t', 'x2', 'x1_box']
+        )
+
+        # Find zero crossings and maxima with custom parameters
+        zeros, maxima = local_maxima_and_zero_crossings(
+            da,
+            comoving_var="x1_box",
+            transv_range=(-2, 2),  # Average over this transverse range
+            amplitude_mode="smooth",  # Use smooth mode for clean data
+            amplitude_max_for="positive_charge"  # Find positive field amplitude maximum
+        )
+        ```
+    """
+    # Set constants
+    max_periods_per_mw = 16
+    period_var = "i_period"
+
+    print("Finding local field maxima and zero crossings...")
+
+    # -------------------------------------------------
+    # Input checks and error handling
+    # -------------------------------------------------
+
+    # Check that all variables are in DataArray
+    for var in [comoving_var, transv_var, tvar]:
+        if var not in da.coords:
+            raise ValueError(f"Could not find variable '{var}' in DataArray")
+
+    # Throw error if amplitude_mode isn't one of accepted options
+    if (amplitude_mode != "noisy") and (amplitude_mode != "smooth"):
+        raise ValueError(
+            "Invalid input for argument 'amplitude_mode'. Valid options are 'noisy' or 'smooth'"
+        )
+
+    if amplitude_max_for == "positive_charge":
+        pass
+
+    elif amplitude_max_for == "negative_charge":
+        da = -1 * da
+
+    else:
+        # Throw error if amplitude_max_for isn't one of accepted options
+        raise ValueError(
+            "Invalid input for argument 'amplitude_max_for'. Valid options are 'negative_charge' or 'positive_charge'"
+        )
+
+    # -------------------------------------------------
+    # Get subregion according to specified arguments
+    # -------------------------------------------------
+
+    if transv_range is not None:
+        if len(transv_range) != 2:
+            raise ValueError(
+                "Invalid input for argument 'transv_range': expecting an iterable object (e.g. tuple, list, numpy.ndarray, etc.) containing two elements"
+            )
+
+        da_sub = da.sel({transv_var: slice(*transv_range)}).mean(dim=transv_var)
+
+        if len(da_sub) == 0:
+            raise ValueError(
+                f"No data found in range {transv_range} for '{transv_var}' coordinate"
+            )
+    elif transv_irange is not None:
+        if len(transv_irange) != 2:
+            raise ValueError(
+                "Invalid input for argument 'transv_irange': expecting an iterable object (e.g. tuple, list, numpy.ndarray, etc.) containing two elements"
+            )
+
+        da_sub = da.isel({transv_var: slice(*transv_irange)}).mean(dim=transv_var)
+
+    elif transv_pos is not None:
+        if (transv_pos > da[transv_var].max()) or (transv_pos < da[transv_var].min()):
+            raise ValueError(
+                f"Value for 'transv_pos' is outside the available range for the coordinate '{transv_var}'"
+            )
+
+        da_sub = da.sel({transv_var: transv_pos}, method="nearest")
+    elif transv_ipos is not None:
+        da_sub = da.isel({transv_var: transv_ipos})
+    else:
+        if (da[transv_var].max() < 0) or (da[transv_var].min() > 0):
+            print(
+                "WARNING: Taking line-out at transverse position that is closest to 0."
+            )
+        da_sub = da.sel({transv_var: 0.0}, method="nearest")
+
+    # -------------------------------------------------
+    # Loop along time, depending on amplitude_mode
+    # -------------------------------------------------
+
+    all_zcr = []
+    all_max = []
+
+    if amplitude_mode == "noisy":
+        # --- Apply moving window ---
+
+        # Get number of cells for moving window
+        dx1 = da_sub[comoving_var][1] - da_sub[comoving_var][0]
+        ncells = np.round(expected_wvl / 4 / dx1)
+        # ...and make sure that number is odd
+        if (ncells % 2) == 0:
+            ncells = ncells - 1
+
+        # Apply moving window
+        field_data = da_sub.rolling(
+            {comoving_var: int(ncells)}, center=True, min_periods=1
+        ).mean()
+
+        # --- Loop along time ---
+
+        for t in tqdm(field_data[tvar]):
+            da_t = field_data.sel({tvar: t})
+
+            # Split into sections
+
+            grp_sections = _sectionalize_field_data(
+                da_t, comoving_var, max_periods_per_mw, expected_wvl
+            )
+
+            # Loop over sections
+
+            all_sections_zcr = []
+            all_sections_max = []
+
+            for _, da_t_s in grp_sections:
+                ds_zcr_s = _find_zero_crossings(
+                    da_t_s,
+                    comoving_var,
+                    amplitude_mode,
+                    period_var,
+                    expected_wvl,
+                )
+                ds_max_s = _find_amplitude_maxima(
+                    da_t_s,
+                    comoving_var,
+                    amplitude_mode,
+                    period_var,
+                    expected_wvl,
+                )
+
+                all_sections_zcr.append(ds_zcr_s)
+                all_sections_max.append(ds_max_s)
+
+            # Reassemble sections
+            result_zcr = xr.concat(all_sections_zcr, period_var)
+            result_max = xr.concat(all_sections_max, period_var)
+
+            # Assign time coordinate
+            result_zcr = _copy_time_var(da_t, result_zcr, tvar)
+            result_max = _copy_time_var(da_t, result_max, tvar)
+
+            all_zcr.append(result_zcr)
+            all_max.append(result_max)
+
+    elif amplitude_mode == "smooth":
+        field_data = da_sub
+
+        # --- Loop along time ---
+
+        for t in tqdm(field_data[tvar]):
+            da_t = field_data.sel({tvar: t})
+
+            ds_zcr = _find_zero_crossings(
+                da_t,
+                comoving_var,
+                amplitude_mode,
+                period_var,
+            )
+            ds_max = _find_amplitude_maxima(
+                da_t,
+                comoving_var,
+                amplitude_mode,
+                period_var,
+            )
+
+            # Assign time coordinate
+            result_zcr = _copy_time_var(da_t, ds_zcr, tvar)
+            result_max = _copy_time_var(da_t, ds_max, tvar)
+
+            all_zcr.append(result_zcr)
+            all_max.append(result_max)
+
+    # -------------------------------------------------
+    # Harmonize i_period coordinate
+    # -------------------------------------------------
+
+    # Find time with largest number of periods
+    for ds_all, locs_var in zip([all_zcr, all_max], ["zero_crossings", "max_locs"]):
+        i_ref = 0
+        ref_ds = ds_all[i_ref]
+        nperiods = ref_ds.sizes[period_var]
+
+        for i, ds_t in enumerate(ds_all):
+            if ds_t.sizes[period_var] > nperiods:
+                ref_ds = ds_t
+                nperiods = ds_t.sizes[period_var]
+                i_ref = i
+
+        # Assign ordered period coordinate to reference dataset
+        ref_ds = ref_ds.assign_coords(
+            {period_var: (period_var, np.flip(np.arange(nperiods)))},
+        )
+
+        # Interpolate all other time_steps
+        f_interp = interp1d(
+            ref_ds[locs_var].isel(t=0).data,
+            ref_ds[locs_var][period_var].data,
+            kind="nearest",
+            bounds_error=False,
+            fill_value=(nperiods, -1),
+        )
+
+        for i, ds_t in enumerate(ds_all):
+            if i == i_ref:
+                ds_all[i] = ref_ds
+            else:
+                new_i_arr = f_interp(ds_t[locs_var].isel(t=0).data)
+
+                # Get rid of duplicate indices
+                u, c = np.unique(new_i_arr, return_counts=True)
+                dup = u[c > 1]
+                dup_c = c[c > 1]
+                for val, count in zip(dup, dup_c):
+                    new_i_arr[np.where(new_i_arr == val)] = new_i_arr[
+                        np.where(new_i_arr == val)
+                    ] + 1.0 / count * np.flip(np.arange(count))
+
+                ds_t_out = ds_t.assign_coords(
+                    {period_var: (period_var, new_i_arr)},
+                )
+                ds_all[i] = ds_t_out
+
+    # -------------------------------------------------
+    # Reassemble along time coordinate
+    # -------------------------------------------------
+
+    ds_zeros = xr.concat(all_zcr, tvar)
+    ds_max = xr.concat(all_max, tvar)
+
+    return ds_zeros, ds_max
