@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.2.0 
+
+Released 03-04-2025 
+
+### Features
+
+* [`454aeee`](https://github.com/mtrocadomoreira/ozzy/commit/454aeeeae6a40a699ae7c3dfca5e767769ef61bf): Add function to find local field maxima and zero crossings
+
+
+
+
+
+
+
 ## Version 1.1.2 
 
 Released 17-02-2025 
