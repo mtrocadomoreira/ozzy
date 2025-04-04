@@ -556,21 +556,27 @@ def local_maxima_and_zero_crossings(
     Returns
     -------
     tuple
-        A tuple containing two xarray.Dataset objects:
-        - First element: Dataset with zero crossing information
-        - Second element: Dataset with local maxima information
+        A tuple containing two [xarray.Dataset][] objects:
+
+        - First element: Dataset with local maxima information
+
+        - Second element: Dataset with zero crossing information
 
     Raises
     ------
     ValueError
         If required coordinates are missing from the DataArray.
+
         If invalid options are provided for `amplitude_mode` or `amplitude_max_for`.
+
         If invalid ranges or positions are specified for transverse selection.
 
     Notes
     -----
     The function processes data differently based on the `amplitude_mode`:
+
     - For `'noisy'` data: Applies a moving window average before analysis
+
     - For `'smooth'` data: Analyzes the raw data directly
 
     Examples
@@ -599,7 +605,7 @@ def local_maxima_and_zero_crossings(
         )
 
         # Find zero crossings and maxima
-        zeros, maxima = local_maxima_and_zero_crossings(da)
+        maxima, zeros = local_maxima_and_zero_crossings(da)
 
         # The returned datasets contain information about zero crossings and maxima
         # zeros contains 'zero_crossings' coordinate
@@ -630,7 +636,7 @@ def local_maxima_and_zero_crossings(
         )
 
         # Find zero crossings and maxima with custom parameters
-        zeros, maxima = local_maxima_and_zero_crossings(
+        maxima, zeros = local_maxima_and_zero_crossings(
             da,
             comoving_var="x1_box",
             transv_range=(-2, 2),  # Average over this transverse range
@@ -865,4 +871,4 @@ def local_maxima_and_zero_crossings(
     ds_zeros = xr.concat(all_zcr, tvar)
     ds_max = xr.concat(all_max, tvar)
 
-    return ds_zeros, ds_max
+    return ds_max, ds_zeros
