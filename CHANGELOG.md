@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 1.2.1 
+
+Released 09-04-2025 
+
+### Bug Fixes
+
+* [`57daddd`](https://github.com/mtrocadomoreira/ozzy/commit/57dadddf1c8f04fe8837be727f6e6cd2494b373b): Bug in `local_maxima_and_zero_crossings`
+
+
+
+
+
+
+### Documentation
+
+* [`f4700b4`](https://github.com/mtrocadomoreira/ozzy/commit/f4700b4a183b1818e89206e5e3ea505dec92dbcd): Correct typos in docstring for `ozzy.fields.local_maxima_and_zero_crossings`
+
+
+
+
+
+
+
 ## Version 1.2.0 
 
 Released 03-04-2025 
