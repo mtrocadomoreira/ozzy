@@ -837,7 +837,7 @@ def local_maxima_and_zero_crossings(
 
         # Interpolate all other time_steps
         f_interp = interp1d(
-            ref_ds[locs_var].isel(t=0).data,
+            ref_ds[locs_var].isel(**{tvar: 0}).data,
             ref_ds[locs_var][period_var].data,
             kind="nearest",
             bounds_error=False,
@@ -848,7 +848,7 @@ def local_maxima_and_zero_crossings(
             if i == i_ref:
                 ds_all[i] = ref_ds
             else:
-                new_i_arr = f_interp(ds_t[locs_var].isel(t=0).data)
+                new_i_arr = f_interp(ds_t[locs_var].isel(**{tvar: 0}).data)
 
                 # Get rid of duplicate indices
                 u, c = np.unique(new_i_arr, return_counts=True)
