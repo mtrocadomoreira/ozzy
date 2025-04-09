@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.2.2 
+
+Released 09-04-2025 
+
+### Bug Fixes
+
+* [`1319ddf`](https://github.com/mtrocadomoreira/ozzy/commit/1319ddf50aadba601b00c5fcfa0b1c96f0d2e1c4): Typo was preventing `ozzy.statistics` from being imported
+
+
+
+
+
+
+
 ## Version 1.2.1 
 
 Released 09-04-2025 
