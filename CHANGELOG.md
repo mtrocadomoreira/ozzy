@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.2.3 
+
+Released 14-04-2025 
+
+### Bug Fixes
+
+* [`92a2ed0`](https://github.com/mtrocadomoreira/ozzy/commit/92a2ed0231395c0c165cf25fae4d6015ceb89c93): Bug in `ozzy.plot.hist` and `ozzy.plot.hist_proj` for weighted data
+
+
+
+
+
+
+
 ## Version 1.2.2 
 
 Released 09-04-2025 
