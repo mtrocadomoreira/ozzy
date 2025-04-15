@@ -319,7 +319,7 @@ def vphi_from_fit(
     x_zero: float,
     xvar: str = "x1_box",
     tvar: str = "t",
-    window_len: float = 1.0,
+    window_len: float = 2.5,
     k: float | str = 1.0,
     boundary: str = "trim",
     quasistatic_fixed_z: bool = False,
@@ -340,7 +340,7 @@ def vphi_from_fit(
     tvar : str, optional
         The name of the time or propagation dimension. Default is `'t'`.
     window_len : float, optional
-        The length of the window (in units of the plasma wavelength) over which to perform the fit. Default is `1.0`.
+        The length of the window (in units of the plasma wavelength) over which to perform the fit. Default is `2.5`.
     k : float | str, optional
         The wavenumber to use in the definition of the window length. If `'fft'`, the wavenumber will be calculated from the FFT of the data. Default is `1.0`.
     boundary : str, optional
@@ -409,55 +409,65 @@ def vphi_from_fit(
 
     lastphi = 0.0
 
-    for j in tqdm(np.arange(1, Nt)):
-        if k_fft:
-            # k = _k_from_fft(...)
+    with tqdm(total=Nt * nw) as pbar:
+        pbar.set_description(f"Fitting {nw} sub-windows for {Nt} timesteps")
 
-            pass
+        for j in tqdm(np.arange(1, Nt)):
+            if k_fft:
+                # k = _k_from_fft(...)
 
-        for i in range(nw - 1, -1, -1):
-            window_da = da_blocks.isel({"window": i, tvar: j}).dropna(xvar + "_window")
-            window = window_da.to_numpy()
-            axis = window_da[xvar].to_numpy()
+                pass
 
-            # Set bounds and initial guess
+            # for i in tqdm(range(nw - 1, -1, -1), leave=False):
+            for i in range(nw - 1, -1, -1):
+                window_da = da_blocks.isel({"window": i, tvar: j}).dropna(
+                    xvar + "_window"
+                )
+                window = window_da.to_numpy()
+                axis = window_da[xvar].to_numpy()
 
-            initguess = [lastphi, np.max(window)]
-            bounds = (
-                [lastphi - np.pi, 0.05 * np.max(window)],
-                [lastphi + np.pi, np.inf],
-            )
+                # Set bounds and initial guess
 
-            # Fit
+                initguess = [lastphi, np.max(window)]
+                bounds = (
+                    [lastphi - np.pi, 0.05 * np.max(window)],
+                    [lastphi + np.pi, np.inf],
+                )
 
-            pars, pcov = curve_fit(
-                fit_func(k, x_zero),
-                axis,
-                window,
-                p0=initguess,
-                bounds=bounds,
-            )
+                # Fit
 
-            perr = np.sqrt(np.diag(pcov))
+                pars, pcov = curve_fit(
+                    fit_func(k, x_zero),
+                    axis,
+                    window,
+                    p0=initguess,
+                    bounds=bounds,
+                )
 
-            if perr[0] > 1:
-                f, ax = plt.subplots()
-                ax.plot(axis, window, label="data")
-                ax.plot(axis, fit_func(k, x_zero)(axis, pars[0], pars[1]), label="fit")
-                plt.title(f"Fit window #{i}, at time index {j}")
-                plt.ylabel("Field")
-                plt.xlabel(f"Longitudinal coordinate ({xvar})")
-                plt.legend()
-                plt.show()
-                # TODO: add more information to input prompt e.g.:
-                # Getting error of fit > 1. Here are plots of the fit. Please press enter to proceed.
-                input()
+                perr = np.sqrt(np.diag(pcov))
 
-            phi[j, i] = pars[0]
-            phi_err[j, i] = perr[0]
-            lastphi = pars[0]
+                if perr[0] > 1:
+                    f, ax = plt.subplots()
+                    ax.plot(axis, window, label="data")
+                    ax.plot(
+                        axis, fit_func(k, x_zero)(axis, pars[0], pars[1]), label="fit"
+                    )
+                    plt.title(f"Fit window #{i}, at time index {j}")
+                    plt.ylabel("Field")
+                    plt.xlabel(f"Longitudinal coordinate ({xvar})")
+                    plt.legend()
+                    plt.show()
+                    input(
+                        "Getting error of fit > 1. Here are plots of the fit. Please press enter to proceed."
+                    )
 
-        lastphi = phi[j, -1]
+                phi[j, i] = pars[0]
+                phi_err[j, i] = perr[0]
+                lastphi = pars[0]
+
+                pbar.update(1)
+
+            lastphi = phi[j, -1]
 
     # Calculate vphi
 
