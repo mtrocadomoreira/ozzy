@@ -412,7 +412,7 @@ def vphi_from_fit(
     with tqdm(total=Nt * nw) as pbar:
         pbar.set_description(f"Fitting {nw} sub-windows for {Nt} timesteps")
 
-        for j in tqdm(np.arange(1, Nt)):
+        for j in np.arange(1, Nt):
             if k_fft:
                 # k = _k_from_fft(...)
 
