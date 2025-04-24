@@ -230,8 +230,8 @@ def _find_zero_crossings(
     if amplitude_mode == "noisy":
         dx1 = da_t[comoving_var][1] - da_t[comoving_var][0]
 
-        min_height = float(abs(data.min().compute()) / 10)
-        min_distance = np.round(0.95 * expected_wvl / 2 / dx1)
+        min_height = float(abs(data.min().compute()) / 20)
+        min_distance = np.round(0.8 * expected_wvl / 2 / dx1)
 
         options = {"height": [-min_height, 0.0], "distance": min_distance}
 
@@ -280,8 +280,8 @@ def _find_amplitude_maxima(
     if amplitude_mode == "noisy":
         dx1 = da_t[comoving_var][1] - da_t[comoving_var][0]
 
-        min_height = float(da_t.std().compute()) * 2 / 3
-        min_distance = np.round(0.95 * expected_wvl / dx1)
+        min_height = float(da_t.std().compute()) * 1 / 4
+        min_distance = np.round(0.8 * expected_wvl / dx1)
 
         options = {"height": min_height, "distance": min_distance}
 
