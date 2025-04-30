@@ -3,6 +3,43 @@
 <!--start-docs-->
 
 
+## Version 1.2.4 
+
+Released 30-04-2025 
+
+### Bug Fixes
+
+* [`89eac7e`](https://github.com/mtrocadomoreira/ozzy/commit/89eac7e51d660fa4a36cc2c642491f11d7e1b398): Change algorithm so that spatially averaged (`savg`) grid data can be read
+
+
+
+
+
+
+### Refactoring
+
+* [`83b988e`](https://github.com/mtrocadomoreira/ozzy/commit/83b988eb439dab23a55fd69a514c54f366503b4d): Tweaked some parameters in `local_maxima_and_zero_crossings` to improve peak and zero finding
+
+
+
+
+
+
+* [`0ff220f`](https://github.com/mtrocadomoreira/ozzy/commit/0ff220f75386d8b0a8bb68c7234ba7999ea7046a): Better formatting of progress bar in `vphi_from_fit`
+
+
+
+
+
+
+* [`a899159`](https://github.com/mtrocadomoreira/ozzy/commit/a89915974e6dc8b2f6b4a366e1af4469fadd082d): Minor improvements to the `vphi_from_fit` function
+
+
+
+
+
+
+
 ## Version 1.2.3 
 
 Released 14-04-2025 
