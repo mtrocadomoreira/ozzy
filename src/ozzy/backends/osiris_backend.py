@@ -125,6 +125,15 @@ def config_osiris(ds):
                         }
                     )
 
+            # Get actual number of cells (to work with savg data, for example)
+
+            nx = ds[var].shape
+            if ndims == 2:
+                nx = (nx[1], nx[0])
+            elif ndims == 3:
+                nx = (nx[1], nx[0], nx[2])
+            dx = (xmax_box - xmin_box) / np.array(nx)
+
             # Read axis metadata
 
             for i in np.arange(0, ndims):
