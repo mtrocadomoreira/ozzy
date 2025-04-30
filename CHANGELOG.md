@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.2.5 
+
+Released 30-04-2025 
+
+### Bug Fixes
+
+* [`08ad9a6`](https://github.com/mtrocadomoreira/ozzy/commit/08ad9a60134874734f23d314bfa2ff1ee2d84e49): Fix bug that was causing an error when `hist` or `hist_proj` were called with `weight_var = none`
+
+
+
+
+
+
+
 ## Version 1.2.4 
 
 Released 30-04-2025 
