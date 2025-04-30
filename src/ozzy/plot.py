@@ -1161,11 +1161,16 @@ def hist(
     if (weight_var is not None) and (bins == "auto"):
         bins = 200
 
+    if weight_var is None:
+        weights_pass = None
+    else:
+        weights_pass = do[weight_var]
+
     ax = sns.histplot(
         do.to_dataframe(),
         x=x,
         y=y,
-        weights=do[weight_var],
+        weights=weights_pass,
         bins=bins,
         cbar=cbar,
         **cmap_opts,
@@ -1269,11 +1274,16 @@ def hist_proj(
     if (weight_var is not None) and (bins == "auto"):
         bins = 200
 
+    if weight_var is None:
+        weights_pass = None
+    else:
+        weights_pass = do[weight_var]
+
     jg = sns.jointplot(
         do.to_dataframe(),
         x=x,
         y=y,
-        weights=do[weight_var],
+        weights=weights_pass,
         bins=bins,
         space=space,
         cmap=cmap,
