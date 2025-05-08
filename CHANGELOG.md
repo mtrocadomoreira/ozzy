@@ -3,6 +3,27 @@
 <!--start-docs-->
 
 
+## Version 1.2.6 
+
+Released 08-05-2025 
+
+### Bug Fixes
+
+* [`d5d84f2`](https://github.com/mtrocadomoreira/ozzy/commit/d5d84f2870216cec7f8cc2696aa51fd8041b22be): Make sure that raw files containing no particles at all can still be assigned times and concatenated
+
+
+
+
+
+
+* [`824cfed`](https://github.com/mtrocadomoreira/ozzy/commit/824cfed0ae8dcfbc5e86f3e5fb5ddc3e482992b2): Bug for raw files with no particle tag data
+
+
+
+
+
+
+
 ## Version 1.2.5 
 
 Released 30-04-2025 
