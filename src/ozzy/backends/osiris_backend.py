@@ -238,7 +238,14 @@ def config_osiris(ds):
             raise ValueError(f"Unrecognized OSIRIS data type: {type_str}")
 
     # Save general metadata
-    ds = ds.expand_dims(dim={"t": 1}, axis=len(ds.dims))
+
+    # If any dimension is completely empty, the axis parameter for the time dimension expansion must be smaller
+    expand_on = len(ds.dims)
+    for dim, size in ds.sizes.items():
+        if size == 0:
+            expand_on = expand_on - 1
+
+    ds = ds.expand_dims(dim={"t": 1}, axis=expand_on)
     ds = ds.assign_coords({"t": [ds.attrs["time"]], "iter": ("t", [ds.attrs["iter"]])})
     ds["t"] = ds["t"].assign_attrs(
         long_name=r"$t$", units=tex_format(ds.attrs["time units"])
