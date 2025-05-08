@@ -194,7 +194,7 @@ def config_osiris(ds):
             ds = ds.rename_dims({"phony_dim_0": "pid"})
 
             # Check whether particles have unique pid's
-            if "tag" in ds:
+            if ("tag" in ds) & (len(ds["tag"]) > 0):
                 # Convert two columns to single pid
                 tags = ds["tag"].astype(int).to_numpy()
                 dgts_right = len(str(np.max(tags[:, 1])))
@@ -204,10 +204,10 @@ def config_osiris(ds):
                 ds = ds.assign_coords({"pid": ("pid", new_tags)})
                 ds = ds.sortby("pid")
                 ds.attrs["unique_pids"] = True
-                ds = ds.drop_vars("tag")
             else:
                 ds = ds.assign_coords({"pid": ("pid", np.arange(ds.sizes["pid"]))})
                 ds.attrs["unique_pids"] = False
+            ds = ds.drop_vars("tag")
 
             # Create co-moving coordinate(s)
 
