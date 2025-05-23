@@ -401,7 +401,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     """
     ds = xr.concat(ds, "t", fill_value={"q": 0.0})
     ds = ds.sortby("t")
-    ds = ds.chunk("auto")
+    ds = ds.astype(float).chunk("auto")
     return ds
 
 
