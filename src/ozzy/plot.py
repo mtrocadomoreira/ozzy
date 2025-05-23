@@ -176,6 +176,7 @@ for col in list(tc.tol_cmap()):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
         mpl.colormaps.register(tc.tol_cmap(col), name=cm_name)
+        mpl.colormaps.register(tc.tol_cmap(col).reversed(), name=cm_name + "_r")
 for col in list(tc.tol_cset()):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
