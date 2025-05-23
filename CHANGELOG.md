@@ -3,6 +3,27 @@
 <!--start-docs-->
 
 
+## Version 1.2.7 
+
+Released 23-05-2025 
+
+### Bug Fixes
+
+* [`741f0af`](https://github.com/mtrocadomoreira/ozzy/commit/741f0af0406b8356b9d681ea200159024683f7d0): Ability to use paul tol&#39;s reversed colormaps by appending `&#39;_r&#39;`
+
+
+
+
+
+
+* [`d5bcdcb`](https://github.com/mtrocadomoreira/ozzy/commit/d5bcdcbccc4f74dbe9a0d2bcbc0ac4b0d7453d46): Assign `dtype` to concatenated data before chunking
+
+
+
+
+
+
+
 ## Version 1.2.6 
 
 Released 08-05-2025 
