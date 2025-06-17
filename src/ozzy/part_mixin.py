@@ -498,7 +498,7 @@ class PartMixin:
 
         # Loop along time
 
-        if "t" in raw_ds.dims:
+        if time_dim in raw_ds.dims:
             for i in np.arange(0, len(raw_ds[time_dim])):
                 ds_i = raw_ds.isel({time_dim: i})
                 dist = get_dist(ds_i)
@@ -559,7 +559,7 @@ class PartMixin:
 
         for option in [dims_2d, dims_2d_box, dims_3d, dims_3d_box]:
             if all([var in parts.dims for var in option]):
-                new_coords = option + ["t"] if "t" in parts.dims else option
+                new_coords = option + [time_dim] if time_dim in parts.dims else option
                 parts = parts.transpose(*new_coords).compute()
                 parts = parts.chunk()
 
