@@ -16,7 +16,7 @@ import xarray as xr
 from flox.xarray import xarray_reduce
 from tqdm import tqdm
 
-from .new_dataobj import new_dataset
+from .new_dataobj import new_dataarray, new_dataset
 from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
 
 
@@ -833,24 +833,33 @@ class PartMixin:
             emit_t_all = []
             for t in tqdm(ds[tvar]):
                 ds_t = ds.sel({tvar: t})
-                ds_t_grouped = ds_t.groupby_bins(**groupby_args)
 
-                emit_t_geom = ds_t_grouped.apply(
-                    lambda x: self._calc_geometric_emittance(
-                        x, xvar, pvar, p_longit, wvar
+                try:
+                    ds_t_grouped = ds_t.groupby_bins(**groupby_args)
+                except ValueError:
+                    emit_t_norm = new_dataarray(
+                        np.nan,
+                        dims=axis_ds.dims,
+                        coords=axis_ds.coords,
                     )
-                )
-                gamma_t_slice = ds_t_grouped.apply(
-                    lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
-                )
-
-                # Get normalized emittance
-
-                if axisym:
-                    # Lapostolle emittance
-                    emit_t_norm = 4 * gamma_t_slice * emit_t_geom
+                    pass
                 else:
-                    emit_t_norm = gamma_t_slice * emit_t_geom
+                    emit_t_geom = ds_t_grouped.apply(
+                        lambda x: self._calc_geometric_emittance(
+                            x, xvar, pvar, p_longit, wvar
+                        )
+                    )
+                    gamma_t_slice = ds_t_grouped.apply(
+                        lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
+                    )
+
+                    # Get normalized emittance
+
+                    if axisym:
+                        # Lapostolle emittance
+                        emit_t_norm = 4 * gamma_t_slice * emit_t_geom
+                    else:
+                        emit_t_norm = gamma_t_slice * emit_t_geom
 
                 emit_t_all.append(emit_t_norm.expand_dims({tvar: [ds_t[tvar]]}))
                 # TODO: use _copy_time_var(), currently in ozzy.fields (move to ozzy.utils)
