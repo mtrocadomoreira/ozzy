@@ -14,6 +14,7 @@ import re
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
+from tqdm import tqdm
 
 from .new_dataobj import new_dataset
 from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
@@ -42,6 +43,50 @@ class PartMixin:
         else:
             units_str = "a.u."
         return units_str
+
+    @staticmethod
+    def _calc_geometric_emittance(
+        ds: xr.Dataset,
+        xvar: str,
+        pvar: str,
+        p_longit: str,
+        wvar: str,
+    ) -> float | xr.DataArray:
+        q_tot = ds[wvar].sum(dim="pid", skipna=True)
+
+        x_prime = ds[pvar] / ds[p_longit]
+        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid", skipna=True) / q_tot
+        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid", skipna=True) / q_tot
+        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid", skipna=True) / q_tot
+        emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
+
+        return emit
+
+    def _find_all_pvars(self) -> list[str]:
+        p_vars = []
+        matches = [
+            re.fullmatch("p[A-Za-z0-9]", var) for var in list(self._obj.data_vars)
+        ]
+        for item in matches:
+            if item is not None:
+                p_vars.append(item.group(0))
+        return p_vars
+
+    @staticmethod
+    def _calc_mean_lorentz_factor(
+        ds, wvar: str, p_vars: list[str] | None = None
+    ) -> float | xr.DataArray:
+        if p_vars is None:
+            p_vars = ds.ozzy._find_all_pvars()
+
+        p_abs_sqr = 0
+        for p_var in p_vars:
+            p_abs_sqr += ds[p_var] ** 2
+
+        gamma_parts = np.sqrt(1 + p_abs_sqr)
+        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
+
+        return gamma
 
     def sample_particles(self, n: int) -> xr.Dataset:
         """Downsample a particle Dataset by randomly choosing particles.
@@ -625,6 +670,7 @@ class PartMixin:
 
     # TODO: assumes that momentum variables follow the pattern "p?"
     # TODO: add unit tests
+    # TODO: add variable with number of particles per emittance data point
     def get_emittance(
         self,
         xvar: str = "x2",
@@ -709,33 +755,17 @@ class PartMixin:
 
         # Calculate geometric emittance
 
-        # - get trace
-        x_prime = ds[pvar] / ds[p_longit]
-
-        # - calculate geometric emittance
-        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid") / ds[wvar].sum(dim="pid")
-        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid") / ds[wvar].sum(dim="pid")
-        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid") / ds[wvar].sum(
-            dim="pid"
+        emit = self._calc_geometric_emittance(
+            ds,
+            xvar=xvar,
+            pvar=pvar,
+            p_longit=p_longit,
+            wvar=wvar,
         )
-        emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
 
-        # Get energy
+        # Get energy (average Lorentz factor)
 
-        # - find all momentum variables
-        p_vars = []
-        matches = [re.fullmatch("p[A-Za-z0-9]", var) for var in list(ds.data_vars)]
-        for item in matches:
-            if item is not None:
-                p_vars.append(item.group(0))
-
-        # - calculate average Lorentz factor
-        p_abs_sqr = 0
-        for p_var in p_vars:
-            p_abs_sqr += ds[p_var] ** 2
-
-        gamma_parts = np.sqrt(1 + p_abs_sqr)
-        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
+        gamma = self._calc_mean_lorentz_factor(ds, wvar)
 
         # Get normalized emittance
 
@@ -758,3 +788,104 @@ class PartMixin:
 
     # TODO: slice emittance
     # - maybe use groupby to bin and perform operation
+
+    # TODO: add variable with number of particles per emittance data point
+    def get_slice_emittance(
+        self,
+        axis_ds: xr.Dataset | None = None,
+        nbins: int | None = None,
+        slice_var: str = "x1_box",
+        xvar: str = "x2",
+        pvar: str = "p2",
+        wvar: str = "q",
+        tvar: str = "t",
+        p_longit: str = "p1",
+        axisym: bool = False,
+    ) -> xr.DataArray:
+        ds = self._obj
+
+        # Process xvar and pvar arguments
+        for ivar in [slice_var, xvar, pvar, wvar]:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+        # Process axis_ds and nbins arguments
+        if (axis_ds is None) and (nbins is None):
+            raise ValueError("Either axis_ds or nbins must be provided")
+        elif axis_ds is not None:
+            if slice_var not in axis_ds.coords:
+                raise KeyError(
+                    f"Cannot find '{slice_var}' variable in provided axis_ds"
+                )
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+            bin_labels = axis_ds[slice_var].data
+        elif nbins is not None:
+            bins = nbins
+            bin_labels = None
+
+        groupby_args = {"group": slice_var, "bins": bins, "labels": bin_labels}
+
+        # Loop along time
+
+        p_vars = self._find_all_pvars()
+
+        if tvar in ds.dims:
+            emit_t_all = []
+            for t in tqdm(ds[tvar]):
+                ds_t = ds.sel({tvar: t})
+                ds_t_grouped = ds_t.groupby_bins(**groupby_args)
+
+                emit_t_geom = ds_t_grouped.apply(
+                    lambda x: self._calc_geometric_emittance(
+                        x, xvar, pvar, p_longit, wvar
+                    )
+                )
+                gamma_t_slice = ds_t_grouped.apply(
+                    lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
+                )
+
+                # Get normalized emittance
+
+                if axisym:
+                    # Lapostolle emittance
+                    emit_t_norm = 4 * gamma_t_slice * emit_t_geom
+                else:
+                    emit_t_norm = gamma_t_slice * emit_t_geom
+
+                emit_t_all.append(emit_t_norm.expand_dims({tvar: [ds_t[tvar]]}))
+                # TODO: use _copy_time_var(), currently in ozzy.fields (move to ozzy.utils)
+
+            emit_norm = xr.concat(emit_t_all, tvar)
+        else:
+            ds_grouped = ds.groupby_bins(**groupby_args)
+
+            emit_geom = ds_grouped.apply(
+                lambda x: self._calc_geometric_emittance(x, xvar, pvar, p_longit, wvar)
+            )
+            gamma_slice = ds_grouped.apply(
+                lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
+            )
+
+            if axisym:
+                # Lapostolle emittance
+                emit_norm = 4 * gamma_slice * emit_geom
+            else:
+                emit_norm = gamma_slice * emit_geom
+
+        # Set units and label
+
+        emit_norm = emit_norm.rename("slice_emit_norm")
+        emit_norm.attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
+        if axisym:
+            emit_norm.attrs["long_name"] = r"$\varepsilon_N({})$".format(
+                ds[slice_var].attrs["long_name"].strip("$")
+            )
+        else:
+            emit_norm.attrs["long_name"] = (
+                r"$\varepsilon_{N,"
+                + str(pvar[1])
+                + "}"
+                + r"({})$".format(ds[slice_var].attrs["long_name"].strip("$"))
+            )
+
+        return emit_norm
