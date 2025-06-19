@@ -1,0 +1,24 @@
+name: GitHub Actions Version Updater
+
+# Controls when the action will run.
+on:
+  schedule:
+    # Run at 00:00 UTC on the second Thursday of each month (i.e., day 8–14 if it's a Thursday)
+    - cron: '0 0 8-14 * 4'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # [Required] Access token with `workflow` scope.
+          token: ${{ secrets.WORKFLOW_SECRET }}
+
+      - name: Run GitHub Actions Version Updater
+        uses: saadmk11/github-actions-version-updater@v0.8.1
+        with:
+          # [Required] Access token with `workflow` scope.
+          token: ${{ secrets.WORKFLOW_SECRET }}
+          commit_message: 'chore: update versions of GitHub Actions in repository workflows'
