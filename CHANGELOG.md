@@ -3,6 +3,27 @@
 <!--start-docs-->
 
 
+## Version 1.2.8 
+
+Released 20-06-2025 
+
+### Bug Fixes
+
+* [`45d0662`](https://github.com/mtrocadomoreira/ozzy/commit/45d0662b2f6d9e57ff459e9a7d76605e91eb0e7c): Bug in `bin_into_grid` where the time dimension was hardcoded as `&#34;t&#34;`
+
+
+
+    fix(part_mixin): bug in `bin_into_grid` where the time dimension was hardcoded as `"t"`
+
+
+* [`4cc2da9`](https://github.com/mtrocadomoreira/ozzy/commit/4cc2da92663de208d1ae54a7d9b5e82b7f422073): Bug in `bin_into_grid` where the time dimension was hardcoded as `&#34;t&#34;`
+
+
+
+
+
+
+
 ## Version 1.2.7 
 
 Released 23-05-2025 
