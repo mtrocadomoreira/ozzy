@@ -38,63 +38,140 @@ jobs:
       - name: Build documentation
         run: mkdocs gh-deploy --force --config-file ./docs/mkdocs.yml
 
-  # Should have job for continuous integration (tests, etc)
+  # TODO: Should have job for continuous integration (tests, etc)
   # ci:
 
-  cd:
+  # Separate Continuous Delivery (CD) into release and deployment
+
+  cd-release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release-${{ github.ref_name }}
+      cancel-in-progress: false
     permissions:
-      id-token: write
       contents: write
-    
+
+    steps:
+      # Note: We checkout the repository at the branch that triggered the workflow
+      # with the entire history to ensure to match PSR's release branch detection
+      # and history evaluation.
+      # However, we forcefully reset the branch to the workflow sha because it is
+      # possible that the branch was updated while the workflow was running. This
+      # prevents accidentally releasing un-evaluated changes.
+      - name: Setup | Checkout Repository on Release Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup | Force release branch to be at workflow sha
+        run: |
+          git reset --hard ${{ github.sha }}
+
+      - name: Evaluate | Verify upstream has NOT changed
+        # Last chance to abort before causing an error as another PR/push was applied to
+        # the upstream branch while this workflow was running. This is important
+        # because we are committing a version change (--commit). You may omit this step
+        # if you have 'commit: false' in your configuration.
+        #
+        # You may consider moving this to a repo script and call it from this step instead
+        # of writing it in-line.
+        shell: bash
+        run: |
+          set +o pipefail
+
+          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
+          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
+
+          set -o pipefail
+
+          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
+              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
+              exit 1
+          fi
+
+          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
+
+          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
+              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
+              exit 1
+          fi
+
+          HEAD_SHA="$(git rev-parse HEAD)"
+
+          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
+              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
+              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
+              exit 1
+          fi
+
+          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
+
+      - name: Action | Semantic Version Release
+        id: release
+        # Adjust tag with desired version if applicable.
+        uses: python-semantic-release/python-semantic-release@v10.1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"
+
+      - name: Publish | Upload to GitHub Release Assets
+        uses: python-semantic-release/publish-action@v10.1.0
+        if: steps.release.outputs.released == 'true'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.release.outputs.tag }}
+
+      - name: Upload | Distribution Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: distribution-artifacts
+          path: dist
+          if-no-files-found: error
+
+  cd-deploy:
+    # 1. Separate out the deploy step from the publish step to run each step at
+    #    the least amount of token privilege
+    # 2. Also, deployments can fail, and its better to have a separate job if you need to retry
+    #    and it won't require reversing the release.
+    runs-on: ubuntu-latest
+    needs: cd-release
     # Only run this job if the "ci" job passes
     # needs: ci
+    if: ${{ needs.cd-release.outputs.released == 'true' }}
 
-    # Only run this job if new work is pushed to "main"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
 
-    # Set up operating system
-    runs-on: ubuntu-latest
-
-    # Define job steps
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: 3.x
+      - name: Setup | Download Build Artifacts
+        uses: actions/download-artifact@v4
+        id: artifact-download
+        with:
+          name: distribution-artifacts
+          path: dist
+    
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
 
-    - name: Check-out repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
-    - name: Use Python Semantic Release to prepare release
-      id: release
-      uses: python-semantic-release/python-semantic-release@v10.1.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Test install from TestPyPI
+        run: |
+            pip install \
+            --index-url https://test.pypi.org/simple/ \
+            --extra-index-url https://pypi.org/simple \
+            ozzy-pic
 
-    - name: Publish to TestPyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      if: steps.release.outputs.released == 'true'
-      with:
-        repository-url: https://test.pypi.org/legacy/
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-
-    - name: Test install from TestPyPI
-      run: |
-          pip install \
-          --index-url https://test.pypi.org/simple/ \
-          --extra-index-url https://pypi.org/simple \
-          ozzy-pic
-
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      if: steps.release.outputs.released == 'true'
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
-
-    - name: Publish package distributions to GitHub Releases
-      uses: python-semantic-release/upload-to-gh-release@main
-      if: steps.release.outputs.released == 'true'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
