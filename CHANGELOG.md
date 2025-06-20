@@ -3,6 +3,49 @@
 <!--start-docs-->
 
 
+## Version 1.2.9 
+
+Released 20-06-2025 
+
+### Bug Fixes
+
+* [`f25affb`](https://github.com/mtrocadomoreira/ozzy/commit/f25affb685eada6b81a775ef3f8bd26f96cab236): Accept filenames for beamfiles (and plasma and fields files) with more flexible patterns
+
+
+
+    Now accepts the regex filename pattern `"beamfile\w*\.bin"` instead of `"beamfile.bin"`. The same applies to `plasma.bin` and `fields.bin` files.
+
+    _Before:_
+
+    ✅ `beamfile.bin`
+
+    ❌ `beamfile_changed.bin`
+
+    ❌ `beamfile2.bin`
+
+    _Now:_
+
+    ✅ `beamfile.bin`
+
+    ✅ `beamfile_changed.bin`
+
+    ✅ `beamfile2.bin`
+
+
+
+## Version 1.2.8 
+
+Released 20-06-2025 
+
+### Bug Fixes
+
+* [`4cc2da9`](https://github.com/mtrocadomoreira/ozzy/commit/4cc2da92663de208d1ae54a7d9b5e82b7f422073): Bug in `bin_into_grid` where the time dimension was hardcoded as `&#34;t&#34;`
+
+
+
+
+
+
 
 ## Version 1.2.7 
 
@@ -205,30 +248,6 @@ Released 17-02-2025
 
 ### Features
 
-* [`06d0869`](https://github.com/mtrocadomoreira/ozzy/commit/06d08695fadecc894a05a2ca42a31fde1b244b30): Add functions to plot distributions of particle data
-
-
-
-    Add `ozzy.plot.hist` and `ozzy.plot.hist_proj` to easily plot density distributions (histograms) of particle data, taking advantage of the seaborn functions [`seaborn.histplot`](https://seaborn.pydata.org/generated/seaborn.histplot.html) and [`seaborn.jointplot`](https://seaborn.pydata.org/generated/seaborn.jointplot.html).
-
-    Previously it would have been necessary to bin the data first, and then plot, e.g.:
-    ```python
-    import ozzy as oz
-    import ozzy.plot as oplt
-    # A particle data Dataset
-    ds = oz.Dataset(..., pic_data_type="part")
-    ds_ps = ds.ozzy.get_phase_space(["p2", "x2"])
-    ds_ps["rho"].plot()
-    ```
-    While now the following code is enough:
-    ```python
-    import ozzy as oz
-    import ozzy.plot as oplt
-    ds = oz.Dataset(..., pic_data_type='part')
-    oplt.hist(ds, x="x2", y="p2")
-    ```
-
-
 * [`7c39207`](https://github.com/mtrocadomoreira/ozzy/commit/7c392077b1f0f54e76963cfd99614b0239138c7f): Add functions to plot distributions of particle data
 
 
@@ -251,7 +270,6 @@ Released 17-02-2025
     ds = oz.Dataset(..., pic_data_type='part')
     oplt.hist(ds, x="x2", y="p2")
     ```
-
 
 
 ### Refactoring
@@ -501,13 +519,6 @@ Released 04-11-2024
 
 
 
-* [`361f9c0`](https://github.com/mtrocadomoreira/ozzy/commit/361f9c04e4160bda67784bee430f9f067fdf45fe): Add function to get beam emittance
-
-
-
-
-
-
 * [`0d2020a`](https://github.com/mtrocadomoreira/ozzy/commit/0d2020a3bb273ff34208dd9b3417c7e1948f2b2f): Add function to get beam emittance
 
 
@@ -556,7 +567,6 @@ Released 04-11-2024
     In addition, all momenta in LCODE particle data are normalised to $m_e \ c$. The units are now converted to $m_\mathrm{sp} \ c$, using the charge-to-mass ratio in the data and the new argument `abs_q` (absolute value of the normalised bunch particle charge).
 
 
-
 * [`d7da0c8`](https://github.com/mtrocadomoreira/ozzy/commit/d7da0c893acfe8d9eb22917dd4eb07643d92aa8f): Replace `statistics.parts_into_grid` with dataset method `bin_into_grid`
 
 
@@ -601,7 +611,6 @@ Released 04-11-2024
     ...
     binned = particles.ozzy.bin_into_grid(axes, r_var="x2")
     ```
-
 
 
 * [`5840bc4`](https://github.com/mtrocadomoreira/ozzy/commit/5840bc44884455dbe20508715e52a1cb4321773a): Make str_exists argument of get_attr_if_exists optional
@@ -712,7 +721,6 @@ Released 07-10-2024
 
     - no error when limits are set automatically and all quantity values are zero
     - make sure that axisymmetric geometry is taken into account correctly when the radius variable isn't being binned directly
-
 
 
 * [`c12f766`](https://github.com/mtrocadomoreira/ozzy/commit/c12f766205346da546da2ab6bbdde1b6420f53e2): Correct units of particle momenta
