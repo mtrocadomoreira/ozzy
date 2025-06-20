@@ -4,9 +4,9 @@ beamlost\.dat;notimplemented;full;;
 times\.dat;info;full;;
 plzshape\.dat;plzshape;full;;
 captured\.pls;notimplemented;full;;
-plasma\.bin;notimplemented;single;;beamfile\.bit
-fields\.bin;notimplemented;single;;beamfile\.bit
-beamfile\.bin;beamfile;single;;beamfile\.bit
+plasma\w*\.bin;notimplemented;single;;beamfile\.bit
+fields\w*\.bin;notimplemented;single;;beamfile\.bit
+beamfile\w*\.bin;beamfile;single;;beamfile\.bit
 (e|g)(max|loc)f\.dat;extrema;full;;
 d([rzmaRZMA])\d{5}\.swp;notimplemented;single;;
 s?\d{5}\.pls;notimplemented;single;;
