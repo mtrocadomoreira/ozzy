@@ -61,7 +61,7 @@ jobs:
       - name: Setup | Checkout Repository on Release Branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref_name }}
           fetch-depth: 0
 
       - name: Setup | Force release branch to be at workflow sha
