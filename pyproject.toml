@@ -61,6 +61,7 @@ seaborn = "^0.13.2"
 # Optional packages
 numpy-groupies = "^0.11.3"
 numbagg = "^0.9.0"
+pyarrow = "^20.0.0"
 
 [tool.poetry.group.interactive.dependencies]
 ipython = "^8.28.0"
