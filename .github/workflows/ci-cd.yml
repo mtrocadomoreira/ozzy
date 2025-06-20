@@ -78,24 +78,16 @@ jobs:
         # of writing it in-line.
         shell: bash
         run: |
-          set +o pipefail
 
-          UPSTREAM_BRANCH_NAME="$(git status -sb | head -n 1 | cut -d' ' -f2 | grep -E '\.{3}' | cut -d'.' -f4)"
-          printf '%s\n' "Upstream branch name: $UPSTREAM_BRANCH_NAME"
+          # Set the expected upstream branch name explicitly (replace 'main' if needed)
+          UPSTREAM_BRANCH_NAME="origin/main"
 
-          set -o pipefail
+          git fetch origin
 
-          if [ -z "$UPSTREAM_BRANCH_NAME" ]; then
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch name!"
-              exit 1
-          fi
-
-          git fetch "${UPSTREAM_BRANCH_NAME%%/*}"
-
-          if ! UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")"; then
+          UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")" || {
               printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
               exit 1
-          fi
+          }
 
           HEAD_SHA="$(git rev-parse HEAD)"
 
@@ -106,6 +98,7 @@ jobs:
           fi
 
           printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
+
 
       - name: Action | Semantic Version Release
         id: release
