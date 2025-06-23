@@ -1165,7 +1165,7 @@ def hist(
     if weight_var is None:
         weights_pass = None
     else:
-        weights_pass = do[weight_var]
+        weights_pass = abs(do[weight_var])
 
     ax = sns.histplot(
         do.to_dataframe(),
@@ -1278,7 +1278,7 @@ def hist_proj(
     if weight_var is None:
         weights_pass = None
     else:
-        weights_pass = do[weight_var]
+        weights_pass = abs(do[weight_var])
 
     jg = sns.jointplot(
         do.to_dataframe(),
