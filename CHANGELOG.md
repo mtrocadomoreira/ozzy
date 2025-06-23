@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 1.2.10 
+
+Released 23-06-2025 
+
+### Bug Fixes
+
+* [`3953907`](https://github.com/mtrocadomoreira/ozzy/commit/3953907884a089a666ae3255f95624dbf521ee64): Use absolute value of weight variable for `ozzy.plot.hist` and `ozzy.plot.hist_proj`
+
+
+
+    The weighting variable in data objects is often a charge (e.g. `do['q']`), which means that it has a charge sign. This would show up in histograms as negative counts.
+
+
+### Documentation
+
+* [`0e9829a`](https://github.com/mtrocadomoreira/ozzy/commit/0e9829a6296e9f82388b365770d0b29b6ef0de54): Update changelog manually
+
+
+
+
+
+
+
 ## Version 1.2.9 
 
 Released 20-06-2025 
