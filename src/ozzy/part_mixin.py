@@ -527,6 +527,8 @@ class PartMixin:
         nbins: int | dict[str, int] = 200,
         axisym: bool = False,
         r_var: str = "x2",
+        time_dim: str = "t",
+        weight_var: str = "q",
     ):
         """Generate a phase space grid from particle data.
 
@@ -545,6 +547,10 @@ class PartMixin:
             Whether geometry is 2D cylindrical (axisymmetric), in which case the particle weights are divided by the radial coordinate (`r_var`).
         r_var : str, optional
             Name of the radial coordinate. This argument is ignored if `axisym = False`.
+        time_dim : str, optional
+            Name of the time dimension in the input datasets.
+        weight_var : str, optional
+            Name of the variable representing particle weights or particle charge.
 
         Returns
         -------
@@ -618,7 +624,9 @@ class PartMixin:
         else:
             r_arg = None
 
-        ps = self.bin_into_grid(axes_ds, r_var=r_arg)
+        ps = self.bin_into_grid(
+            axes_ds, r_var=r_arg, weight_var=weight_var, time_dim=time_dim
+        )
         ps["rho"].attrs["units"] = r"a.u."
 
         return ps
