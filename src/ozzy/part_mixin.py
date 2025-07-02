@@ -326,6 +326,8 @@ class PartMixin:
         return result
 
     # BUG: debug units
+    # TODO: add unit tests
+    # TODO: use flox.xarray.xarray_reduce
     @stopwatch
     def bin_into_grid(
         self,
@@ -679,6 +681,7 @@ class PartMixin:
     # TODO: assumes that momentum variables follow the pattern "p?"
     # TODO: add unit tests
     # TODO: add variable with number of particles per emittance data point
+    # TODO: add option to get geometric emittance
     def get_emittance(
         self,
         xvar: str = "x2",
@@ -798,6 +801,7 @@ class PartMixin:
     # - maybe use groupby to bin and perform operation
 
     # TODO: add variable with number of particles per emittance data point
+    # TODO: add option to get geometric emittance
     def get_slice_emittance(
         self,
         axis_ds: xr.Dataset | None = None,
