@@ -14,9 +14,8 @@ import re
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
-from tqdm import tqdm
 
-from .new_dataobj import new_dataarray, new_dataset
+from .new_dataobj import new_dataset
 from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
 
 
@@ -327,7 +326,6 @@ class PartMixin:
 
     # BUG: debug units
     # TODO: add unit tests
-    # TODO: use flox.xarray.xarray_reduce
     @stopwatch
     def bin_into_grid(
         self,
@@ -682,6 +680,9 @@ class PartMixin:
     # TODO: add unit tests
     # TODO: add variable with number of particles per emittance data point
     # TODO: add option to get geometric emittance
+    # TODO: "The relation between 𝜖𝑔 and 𝜖𝑛 is only exact if the energy spread is negligible."
+    # TODO: add warning stating that lorentz factor is calculated from inferred momentum variables
+    # TODO: change from \varepsilon to \epsilon
     def get_emittance(
         self,
         xvar: str = "x2",
@@ -798,10 +799,12 @@ class PartMixin:
         return emit_norm
 
     # TODO: slice emittance
-    # - maybe use groupby to bin and perform operation
-
     # TODO: add variable with number of particles per emittance data point
     # TODO: add option to get geometric emittance
+    # caveat: assumes particle dimension is called 'pid'
+    # TODO: "The relation between 𝜖𝑔 and 𝜖𝑛 is only exact if the energy spread is negligible."
+    # TODO: add warning stating that lorentz factor is calculated from inferred momentum variables
+    # TODO: change from \varepsilon to \epsilon
     def get_slice_emittance(
         self,
         axis_ds: xr.Dataset | None = None,
@@ -813,6 +816,8 @@ class PartMixin:
         tvar: str = "t",
         p_longit: str = "p1",
         axisym: bool = False,
+        norm_emit: bool = True,
+        min_count: int | None = None,
     ) -> xr.DataArray:
         ds = self._obj
 
@@ -835,65 +840,90 @@ class PartMixin:
             bins = nbins
             bin_labels = None
 
-        groupby_args = {"group": slice_var, "bins": bins, "labels": bin_labels}
+        # Process axisymmetry option
+        if axisym:
+            factor = 4
+            suffix_dim = ""
+        else:
+            factor = 1
+            suffix_dim = ds[xvar].attrs["long_name"].strip("$")
 
-        # Loop along time
+        # Get secondary quantities
+
+        ds["x_prime"] = ds[pvar] / ds[p_longit]
+        ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
+        ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
+        ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
 
         p_vars = self._find_all_pvars()
+        p_abs_sqr = 0
+        for p_var in p_vars:
+            p_abs_sqr += ds[p_var] ** 2
+        # TODO: make this staticmethod function
+        ds["beta_gamma"] = ds[wvar] * np.sqrt(p_abs_sqr)
 
-        if tvar in ds.dims:
-            emit_t_all = []
-            for t in tqdm(ds[tvar]):
-                ds_t = ds.sel({tvar: t})
+        # Calculate emittance and bin along slice_var
 
-                try:
-                    ds_t_grouped = ds_t.groupby_bins(**groupby_args)
-                except ValueError:
-                    emit_t_norm = new_dataarray(
-                        np.nan,
-                        dims=axis_ds.dims,
-                        coords=axis_ds.coords,
-                    )
-                    pass
-                else:
-                    emit_t_geom = ds_t_grouped.apply(
-                        lambda x: self._calc_geometric_emittance(
-                            x, xvar, pvar, p_longit, wvar
-                        )
-                    )
-                    gamma_t_slice = ds_t_grouped.apply(
-                        lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
-                    )
+        reduce_args = {
+            "func": "sum",
+            "isbin": True,
+            "expected_groups": bins[0],
+            "dim": "pid",
+            "skipna": True,
+            "min_count": min_count,
+        }
 
-                    # Get normalized emittance
+        q_slice = xarray_reduce(ds[[wvar, slice_var]], slice_var, **reduce_args)[wvar]
 
-                    if axisym:
-                        # Lapostolle emittance
-                        emit_t_norm = 4 * gamma_t_slice * emit_t_geom
-                    else:
-                        emit_t_norm = gamma_t_slice * emit_t_geom
+        x_sq_slice = (
+            xarray_reduce(ds[["x_sq", slice_var]], slice_var, **reduce_args)["x_sq"]
+            / q_slice
+        )
+        x_prime_sq_slice = (
+            xarray_reduce(ds[["x_prime_sq", slice_var]], slice_var, **reduce_args)[
+                "x_prime_sq"
+            ]
+            / q_slice
+        )
+        x_x_prime_slice = (
+            xarray_reduce(ds[["x_x_prime", slice_var]], slice_var, **reduce_args)[
+                "x_x_prime"
+            ]
+            / q_slice
+        )
+        bg_slice = (
+            xarray_reduce(ds[["beta_gamma", slice_var]], slice_var, **reduce_args)[
+                "beta_gamma"
+            ]
+            / q_slice
+        )
 
-                emit_t_all.append(emit_t_norm.expand_dims({tvar: [ds_t[tvar]]}))
-                # TODO: use _copy_time_var(), currently in ozzy.fields (move to ozzy.utils)
+        emit_slice = np.sqrt(x_sq_slice * x_prime_sq_slice - x_x_prime_slice**2)
 
-            emit_norm = xr.concat(emit_t_all, tvar)
+        if norm_emit:
+            emit_slice = factor * bg_slice * emit_slice
+            suffix_norm = "N"
+            var_name = "slice_emit_norm"
         else:
-            ds_grouped = ds.groupby_bins(**groupby_args)
+            suffix_norm = ""
+            var_name = "slice_emit"
 
-            emit_geom = ds_grouped.apply(
-                lambda x: self._calc_geometric_emittance(x, xvar, pvar, p_longit, wvar)
-            )
-            gamma_slice = ds_grouped.apply(
-                lambda x: self._calc_mean_lorentz_factor(x, wvar, p_vars)
-            )
+        # Get number of particles in each bin
 
-            if axisym:
-                # Lapostolle emittance
-                emit_norm = 4 * gamma_slice * emit_geom
-            else:
-                emit_norm = gamma_slice * emit_geom
+        ds["notnull"] = ds[slice_var].notnull()
+        counts = xarray_reduce(
+            ds[["notnull", slice_var]], slice_var, **reduce_args, fill_value=0
+        )
+        counts = counts["notnull"]
 
-        # Set units and label
+        # Set units and labels
+
+        # - create dataset with emit and counts
+        # - rename each data array
+        # - set labels and units for each data array
+        # - set labels and units for each coordinate
+
+        suffix = ",".join(filter(None, [suffix_norm, suffix_dim]))
 
         emit_norm = emit_norm.rename("slice_emit_norm")
         emit_norm.attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
