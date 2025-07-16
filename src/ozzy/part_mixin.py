@@ -16,7 +16,13 @@ import xarray as xr
 from flox.xarray import xarray_reduce
 
 from .new_dataobj import new_dataset
-from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
+from .utils import (
+    axis_from_extent,
+    bins_from_axis,
+    get_attr_if_exists,
+    insert_str_at_index,
+    stopwatch,
+)
 
 
 class PartMixin:
@@ -42,6 +48,63 @@ class PartMixin:
         else:
             units_str = "a.u."
         return units_str
+
+    @staticmethod
+    def _calc_geometric_emittance(
+        ds: xr.Dataset,
+        xvar: str,
+        pvar: str,
+        p_longit: str,
+        wvar: str,
+    ) -> float | xr.DataArray:
+        q_tot = ds[wvar].sum(dim="pid", skipna=True)
+
+        x_prime = ds[pvar] / ds[p_longit]
+        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid", skipna=True) / q_tot
+        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid", skipna=True) / q_tot
+        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid", skipna=True) / q_tot
+        emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
+
+        return emit
+
+    def _find_all_pvars(self) -> list[str]:
+        p_vars = []
+        matches = [
+            re.fullmatch("p[A-Za-z0-9]", var) for var in list(self._obj.data_vars)
+        ]
+        for item in matches:
+            if item is not None:
+                p_vars.append(item.group(0))
+        return p_vars
+
+    def _calc_beta_gamma(
+        self, wvar: str, p_vars: list[str] | None = None
+    ) -> xr.DataArray:
+        ds = self._obj
+        if p_vars is None:
+            p_vars = ds.ozzy._find_all_pvars()
+
+        p_abs_sqr = 0
+        for p_var in p_vars:
+            p_abs_sqr += ds[p_var] ** 2
+
+        return ds[wvar] * np.sqrt(p_abs_sqr)
+
+    @staticmethod
+    def _calc_mean_lorentz_factor(
+        ds, wvar: str, p_vars: list[str] | None = None
+    ) -> float | xr.DataArray:
+        if p_vars is None:
+            p_vars = ds.ozzy._find_all_pvars()
+
+        p_abs_sqr = 0
+        for p_var in p_vars:
+            p_abs_sqr += ds[p_var] ** 2
+
+        gamma_parts = np.sqrt(1 + p_abs_sqr)
+        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
+
+        return gamma
 
     def sample_particles(self, n: int) -> xr.Dataset:
         """Downsample a particle Dataset by randomly choosing particles.
@@ -281,6 +344,7 @@ class PartMixin:
         return result
 
     # BUG: debug units
+    # TODO: add unit tests
     @stopwatch
     def bin_into_grid(
         self,
@@ -631,23 +695,33 @@ class PartMixin:
 
         return ps
 
-    # TODO: assumes that momentum variables follow the pattern "p?"
-    # TODO: add unit tests
     def get_emittance(
         self,
+        norm_emit: bool = True,
+        axisym: bool = False,
         xvar: str = "x2",
         pvar: str = "p2",
         wvar: str = "q",
         p_longit: str = "p1",
-        axisym: bool = False,
-    ) -> xr.DataArray:
-        r"""Calculate normalized RMS beam emittance.
+    ) -> xr.Dataset:
+        r"""Calculate the RMS beam emittance.
 
-        Computes the normalized RMS emittance based on particle positions and momenta.
-        For axisymmetric beams, returns the emittance (see _Notes_ below).
+        Computes the normalized or geometric RMS emittance based on particle positions and momenta.
+        For axisymmetric beams, returns the Lapostolle emittance (see _Notes_ below).
+
+        !!! warning
+
+            This method assumes that the particle dimension is `"pid"`.
+
+            The names of the momentum components are necessary for the calculation of $\left< \beta \gamma \right>$. These names are inferred by finding all data variables matching the regex pattern `p[A-Za-z0-9]` ([click here to test matches to this regular expression](https://regex101.com/r/fanTEo/1)).
+
 
         Parameters
         ----------
+        norm_emit : bool
+            Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
+        axisym : bool
+            If `True`, calculate Lapostolle emittance for axisymmetric beams
         xvar : str
             Variable name for position coordinate in Dataset
         pvar : str
@@ -656,31 +730,40 @@ class PartMixin:
             Variable name for particle weights in Dataset
         p_longit : str
             Variable name for longitudinal momentum in Dataset
-        axisym : bool
-            If `True`, calculate Lapostolle emittance for axisymmetric beams
+
 
         Returns
         -------
-        xarray.DataArray
-            Normalized emittance with attributes containing units and label information
+        xarray.Dataset
+            Dataset containing the calculated emittance and particle counts for each data point.
+
+            The emittance variable is named `"emit_norm"` if `norm_emit=True`,
+            otherwise `"emit"`. Also includes a `"counts"` variable with particle
+            counts.
+
 
         Notes
         -----
-        The normalized RMS emittance along a given transverse dimension $i$ is calculated according to:
 
-        $\varepsilon_{N,i} = \gamma \sqrt{\left<x_i^2\right> \left<{x'_i}^2\right> - \left(x_i x'_i\right)^2}$
+        The geometric emittance along a given transverse dimension $i$ is calculated according to:
 
-        where $\gamma$ is the average Lorentz factor, $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$.
+        $\epsilon_i = \sqrt{\left<x_i^2\right> \left<{x'_i}^2\right> - \left(x_i x'_i\right)^2}$
 
-        For a 2D cylindrical, axisymmetric geometry this function returns the Lapostolle emittance[^1]<sup>,</sup>[^2], i.e.:
+        where $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$. The angle brackets denote a weighted average over particles.
 
-        $\varepsilon_N = 4 \ \varepsilon_{N,i}$
+        The normalized emittance (`norm_emit=True`, default) is calculated as:
+
+        $\epsilon_{N,i} = \left< \beta \gamma \right> \ \epsilon_i$
+
+        where $\beta \gamma = \left| \vec{p} \right| / (m_\mathrm{sp} c)$.
+
+        For a 2D cylindrical, axisymmetric geometry (`axisym=True`) this function returns the Lapostolle emittance[^1]<sup>,</sup>[^2], i.e.:
+
+        $\epsilon = 4 \ \epsilon_i$
 
 
         [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
         [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
-
-
 
 
         Examples
@@ -703,8 +786,8 @@ class PartMixin:
                 attrs={"pic_data_type": "part"}
             )
 
-            emittance = particles.ozzy.get_emittance(xvar="r", pvar="pr", p_longit="px", axisym=True)
-            # Returns DataArray with normalized emittance in k_p^(-1) rad
+            emittance = particles.ozzy.get_emittance(axisym=True, xvar="r", pvar="pr", p_longit="px")
+            # Returns Dataset with normalized emittance in k_p^(-1) rad
             ```
         """
 
@@ -715,54 +798,477 @@ class PartMixin:
             if ivar not in ds.data_vars:
                 raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
 
-        # Calculate geometric emittance
-
-        # - get trace
-        x_prime = ds[pvar] / ds[p_longit]
-
-        # - calculate geometric emittance
-        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid") / ds[wvar].sum(dim="pid")
-        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid") / ds[wvar].sum(dim="pid")
-        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid") / ds[wvar].sum(
-            dim="pid"
-        )
-        emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
-
-        # Get energy
-
-        # - find all momentum variables
-        p_vars = []
-        matches = [re.fullmatch("p[A-Za-z0-9]", var) for var in list(ds.data_vars)]
-        for item in matches:
-            if item is not None:
-                p_vars.append(item.group(0))
-
-        # - calculate average Lorentz factor
-        p_abs_sqr = 0
-        for p_var in p_vars:
-            p_abs_sqr += ds[p_var] ** 2
-
-        gamma_parts = np.sqrt(1 + p_abs_sqr)
-        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
-
-        # Get normalized emittance
-
+        # Process axisymmetry option
         if axisym:
-            # Lapostolle emittance
-            emit_norm = 4 * gamma * emit
+            factor = 4
+            suffix_dim = ""
         else:
-            emit_norm = gamma * emit
+            factor = 1
+            suffix_dim = ds[xvar].attrs["long_name"].strip("$")
+
+        # Get secondary quantities
+
+        ds["x_prime"] = ds[pvar] / ds[p_longit]
+        ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
+        ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
+        ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
+
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(wvar)
+
+        # Calculate emittance
+
+        q_tot = ds[wvar].sum(dim="pid", skipna=True)
+
+        x_sq_mean = ds["x_sq"].sum(dim="pid", skipna=True) / q_tot
+        x_prime_sq_mean = ds["x_prime_sq"].sum(dim="pid", skipna=True) / q_tot
+        x_x_prime_mean = ds["x_x_prime"].sum(dim="pid", skipna=True) / q_tot
+        beta_gamma_mean = ds["beta_gamma"].sum(dim="pid", skipna=True) / q_tot
+
+        emit = np.sqrt(x_sq_mean * x_prime_sq_mean - x_x_prime_mean**2)
+
+        if norm_emit:
+            emit = beta_gamma_mean * emit
+            suffix_norm = "N"
+            var_name = "emit_norm"
+        else:
+            suffix_norm = ""
+            var_name = "emit"
+
+        emit_result = factor * emit
+        emit_result = emit_result.rename(var_name)
+
+        # Get number of particles in each bin
+
+        counts = ds[xvar].notnull().sum(dim="pid", skipna=True).rename("counts")
+
+        # Create output dataset
+
+        emit = new_dataset(
+            data_vars={var_name: emit_result, "counts": counts},
+            pic_data_type="grid",
+            data_origin="ozzy",
+        )
 
         # Set units and label
 
-        emit_norm = emit_norm.rename("emit_norm")
-        emit_norm.attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
+        suffix = ",".join(filter(None, [suffix_norm, suffix_dim]))
+
+        emit[var_name].attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
+        emit[var_name].attrs["long_name"] = r"$\epsilon_{" + suffix + "}$"
+
+        emit["counts"].attrs["units"] = r"1"
+        emit["counts"].attrs["long_name"] = "Counts"
+
+        return emit
+
+    def get_slice_emittance(
+        self,
+        axis_ds: xr.Dataset | None = None,
+        nbins: int | None = None,
+        norm_emit: bool = True,
+        axisym: bool = False,
+        min_count: int | None = None,
+        slice_var: str = "x1_box",
+        xvar: str = "x2",
+        pvar: str = "p2",
+        wvar: str = "q",
+        p_longit: str = "p1",
+    ) -> xr.Dataset:
+        r"""
+        Calculate the RMS slice emittance of particle data.
+
+        This method computes the slice emittance by binning particles along a specified
+        variable and calculating the RMS emittance (normalized or geometric) for each slice.
+        For axisymmetric beams, returns the Lapostolle emittance (see _Notes_ below).
+
+        !!! warning
+
+            This method assumes that the particle dimension is `"pid"`.
+
+            The names of the momentum components are necessary for the calculation of $\left< \beta \gamma \right>$. These names are inferred by finding all data variables matching the regex pattern `p[A-Za-z0-9]` ([click here to test matches to this regular expression](https://regex101.com/r/fanTEo/1)).
+
+        Parameters
+        ----------
+        axis_ds : xarray.Dataset or None, optional
+            Dataset containing coordinate information for binning. If provided, bin edges
+            are extracted from this dataset. Either `axis_ds` or `nbins` must be specified.
+
+            !!! note
+                If the label and unit attributes exist in `axis_ds[slice_var]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
+
+        nbins : int or None, optional
+            Number of bins to use for slicing. Either `axis_ds` or `nbins` must be specified.
+        norm_emit : bool, default True
+            Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
+        axisym : bool, default False
+            Whether to apply Lapostolle factor of 4.
+        min_count : int or None, optional
+            Minimum number of particles required in each bin for valid calculation.
+        slice_var : str, default "x1_box"
+            Variable name to use for slicing/binning the particles.
+        xvar : str, default "x2"
+            Variable name for the transverse position coordinate.
+        pvar : str, default "p2"
+            Variable name for the transverse momentum coordinate.
+        wvar : str, default "q"
+            Variable name for the particle weights/charges.
+        p_longit : str, default "p1"
+            Variable name for the longitudinal momentum component.
+
+
+        Returns
+        -------
+        xarray.Dataset
+            Dataset containing the calculated slice emittance and particle counts per bin.
+
+            The emittance variable is named `"slice_emit_norm"` if `norm_emit=True`,
+            otherwise `"slice_emit"`. Also includes a `"counts"` variable with particle
+            counts per bin.
+
+        Notes
+        -----
+
+        Particles are binned along the specified `slice_var` variable, and the emittance is computed for each binned ensemble.
+
+        The geometric emittance along a given transverse dimension $i$ is calculated according to:
+
+        $\epsilon_i = \sqrt{\left<x_i^2\right> \left<{x'_i}^2\right> - \left(x_i x'_i\right)^2}$
+
+        where $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$. The angle brackets denote a weighted average over particles.
+
+        The normalized emittance (`norm_emit=True`, default) is calculated as:
+
+        $\epsilon_{N,i} = \left< \beta \gamma \right> \ \epsilon_i$
+
+        where $\beta \gamma = \left| \vec{p} \right| / (m_\mathrm{sp} c)$.
+
+        For a 2D cylindrical, axisymmetric geometry (`axisym=True`) this function returns the Lapostolle emittance[^1]<sup>,</sup>[^2], i.e.:
+
+        $\epsilon = 4 \ \epsilon_i$
+
+
+        [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
+        [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
+
+
+        Examples
+        --------
+        ???+ example "Calculate normalized slice emittance in 2D cyl. geometry"
+            ```python
+            import ozzy as oz
+            import numpy as np
+
+            # Create a sample particle dataset
+            particles = oz.Dataset(
+                {
+                    "x": ("pid", np.random.uniform(0, 10, 10000)),
+                    "r": ("pid", np.random.uniform(0, 5, 10000)),
+                    "px": ("pid", np.random.uniform(99, 101, 10000)),
+                    "pr": ("pid", np.random.uniform(-2e-4, 2e-4, 10000)),
+                    "q": ("pid", np.ones(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Longitudinal axis along which to bin
+            axis = oz.utils.axis_from_extent(500, (0,10))
+            axis_ds = oz.Dataset({"x": axis}, pic_data_type = "grid")
+
+            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", xvar="r", pvar="pr", p_longit="px")
+            # Returns Dataset with normalized emittance in k_p^(-1) rad
+            ```
+        """
+        ds = self._obj
+
+        # Process xvar and pvar arguments
+        for ivar in [slice_var, xvar, pvar, wvar]:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+        # Process axis_ds and nbins arguments
+        if (axis_ds is None) and (nbins is None):
+            raise ValueError("Either axis_ds or nbins must be provided")
+        elif axis_ds is not None:
+            if slice_var not in axis_ds.coords:
+                raise KeyError(
+                    f"Cannot find '{slice_var}' variable in provided axis_ds"
+                )
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+        elif nbins is not None:
+            xmin = ds[slice_var].min().compute().data
+            xmax = ds[slice_var].max().compute().data
+            axis = axis_from_extent(nbins, (xmin, xmax))
+            axis_ds = new_dataset({slice_var: axis}, pic_data_type="grid")
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+
+        # Process axisymmetry option
         if axisym:
-            emit_norm.attrs["long_name"] = r"$\varepsilon_N$"
+            factor = 4
+            suffix_dim = ""
         else:
-            emit_norm.attrs["long_name"] = r"$\varepsilon_{N," + str(pvar[1]) + "}$"
+            factor = 1
+            suffix_dim = ds[xvar].attrs["long_name"].strip("$")
 
-        return emit_norm
+        # Get secondary quantities
 
-    # TODO: slice emittance
-    # - maybe use groupby to bin and perform operation
+        ds["x_prime"] = ds[pvar] / ds[p_longit]
+        ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
+        ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
+        ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
+
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(wvar)
+
+        # Calculate emittance and bin along slice_var
+
+        reduce_args = {
+            "func": "sum",
+            "isbin": True,
+            "expected_groups": bins,
+            "dim": "pid",
+            "skipna": True,
+            "min_count": min_count,
+        }
+
+        q_slice = xarray_reduce(ds[[wvar, slice_var]], slice_var, **reduce_args)[wvar]
+
+        x_sq_slice = (
+            xarray_reduce(ds[["x_sq", slice_var]], slice_var, **reduce_args)["x_sq"]
+            / q_slice
+        )
+        x_prime_sq_slice = (
+            xarray_reduce(ds[["x_prime_sq", slice_var]], slice_var, **reduce_args)[
+                "x_prime_sq"
+            ]
+            / q_slice
+        )
+        x_x_prime_slice = (
+            xarray_reduce(ds[["x_x_prime", slice_var]], slice_var, **reduce_args)[
+                "x_x_prime"
+            ]
+            / q_slice
+        )
+        bg_slice = (
+            xarray_reduce(ds[["beta_gamma", slice_var]], slice_var, **reduce_args)[
+                "beta_gamma"
+            ]
+            / q_slice
+        )
+
+        emit_slice = np.sqrt(x_sq_slice * x_prime_sq_slice - x_x_prime_slice**2)
+
+        if norm_emit:
+            emit_slice = bg_slice * emit_slice
+            suffix_norm = "N"
+            var_name = "slice_emit_norm"
+        else:
+            suffix_norm = ""
+            var_name = "slice_emit"
+
+        emit_result = factor * emit_slice
+        emit_result = emit_result.rename(var_name)
+
+        # Get number of particles in each bin
+
+        ds["counts"] = ds[slice_var].notnull()
+        counts = xarray_reduce(
+            ds[["counts", slice_var]], slice_var, **reduce_args, fill_value=0
+        )
+        counts = counts["counts"]
+
+        # Create output dataset
+
+        emit = new_dataset(
+            data_vars={var_name: emit_result, "counts": counts},
+            pic_data_type="grid",
+            data_origin="ozzy",
+        )
+
+        # Set units and label
+
+        suffix = ",".join(filter(None, [suffix_norm, suffix_dim]))
+
+        emit[var_name].attrs["units"] = r"$k_p^{-1} \ \mathrm{rad}$"
+        emit[var_name].attrs["long_name"] = r"$\epsilon_{" + suffix + "}$"
+
+        emit["counts"].attrs["units"] = r"1"
+        emit["counts"].attrs["long_name"] = "Counts"
+
+        # Overwrite attributes of slice_var if they're provided with axis_ds
+        for attr_item in ["long_name", "units"]:
+            if attr_item in axis_ds[slice_var].attrs:
+                emit[slice_var + "_bins"].attrs[attr_item] = axis_ds[slice_var].attrs[
+                    attr_item
+                ]
+
+        return emit
+
+    def get_energy_spectrum(
+        self,
+        axis_ds: xr.Dataset | None = None,
+        nbins: int | None = None,
+        enevar: str = "ene",
+        wvar: str = "q",
+    ) -> xr.Dataset:
+        """
+        Calculate the energy spectrum of particles.
+
+        This method computes a histogram of particle energy, binning the energy values
+        and summing the associated charge or weighting variable in each bin.
+
+        Parameters
+        ----------
+        axis_ds : xarray.Dataset or None, optional
+            Dataset containing the energy axis to use for binning. Must have `enevar`
+            as a coordinate. If `None`, `nbins` must be provided.
+
+            !!! note
+                If the label and unit attributes exist in `axis_ds[enevar]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
+
+        nbins : int or None, optional
+            Number of bins to use for the energy axis. Only used if `axis_ds` is `None`.
+            If `None`, `axis_ds` must be provided.
+        enevar : str, optional
+            Name of the energy variable in the dataset, default is `"ene"`.
+        wvar : str, optional
+            Name of the weighting variable (typically charge) in the dataset,
+            default is `"q"`.
+
+        Returns
+        -------
+        xarray.Dataset
+            A new dataset containing the energy spectrum with the following variables:
+            - The weighting variable (e.g., `"q"`) containing the histogram of charge per energy bin
+            - `"counts"` containing the number of particles in each energy bin
+
+        Notes
+        -----
+        The **absolute value** of the weighting variable is used for the calculation.
+
+        Examples
+        --------
+        ???+ example "Basic usage with number of bins"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset
+            rng = np.random.default_rng()
+            ds = oz.Dataset(
+                {
+                    "ene": ("pid", rng.normal(100, 5, size=10000) ),
+                    "q": ("pid", rng.random(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Get energy spectrum
+            spectrum = ds.ozzy.get_energy_spectrum(nbins=100)
+            # Plot the result
+            spectrum.q.plot()
+            ```
+
+        ???+ example "Using a custom energy axis"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset
+            rng = np.random.default_rng()
+            ds = oz.Dataset(
+                {
+                    "p1": ("pid", rng.lognormal(3.0, 1.0, size=10000) ),
+                    "weight": ("pid", rng.random(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Create a custom logarithmic energy axis
+            energy_axis = np.logspace(-1, 3, 50)  # 50 points from 0.1 to 1000
+            axis_ds = oz.Dataset(coords={"p1": energy_axis}, pic_data_type="grid")
+            axis_ds["p1"].attrs["long_name"] = r"$p_1$"
+            axis_ds["p1"].attrs["units"] = r"$m_\mathrm{sp} c$"
+
+            # Get energy spectrum using this axis
+            spectrum = ds.ozzy.get_energy_spectrum(axis_ds=axis_ds, enevar="p1", wvar="weight")
+            # Plot the result
+            spectrum["weight"].plot(marker=".")
+            # Spectrum now contains the summed weights in each logarithmic energy bin
+            ```
+        """
+        ds = self._obj
+
+        # Process xvar and pvar arguments
+        for ivar in [enevar, wvar]:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+        # Process axis_ds and nbins arguments
+        if (axis_ds is None) and (nbins is None):
+            raise ValueError("Either axis_ds or nbins must be provided")
+        elif axis_ds is not None:
+            if enevar not in axis_ds.coords:
+                raise KeyError(f"Cannot find '{enevar}' variable in provided axis_ds")
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+        elif nbins is not None:
+            xmin = ds[enevar].min().compute().data
+            xmax = ds[enevar].max().compute().data
+            axis = axis_from_extent(nbins, (xmin, xmax))
+            axis_ds = new_dataset({enevar: axis}, pic_data_type="grid")
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+
+        # Bin along energy variable and sum charge
+
+        reduce_args = {
+            "func": "sum",
+            "isbin": True,
+            "expected_groups": bins,
+            "dim": "pid",
+            "skipna": True,
+        }
+
+        # Take absolute value of charge/weighting variable
+        ds[wvar] = abs(ds[wvar])
+
+        ene_hist = xarray_reduce(ds[[wvar, enevar]], enevar, **reduce_args)[wvar]
+
+        # Get number of particles in each bin
+
+        ds["counts"] = ds[enevar].notnull()
+        counts = xarray_reduce(
+            ds[["counts", enevar]], enevar, **reduce_args, fill_value=0
+        )
+        counts = counts["counts"]
+
+        # Create output dataset
+
+        ene_spectrum = new_dataset(
+            data_vars={wvar: ene_hist, "counts": counts},
+            pic_data_type="grid",
+            data_origin="ozzy",
+        )
+
+        # Set units and label
+
+        # Add "| ... |" to label of wvar
+        if "long_name" in ene_spectrum[wvar].attrs:
+            old_label = ene_spectrum[wvar].attrs["long_name"]
+            new_label = insert_str_at_index(old_label, "|", 1)
+            new_label = insert_str_at_index(new_label, "|", -1)
+            ene_spectrum[wvar].attrs["long_name"] = new_label
+        else:
+            ene_spectrum[wvar].attrs["long_name"] = "Weighted counts"
+
+        ene_spectrum["counts"].attrs["units"] = r"1"
+        ene_spectrum["counts"].attrs["long_name"] = "Counts"
+
+        # Overwrite attributes of enevar if they're provided with axis_ds
+        for attr_item in ["long_name", "units"]:
+            if attr_item in axis_ds[enevar].attrs:
+                ene_spectrum[enevar + "_bins"].attrs[attr_item] = axis_ds[enevar].attrs[
+                    attr_item
+                ]
+
+        return ene_spectrum

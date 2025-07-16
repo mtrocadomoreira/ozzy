@@ -3,6 +3,14 @@ hide:
   - feedback
 ---
 
+<style>
+    .md-sidebar--primary,
+    .md-sidebar--secondary  {
+      visibility: hidden;
+      pointer-events: none;
+    }
+</style>
+
 # Welcome to
 
 <figure markdown="span">

@@ -11,8 +11,8 @@ import ozzy.core as oz
 def sample_dataset():
     return oz.Dataset(
         {
-            "x1": ("pid", np.random.rand(1000)),
-            "x2": ("pid", np.random.rand(1000)),
+            "x1": ("pid", np.random.rand(1000), {"long_name": "$x_1$"}),
+            "x2": ("pid", np.random.rand(1000), {"long_name": "$x_2$"}),
             "p1": ("pid", np.random.rand(1000)),
             "p2": ("pid", np.random.rand(1000)),
             "q": ("pid", np.ones(1000)),
@@ -88,3 +88,77 @@ def test_get_phase_space_custom_nbins(sample_dataset):
 
     assert result.p2.size == 50
     assert result.x2.size == 75
+
+
+def test_get_emittance_basic(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_emittance()
+    assert isinstance(result, xr.Dataset)
+    assert "emit_norm" in result.data_vars
+    assert "counts" in result.data_vars
+    assert result.attrs["pic_data_type"] == "grid"
+
+
+def test_get_emittance_geometric(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_emittance(norm_emit=False)
+    assert "emit" in result.data_vars
+    assert "emit_norm" not in result.data_vars
+
+
+def test_get_emittance_axisym(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_emittance(axisym=True)
+    result_normal = ds.ozzy.get_emittance(axisym=False)
+    assert (result.emit_norm == 4 * result_normal.emit_norm).all()
+
+
+def test_get_emittance_invalid_var(sample_dataset):
+    ds = sample_dataset
+    with pytest.raises(KeyError, match="Cannot find 'invalid_var' variable in Dataset"):
+        ds.ozzy.get_emittance(xvar="invalid_var")
+
+
+def test_get_slice_emittance_basic(sample_dataset):
+    ds = sample_dataset
+    axis_ds = xr.Dataset(
+        coords={"x1": np.linspace(0, 1, 10)}, attrs={"pic_data_type": "grid"}
+    )
+    result = ds.ozzy.get_slice_emittance(axis_ds=axis_ds, slice_var="x1")
+    assert isinstance(result, xr.Dataset)
+    assert "slice_emit_norm" in result.data_vars
+    assert "counts" in result.data_vars
+
+
+def test_get_slice_emittance_nbins(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_slice_emittance(nbins=20, slice_var="x1")
+    assert len(result.x1_bins) == 20
+
+
+def test_get_slice_emittance_min_count(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_slice_emittance(nbins=10, min_count=50, slice_var="x1")
+    assert not np.any(result.counts < 50)
+
+
+def test_get_slice_emittance_missing_params(sample_dataset):
+    ds = sample_dataset
+    with pytest.raises(ValueError, match="Either axis_ds or nbins must be provided"):
+        ds.ozzy.get_slice_emittance(slice_var="x1")
+
+
+def test_get_slice_emittance_invalid_axis(sample_dataset):
+    ds = sample_dataset
+    axis_ds = xr.Dataset(
+        coords={"wrong_var": np.linspace(0, 1, 10)}, attrs={"pic_data_type": "grid"}
+    )
+    with pytest.raises(KeyError):
+        ds.ozzy.get_slice_emittance(axis_ds=axis_ds, slice_var="x1")
+
+
+def test_get_slice_emittance_geometric(sample_dataset):
+    ds = sample_dataset
+    result = ds.ozzy.get_slice_emittance(nbins=10, norm_emit=False, slice_var="x1")
+    assert "slice_emit" in result.data_vars
+    assert "slice_emit_norm" not in result.data_vars
