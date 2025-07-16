@@ -940,3 +940,44 @@ def get_attr_if_exists(
             return str_doesnt
         else:
             return None
+
+
+def insert_str_at_index(original: str, inserted: str, index: int) -> str:
+    """
+    Insert a string into another string at a specified index position.
+
+    Parameters
+    ----------
+    original : str
+        The original string that will be modified.
+    inserted : str
+        The string to be inserted into the original string.
+    index : int
+        The position where the insertion should occur.
+
+    Returns
+    -------
+    str
+        A new string with the inserted content at the specified index.
+
+    Examples
+    --------
+
+    ???+ example "Hello Beautiful World"
+        ```python
+        from ozzy.utils import insert_str_at_index
+
+        insert_str_at_index("Hello World", " Beautiful", 5)
+        # Output: "Hello Beautiful World"
+        ```
+
+    ???+ example "SuperPython"
+        ```python
+        from ozzy.utils import insert_str_at_index
+
+        insert_str_at_index("Python", "Super", 0)
+        # Output: "SuperPython"
+        ```
+    """
+    out = original[:index] + inserted + original[index:]
+    return out
