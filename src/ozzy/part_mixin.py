@@ -1103,6 +1103,7 @@ class PartMixin:
 
         return emit
 
+    # TODO: add unit tests
     def get_energy_spectrum(
         self,
         axis_ds: xr.Dataset | None = None,
