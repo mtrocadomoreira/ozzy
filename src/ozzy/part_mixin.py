@@ -16,7 +16,13 @@ import xarray as xr
 from flox.xarray import xarray_reduce
 
 from .new_dataobj import new_dataset
-from .utils import axis_from_extent, bins_from_axis, get_attr_if_exists, stopwatch
+from .utils import (
+    axis_from_extent,
+    bins_from_axis,
+    get_attr_if_exists,
+    insert_str_at_index,
+    stopwatch,
+)
 
 
 class PartMixin:
@@ -888,7 +894,7 @@ class PartMixin:
             are extracted from this dataset. Either `axis_ds` or `nbins` must be specified.
 
             !!! note
-                If the label and unit attributes (`'long_name'` and `'units'`, respectively) exist in `axis_ds[slice_var]`, these attributes are adopted for the output dataset.
+                If the label and unit attributes exist in `axis_ds[slice_var]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
 
         nbins : int or None, optional
             Number of bins to use for slicing. Either `axis_ds` or `nbins` must be specified.
@@ -1096,3 +1102,173 @@ class PartMixin:
                 ]
 
         return emit
+
+    def get_energy_spectrum(
+        self,
+        axis_ds: xr.Dataset | None = None,
+        nbins: int | None = None,
+        enevar: str = "ene",
+        wvar: str = "q",
+    ) -> xr.Dataset:
+        """
+        Calculate the energy spectrum of particles.
+
+        This method computes a histogram of particle energy, binning the energy values
+        and summing the associated charge or weighting variable in each bin.
+
+        Parameters
+        ----------
+        axis_ds : xarray.Dataset or None, optional
+            Dataset containing the energy axis to use for binning. Must have `enevar`
+            as a coordinate. If `None`, `nbins` must be provided.
+
+            !!! note
+                If the label and unit attributes exist in `axis_ds[enevar]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
+
+        nbins : int or None, optional
+            Number of bins to use for the energy axis. Only used if `axis_ds` is `None`.
+            If `None`, `axis_ds` must be provided.
+        enevar : str, optional
+            Name of the energy variable in the dataset, default is `"ene"`.
+        wvar : str, optional
+            Name of the weighting variable (typically charge) in the dataset,
+            default is `"q"`.
+
+        Returns
+        -------
+        xarray.Dataset
+            A new dataset containing the energy spectrum with the following variables:
+            - The weighting variable (e.g., `"q"`) containing the histogram of charge per energy bin
+            - `"counts"` containing the number of particles in each energy bin
+
+        Notes
+        -----
+        The **absolute value** of the weighting variable is used for the calculation.
+
+        Examples
+        --------
+        ???+ example "Basic usage with number of bins"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset
+            rng = np.random.default_rng()
+            ds = oz.Dataset(
+                {
+                    "ene": ("pid", rng.normal(100, 5, size=10000) ),
+                    "q": ("pid", rng.random(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Get energy spectrum
+            spectrum = ds.ozzy.get_energy_spectrum(nbins=100)
+            # Plot the result
+            spectrum.q.plot()
+            ```
+
+        ???+ example "Using a custom energy axis"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset
+            rng = np.random.default_rng()
+            ds = oz.Dataset(
+                {
+                    "p1": ("pid", rng.lognormal(3.0, 1.0, size=10000) ),
+                    "weight": ("pid", rng.random(10000)),
+                },
+                coords={"pid": np.arange(10000)},
+                attrs={"pic_data_type": "part"}
+            )
+
+            # Create a custom logarithmic energy axis
+            energy_axis = np.logspace(-1, 3, 50)  # 50 points from 0.1 to 1000
+            axis_ds = oz.Dataset(coords={"p1": energy_axis}, pic_data_type="grid")
+            axis_ds["p1"].attrs["long_name"] = r"$p_1$"
+            axis_ds["p1"].attrs["units"] = r"$m_\mathrm{sp} c$"
+
+            # Get energy spectrum using this axis
+            spectrum = ds.ozzy.get_energy_spectrum(axis_ds=axis_ds, enevar="p1", wvar="weight")
+            # Plot the result
+            spectrum["weight"].plot(marker=".")
+            # Spectrum now contains the summed weights in each logarithmic energy bin
+            ```
+        """
+        ds = self._obj
+
+        # Process xvar and pvar arguments
+        for ivar in [enevar, wvar]:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+
+        # Process axis_ds and nbins arguments
+        if (axis_ds is None) and (nbins is None):
+            raise ValueError("Either axis_ds or nbins must be provided")
+        elif axis_ds is not None:
+            if enevar not in axis_ds.coords:
+                raise KeyError(f"Cannot find '{enevar}' variable in provided axis_ds")
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+        elif nbins is not None:
+            xmin = ds[enevar].min().compute().data
+            xmax = ds[enevar].max().compute().data
+            axis = axis_from_extent(nbins, (xmin, xmax))
+            axis_ds = new_dataset({enevar: axis}, pic_data_type="grid")
+            bins = axis_ds.ozzy.get_bin_edges()[0]
+
+        # Bin along energy variable and sum charge
+
+        reduce_args = {
+            "func": "sum",
+            "isbin": True,
+            "expected_groups": bins,
+            "dim": "pid",
+            "skipna": True,
+        }
+
+        # Take absolute value of charge/weighting variable
+        ds[wvar] = abs(ds[wvar])
+
+        ene_hist = xarray_reduce(ds[[wvar, enevar]], enevar, **reduce_args)[wvar]
+
+        # Get number of particles in each bin
+
+        ds["counts"] = ds[enevar].notnull()
+        counts = xarray_reduce(
+            ds[["counts", enevar]], enevar, **reduce_args, fill_value=0
+        )
+        counts = counts["counts"]
+
+        # Create output dataset
+
+        ene_spectrum = new_dataset(
+            data_vars={wvar: ene_hist, "counts": counts},
+            pic_data_type="grid",
+            data_origin="ozzy",
+        )
+
+        # Set units and label
+
+        # Add "| ... |" to label of wvar
+        if "long_name" in ene_spectrum[wvar].attrs:
+            old_label = ene_spectrum[wvar].attrs["long_name"]
+            new_label = insert_str_at_index(old_label, "|", 1)
+            new_label = insert_str_at_index(new_label, "|", -1)
+            ene_spectrum[wvar].attrs["long_name"] = new_label
+        else:
+            ene_spectrum[wvar].attrs["long_name"] = "Weighted counts"
+
+        ene_spectrum["counts"].attrs["units"] = r"1"
+        ene_spectrum["counts"].attrs["long_name"] = "Counts"
+
+        # Overwrite attributes of enevar if they're provided with axis_ds
+        for attr_item in ["long_name", "units"]:
+            if attr_item in axis_ds[enevar].attrs:
+                ene_spectrum[enevar + "_bins"].attrs[attr_item] = axis_ds[enevar].attrs[
+                    attr_item
+                ]
+
+        return ene_spectrum
