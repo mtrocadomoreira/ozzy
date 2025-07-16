@@ -3,6 +3,112 @@
 <!--start-docs-->
 
 
+## Version 1.3.0 
+
+Released 16-07-2025 
+
+### Bug Fixes
+
+* [`2f8993b`](https://github.com/mtrocadomoreira/ozzy/commit/2f8993b4b220753736e648e20c72fc6aa614610d): Use absolute value of weight variable for `ozzy.plot.hist` and `ozzy.plot.hist_proj`
+
+
+
+    The weighting variable in data objects is often a charge (e.g. `do['q']`), which means that it has a charge sign. This would show up in histograms as negative counts.
+
+
+* [`ade7881`](https://github.com/mtrocadomoreira/ozzy/commit/ade788157a9372e66c1a52a87ab5e5202e64aa29): Accept filenames for beamfiles (and plasma and fields files) with more flexible patterns
+
+
+
+    Now accepts the regex filename pattern `"beamfile\w*\.bin"` instead of `"beamfile.bin"`. The same applies to `plasma.bin` and `fields.bin` files.
+
+    _Before:_
+
+    ✅ `beamfile.bin`
+
+    ❌ `beamfile_changed.bin`
+
+    ❌ `beamfile2.bin`
+
+    _Now:_
+
+    ✅ `beamfile.bin`
+
+    ✅ `beamfile_changed.bin`
+
+    ✅ `beamfile2.bin`
+
+
+* [`cdf5a87`](https://github.com/mtrocadomoreira/ozzy/commit/cdf5a87941b323f6a73cd0faa10d5759936639e0): Bug in `bin_into_grid` where the time dimension was hardcoded as `&#34;t&#34;`
+
+
+
+
+
+
+### Documentation
+
+* [`411f68d`](https://github.com/mtrocadomoreira/ozzy/commit/411f68dbb44607719a3a4124618e5dfd78332d47): Hide toc sidebar in homepage of documentation while keeping the margins
+
+
+
+    Solution adopted from this [StackOverflow answer](https://stackoverflow.com/a/79647644).
+
+
+* [`8e3538f`](https://github.com/mtrocadomoreira/ozzy/commit/8e3538f11dca89b1fbb2b2c0b9ce6293a75ff1d7): Update changelog manually
+
+
+
+
+
+
+### Features
+
+* [`cfa8949`](https://github.com/mtrocadomoreira/ozzy/commit/cfa894900d356b1a5f0e037b1d0cdecd29980ba3): Add energy spectrum calculation
+
+
+
+    Add `get_energy_spectrum` method to particle datasets, which calculates energy histograms with proper binning and attribute handling. See documentation for examples of usage.
+
+
+* [`a542991`](https://github.com/mtrocadomoreira/ozzy/commit/a5429918859f4e5bb8a46e2f71771c92580ca8c6): Add method to get the slice emittance `get_slice_emittance`
+
+
+
+    Includes some changes to the `get_emittance` method and its documentation. It is now possible to choose between the normalized and geometric emittance, for example.
+
+
+### Refactoring
+
+* [`10eef35`](https://github.com/mtrocadomoreira/ozzy/commit/10eef350fa8363496657541cb10f71bff61f5b6a): The output of `get_slice_emittance` now adopts any label and units attributes provided with `axis_ds`
+
+
+
+
+
+
+* [`4d876ca`](https://github.com/mtrocadomoreira/ozzy/commit/4d876cacb76214112ea7eb3a3ae704349b50e7f1): Add utility function to insert string at a given index
+
+
+
+
+
+
+* [`fb3cc12`](https://github.com/mtrocadomoreira/ozzy/commit/fb3cc12a9b03b7def8c16b7d278475267d8432a0): Add `time_dim` and `weight_var` arguments in `get_phase_space`
+
+
+
+    The function `get_phase_space` calls `bin_into_grid`, which was setting some defaults for the `time_dim` and `weight_var` arguments. This is not the case anymore.
+
+
+* [`f0e45a7`](https://github.com/mtrocadomoreira/ozzy/commit/f0e45a73401fc8a25959562c58bd9a6521938f6f): Add `time_dim` and `weight_var` arguments in `get_phase_space`
+
+
+
+    The function `get_phase_space` calls `bin_into_grid`, which was setting some defaults for the `time_dim` and `weight_var` arguments. This is not the case anymore.
+
+
+
 ## Version 1.2.10 
 
 Released 23-06-2025 
