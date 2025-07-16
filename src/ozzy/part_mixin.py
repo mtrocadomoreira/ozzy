@@ -886,6 +886,10 @@ class PartMixin:
         axis_ds : xarray.Dataset or None, optional
             Dataset containing coordinate information for binning. If provided, bin edges
             are extracted from this dataset. Either `axis_ds` or `nbins` must be specified.
+
+            !!! note
+                If the label and unit attributes (`'long_name'` and `'units'`, respectively) exist in `axis_ds[slice_var]`, these attributes are adopted for the output dataset.
+
         nbins : int or None, optional
             Number of bins to use for slicing. Either `axis_ds` or `nbins` must be specified.
         norm_emit : bool, default True
@@ -1083,5 +1087,12 @@ class PartMixin:
 
         emit["counts"].attrs["units"] = r"1"
         emit["counts"].attrs["long_name"] = "Counts"
+
+        # Overwrite attributes of slice_var if they're provided with axis_ds
+        for attr_item in ["long_name", "units"]:
+            if attr_item in axis_ds[slice_var].attrs:
+                emit[slice_var + "_bins"].attrs[attr_item] = axis_ds[slice_var].attrs[
+                    attr_item
+                ]
 
         return emit
