@@ -3,6 +3,45 @@
 <!--start-docs-->
 
 
+## Version 1.3.1 
+
+Released 23-07-2025 
+
+### Bug Fixes
+
+* [`8a02447`](https://github.com/mtrocadomoreira/ozzy/commit/8a024471b036891ccc4113470cbe0397148ff637): Error when trying to save the output of `get_slice_emittance` or `get_energy_spectrum`
+
+
+
+    These particle methods use a special binning and grouping function (`flox.xarray.xarray_reduce`) for increased efficiency. However, this function creates a coordinate for the binned variable with the data type `pandas.Interval`, which makes it impossible to save the data with `ds.ozzy.save`. The binned coordinate is now converted into a normal `numpy` array, using the midpoints of each interval element.
+
+
+### Documentation
+
+* [`3242468`](https://github.com/mtrocadomoreira/ozzy/commit/32424684c24559c3955fc75fdef0bf6d604bac77): Add docstring to new utility function `convert_interval_to_mid`
+
+
+
+
+
+
+### Refactoring
+
+* [`4fc223d`](https://github.com/mtrocadomoreira/ozzy/commit/4fc223d76a4fc8305f54e013ed751367a0ac1ba6): Add timing information to several particle methods
+
+
+
+    The particle methods get_phase_space, get_emittance, get_slice_emittance, get_energy_spectrum now print the time taken to complete.
+
+
+* [`ef3420f`](https://github.com/mtrocadomoreira/ozzy/commit/ef3420f2eef1db5631561ed216f2eab7be3d42ab): Add timing information to several particle methods
+
+
+
+    The particle methods `get_phase_space`, `get_emittance`, `get_slice_emittance`, `get_energy_spectrum` now print the time taken to complete.
+
+
+
 ## Version 1.3.0 
 
 Released 16-07-2025 
