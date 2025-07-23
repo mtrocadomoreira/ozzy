@@ -984,6 +984,61 @@ def insert_str_at_index(original: str, inserted: str, index: int) -> str:
 
 
 def convert_interval_to_mid(da: xr.DataArray) -> np.ndarray:
+    r"""
+    Convert [`xarray.DataArray`][xarray.DataArray] of [`pandas.Interval`][pandas.Interval] objects to an array of their midpoints.
+
+    Parameters
+    ----------
+    da : xarray.DataArray
+        An [`xarray.DataArray`][xarray.DataArray] containing [`pandas.Interval`][pandas.Interval] objects.
+
+    Returns
+    -------
+    numpy.ndarray
+        A [`numpy.ndarray`][numpy.ndarray] containing the midpoint values of each interval.
+
+    Raises
+    ------
+    AttributeError
+        If the elements in the DataArray are not [`pandas.Interval`][pandas.Interval] objects.
+
+    Examples
+    --------
+    ???+ example "Basic usage with interval data"
+        ```python
+        import pandas as pd
+        import numpy as np
+        import xarray as xr
+
+        # Create an array of pandas Interval objects
+        intervals = [pd.Interval(0, 10), pd.Interval(10, 20), pd.Interval(20, 30)]
+
+        # Create an xarray DataArray
+        da = xr.DataArray(intervals)
+
+        # Get the midpoints
+        mid_points = convert_interval_to_mid(da)
+        # Output: array([ 5., 15., 25.])
+        ```
+
+    ???+ example "Handling 2D interval data"
+        ```python
+        import pandas as pd
+        import numpy as np
+        import xarray as xr
+
+        # Create a 2D array of pandas Interval objects
+        intervals_2d = [[pd.Interval(0, 2), pd.Interval(2, 4)],
+                        [pd.Interval(4, 6), pd.Interval(6, 8)]]
+
+        # Create an xarray DataArray
+        da_2d = xr.DataArray(intervals_2d)
+
+        # Get the midpoints
+        mid_points_2d = convert_interval_to_mid(da_2d)
+        # Output: array([[1., 3.], [5., 7.]])
+        ```
+    """
     try:
         new_arr = np.array([el.mid for el in da.data])
     except AttributeError:
