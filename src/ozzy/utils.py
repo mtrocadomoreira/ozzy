@@ -981,3 +981,13 @@ def insert_str_at_index(original: str, inserted: str, index: int) -> str:
     """
     out = original[:index] + inserted + original[index:]
     return out
+
+
+def convert_interval_to_mid(da: xr.DataArray) -> np.ndarray:
+    try:
+        new_arr = np.array([el.mid for el in da.data])
+    except AttributeError:
+        print("Error: It seems like the targeted object isn't of pandas.Interval type")
+        raise
+
+    return new_arr

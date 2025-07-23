@@ -19,6 +19,7 @@ from .new_dataobj import new_dataset
 from .utils import (
     axis_from_extent,
     bins_from_axis,
+    convert_interval_to_mid,
     get_attr_if_exists,
     insert_str_at_index,
     stopwatch,
@@ -1087,6 +1088,14 @@ class PartMixin:
             data_origin="ozzy",
         )
 
+        # Convert binned coordinate to normal Numpy array instead of pandas.Interval
+        # (since this leads to an error when trying to save the object)
+        emit = emit.rename_dims({slice_var + "_bins": slice_var})
+        emit = emit.assign_coords(
+            {slice_var: convert_interval_to_mid(emit[slice_var + "_bins"])}
+        )
+        emit = emit.drop_vars(slice_var + "_bins")
+
         # Set units and label
 
         suffix = ",".join(filter(None, [suffix_norm, suffix_dim]))
@@ -1097,16 +1106,18 @@ class PartMixin:
         emit["counts"].attrs["units"] = r"1"
         emit["counts"].attrs["long_name"] = "Counts"
 
-        # Overwrite attributes of slice_var if they're provided with axis_ds
+        # Overwrite attributes of slice_var if they're provided with axis_ds,
+        # otherwise try to take the attributes from original dataset
         for attr_item in ["long_name", "units"]:
             if attr_item in axis_ds[slice_var].attrs:
-                emit[slice_var + "_bins"].attrs[attr_item] = axis_ds[slice_var].attrs[
-                    attr_item
-                ]
+                emit[slice_var].attrs[attr_item] = axis_ds[slice_var].attrs[attr_item]
+            elif attr_item in ds[slice_var].attrs:
+                emit[slice_var].attrs[attr_item] = ds[slice_var].attrs[attr_item]
 
         return emit
 
     # TODO: add unit tests
+    @stopwatch
     def get_energy_spectrum(
         self,
         axis_ds: xr.Dataset | None = None,
@@ -1114,7 +1125,7 @@ class PartMixin:
         enevar: str = "ene",
         wvar: str = "q",
     ) -> xr.Dataset:
-        """
+        r"""
         Calculate the energy spectrum of particles.
 
         This method computes a histogram of particle energy, binning the energy values
@@ -1254,7 +1265,15 @@ class PartMixin:
             data_origin="ozzy",
         )
 
-        # Set units and label
+        # Convert binned coordinate to normal Numpy array instead of pandas.Interval
+        # (since this leads to an error when trying to save the object)
+        ene_spectrum = ene_spectrum.rename_dims({enevar + "_bins": enevar})
+        ene_spectrum = ene_spectrum.assign_coords(
+            {enevar: convert_interval_to_mid(ene_spectrum[enevar + "_bins"])}
+        )
+        ene_spectrum = ene_spectrum.drop_vars(enevar + "_bins")
+
+        # Set units and labels
 
         # Add "| ... |" to label of wvar
         if "long_name" in ene_spectrum[wvar].attrs:
@@ -1268,11 +1287,14 @@ class PartMixin:
         ene_spectrum["counts"].attrs["units"] = r"1"
         ene_spectrum["counts"].attrs["long_name"] = "Counts"
 
-        # Overwrite attributes of enevar if they're provided with axis_ds
+        # Overwrite attributes of enevar if they're provided with axis_ds,
+        # otherwise try to take the attributes from original dataset
         for attr_item in ["long_name", "units"]:
             if attr_item in axis_ds[enevar].attrs:
                 ene_spectrum[enevar + "_bins"].attrs[attr_item] = axis_ds[enevar].attrs[
                     attr_item
                 ]
+            elif attr_item in ds[enevar].attrs:
+                ene_spectrum[enevar].attrs[attr_item] = ds[enevar].attrs[attr_item]
 
         return ene_spectrum
