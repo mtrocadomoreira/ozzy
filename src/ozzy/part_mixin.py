@@ -584,6 +584,7 @@ class PartMixin:
 
         return parts
 
+     @stopwatch
     def get_phase_space(
         self,
         vars: list[str],
@@ -695,6 +696,7 @@ class PartMixin:
 
         return ps
 
+     @stopwatch
     def get_emittance(
         self,
         norm_emit: bool = True,
@@ -861,6 +863,7 @@ class PartMixin:
 
         return emit
 
+     @stopwatch
     def get_slice_emittance(
         self,
         axis_ds: xr.Dataset | None = None,
@@ -1104,6 +1107,7 @@ class PartMixin:
         return emit
 
     # TODO: add unit tests
+     @stopwatch
     def get_energy_spectrum(
         self,
         axis_ds: xr.Dataset | None = None,
