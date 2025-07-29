@@ -1287,8 +1287,13 @@ class PartMixin:
         # Add "| ... |" to label of wvar
         if "long_name" in ene_spectrum[wvar].attrs:
             old_label = ene_spectrum[wvar].attrs["long_name"]
-            new_label = insert_str_at_index(old_label, "|", 1)
-            new_label = insert_str_at_index(new_label, "|", -1)
+
+            if (old_label[0] == "$") & (old_label[-1] == "$"):
+                new_label = insert_str_at_index(old_label, "|", 1)
+                new_label = insert_str_at_index(new_label, "|", -1)
+            else:
+                new_label = "|" + old_label + "|"
+
             ene_spectrum[wvar].attrs["long_name"] = new_label
         else:
             ene_spectrum[wvar].attrs["long_name"] = "Weighted counts"
@@ -1300,9 +1305,7 @@ class PartMixin:
         # otherwise try to take the attributes from original dataset
         for attr_item in ["long_name", "units"]:
             if attr_item in axis_ds[enevar].attrs:
-                ene_spectrum[enevar + "_bins"].attrs[attr_item] = axis_ds[enevar].attrs[
-                    attr_item
-                ]
+                ene_spectrum[enevar].attrs[attr_item] = axis_ds[enevar].attrs[attr_item]
             elif attr_item in ds[enevar].attrs:
                 ene_spectrum[enevar].attrs[attr_item] = ds[enevar].attrs[attr_item]
 
