@@ -9,8 +9,6 @@
 # *********************************************************
 
 
-import re
-
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
@@ -68,44 +66,18 @@ class PartMixin:
 
         return emit
 
-    def _find_all_pvars(self) -> list[str]:
-        p_vars = []
-        matches = [
-            re.fullmatch("p[A-Za-z0-9]", var) for var in list(self._obj.data_vars)
-        ]
-        for item in matches:
-            if item is not None:
-                p_vars.append(item.group(0))
-        return p_vars
-
     def _calc_beta_gamma(
-        self, wvar: str, p_vars: list[str] | None = None
+        self,
+        p_vars: list[str],
+        wvar: str,
     ) -> xr.DataArray:
         ds = self._obj
-        if p_vars is None:
-            p_vars = ds.ozzy._find_all_pvars()
 
         p_abs_sqr = 0
         for p_var in p_vars:
             p_abs_sqr += ds[p_var] ** 2
 
         return ds[wvar] * np.sqrt(p_abs_sqr)
-
-    @staticmethod
-    def _calc_mean_lorentz_factor(
-        ds, wvar: str, p_vars: list[str] | None = None
-    ) -> float | xr.DataArray:
-        if p_vars is None:
-            p_vars = ds.ozzy._find_all_pvars()
-
-        p_abs_sqr = 0
-        for p_var in p_vars:
-            p_abs_sqr += ds[p_var] ** 2
-
-        gamma_parts = np.sqrt(1 + p_abs_sqr)
-        gamma = (ds[wvar] * gamma_parts).sum(dim="pid") / ds[wvar].sum(dim="pid")
-
-        return gamma
 
     def sample_particles(self, n: int) -> xr.Dataset:
         """Downsample a particle Dataset by randomly choosing particles.
@@ -702,10 +674,10 @@ class PartMixin:
         self,
         norm_emit: bool = True,
         axisym: bool = False,
+        all_pvars: list[str] = ["p1", "p2", "p3"],
         xvar: str = "x2",
         pvar: str = "p2",
         wvar: str = "q",
-        p_longit: str = "p1",
     ) -> xr.Dataset:
         r"""Calculate the RMS beam emittance.
 
@@ -716,23 +688,27 @@ class PartMixin:
 
             This method assumes that the particle dimension is `"pid"`.
 
-            The names of the momentum components are necessary for the calculation of $\left< \beta \gamma \right>$. These names are inferred by finding all data variables matching the regex pattern `p[A-Za-z0-9]` ([click here to test matches to this regular expression](https://regex101.com/r/fanTEo/1)).
-
-
         Parameters
         ----------
         norm_emit : bool
             Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
         axisym : bool
             If `True`, calculate Lapostolle emittance for axisymmetric beams
+        all_pvars : list[str]
+            List of names of momentum components.
+
+            !!! note
+
+                The components should be sorted, e.g. `["px", "py", "pz"]`.
+
+                If `axisym=True`, only the two first components will be adopted.
+
         xvar : str
-            Variable name for position coordinate in Dataset
+            Variable name for position coordinate in Dataset that should be used for emittance calculation
         pvar : str
-            Variable name for momentum coordinate in Dataset
+            Variable name for momentum coordinate in Dataset that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `all_pvars[1]`.
         wvar : str
             Variable name for particle weights in Dataset
-        p_longit : str
-            Variable name for longitudinal momentum in Dataset
 
 
         Returns
@@ -789,34 +765,43 @@ class PartMixin:
                 attrs={"pic_data_type": "part"}
             )
 
-            emittance = particles.ozzy.get_emittance(axisym=True, xvar="r", pvar="pr", p_longit="px")
+            emittance = particles.ozzy.get_emittance(axisym=True, xvar="r", all_pvars=["px", "pr"])
             # Returns Dataset with normalized emittance in k_p^(-1) rad
             ```
         """
 
         ds = self._obj
 
-        # Process xvar and pvar arguments
-        for ivar in [xvar, pvar]:
-            if ivar not in ds.data_vars:
-                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
-
         # Process axisymmetry option
         if axisym:
             factor = 4
             suffix_dim = ""
+            all_pvars = all_pvars[0:2]
+            pvar = all_pvars[1]
         else:
             factor = 1
-            suffix_dim = ds[xvar].attrs["long_name"].strip("$")
+            all_pvars = all_pvars[0:3]
+            try:
+                var_label = ds[xvar].attrs["long_name"].strip("$").split("_", 1)
+                suffix_dim = var_label[1]
+            except KeyError:
+                suffix_dim = ""
+
+        # Process xvar and pvar arguments
+        for ivar in [xvar, pvar] + all_pvars:
+            if ivar not in ds.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
 
         # Get secondary quantities
+
+        p_longit = all_pvars[0]
 
         ds["x_prime"] = ds[pvar] / ds[p_longit]
         ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
         ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
         ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
 
-        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(wvar)
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(all_pvars, wvar)
 
         # Calculate emittance
 
@@ -871,12 +856,12 @@ class PartMixin:
         nbins: int | None = None,
         norm_emit: bool = True,
         axisym: bool = False,
+        all_pvars: list[str] = ["p1", "p2", "p3"],
         min_count: int | None = None,
         slice_var: str = "x1_box",
         xvar: str = "x2",
         pvar: str = "p2",
         wvar: str = "q",
-        p_longit: str = "p1",
     ) -> xr.Dataset:
         r"""
         Calculate the RMS slice emittance of particle data.
@@ -888,8 +873,6 @@ class PartMixin:
         !!! warning
 
             This method assumes that the particle dimension is `"pid"`.
-
-            The names of the momentum components are necessary for the calculation of $\left< \beta \gamma \right>$. These names are inferred by finding all data variables matching the regex pattern `p[A-Za-z0-9]` ([click here to test matches to this regular expression](https://regex101.com/r/fanTEo/1)).
 
         Parameters
         ----------
@@ -906,18 +889,25 @@ class PartMixin:
             Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
         axisym : bool, default False
             Whether to apply Lapostolle factor of 4.
+        all_pvars : list[str]
+            List of names of momentum components.
+
+            !!! note
+
+                The components should be sorted, e.g. `["px", "py", "pz"]`.
+
+                If `axisym=True`, only the two first components will be adopted.
+
         min_count : int or None, optional
             Minimum number of particles required in each bin for valid calculation.
-        slice_var : str, default "x1_box"
+        slice_var : str
             Variable name to use for slicing/binning the particles.
-        xvar : str, default "x2"
-            Variable name for the transverse position coordinate.
-        pvar : str, default "p2"
-            Variable name for the transverse momentum coordinate.
-        wvar : str, default "q"
+        xvar : str
+            Variable name for the transverse position coordinate that should be used for emittance calculation.
+        pvar : str
+            Variable name for the transverse momentum coordinate that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `all_pvars[1]`.
+        wvar : str
             Variable name for the particle weights/charges.
-        p_longit : str, default "p1"
-            Variable name for the longitudinal momentum component.
 
 
         Returns
@@ -979,14 +969,29 @@ class PartMixin:
             axis = oz.utils.axis_from_extent(500, (0,10))
             axis_ds = oz.Dataset({"x": axis}, pic_data_type = "grid")
 
-            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", xvar="r", pvar="pr", p_longit="px")
+            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", xvar="r", all_pvars=["px","pr"])
             # Returns Dataset with normalized emittance in k_p^(-1) rad
             ```
         """
         ds = self._obj
 
+        # Process axisymmetry option
+        if axisym:
+            factor = 4
+            suffix_dim = ""
+            all_pvars = all_pvars[0:2]
+            pvar = all_pvars[1]
+        else:
+            factor = 1
+            all_pvars = all_pvars[0:3]
+            try:
+                var_label = ds[xvar].attrs["long_name"].strip("$").split("_", 1)
+                suffix_dim = var_label[1]
+            except KeyError:
+                suffix_dim = ""
+
         # Process xvar and pvar arguments
-        for ivar in [slice_var, xvar, pvar, wvar]:
+        for ivar in [slice_var, xvar, pvar, wvar] + all_pvars:
             if ivar not in ds.data_vars:
                 raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
 
@@ -1016,12 +1021,14 @@ class PartMixin:
 
         # Get secondary quantities
 
+        p_longit = all_pvars[0]
+
         ds["x_prime"] = ds[pvar] / ds[p_longit]
         ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
         ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
         ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
 
-        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(wvar)
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(all_pvars, wvar)
 
         # Calculate emittance and bin along slice_var
 
@@ -1091,6 +1098,7 @@ class PartMixin:
         # Convert binned coordinate to normal Numpy array instead of pandas.Interval
         # (since this leads to an error when trying to save the object)
         emit = emit.rename_dims({slice_var + "_bins": slice_var})
+        emit = emit.reset_index(slice_var + "_bins")
         emit = emit.assign_coords(
             {slice_var: convert_interval_to_mid(emit[slice_var + "_bins"])}
         )
@@ -1268,6 +1276,7 @@ class PartMixin:
         # Convert binned coordinate to normal Numpy array instead of pandas.Interval
         # (since this leads to an error when trying to save the object)
         ene_spectrum = ene_spectrum.rename_dims({enevar + "_bins": enevar})
+        ene_spectrum = ene_spectrum.reset_index(enevar + "_bins")
         ene_spectrum = ene_spectrum.assign_coords(
             {enevar: convert_interval_to_mid(ene_spectrum[enevar + "_bins"])}
         )
