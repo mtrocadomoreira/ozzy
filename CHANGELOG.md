@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.3.3 
+
+Released 29-07-2025 
+
+### Bug Fixes
+
+* [`3675499`](https://github.com/mtrocadomoreira/ozzy/commit/3675499ed05628cd6c658e68dd8cad870aa05410): Correct a bug in `get_energy_spectrum`
+
+
+
+
+
+
+
 ## Version 1.3.2 
 
 Released 29-07-2025 
