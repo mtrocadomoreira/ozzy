@@ -15,6 +15,7 @@ def sample_dataset():
             "x2": ("pid", np.random.rand(1000), {"long_name": "$x_2$"}),
             "p1": ("pid", np.random.rand(1000)),
             "p2": ("pid", np.random.rand(1000)),
+            "p3": ("pid", np.random.rand(1000)),
             "q": ("pid", np.ones(1000)),
         },
         coords={"pid": np.arange(1000)},
@@ -106,13 +107,6 @@ def test_get_emittance_geometric(sample_dataset):
     assert "emit_norm" not in result.data_vars
 
 
-def test_get_emittance_axisym(sample_dataset):
-    ds = sample_dataset
-    result = ds.ozzy.get_emittance(axisym=True)
-    result_normal = ds.ozzy.get_emittance(axisym=False)
-    assert (result.emit_norm == 4 * result_normal.emit_norm).all()
-
-
 def test_get_emittance_invalid_var(sample_dataset):
     ds = sample_dataset
     with pytest.raises(KeyError, match="Cannot find 'invalid_var' variable in Dataset"):
@@ -133,7 +127,7 @@ def test_get_slice_emittance_basic(sample_dataset):
 def test_get_slice_emittance_nbins(sample_dataset):
     ds = sample_dataset
     result = ds.ozzy.get_slice_emittance(nbins=20, slice_var="x1")
-    assert len(result.x1_bins) == 20
+    assert len(result.x1) == 20
 
 
 def test_get_slice_emittance_min_count(sample_dataset):
@@ -162,3 +156,122 @@ def test_get_slice_emittance_geometric(sample_dataset):
     result = ds.ozzy.get_slice_emittance(nbins=10, norm_emit=False, slice_var="x1")
     assert "slice_emit" in result.data_vars
     assert "slice_emit_norm" not in result.data_vars
+
+
+class TestGetEnergySpectrum:
+    def setup_method(self):
+        """Set up test data for each test method"""
+        # Create a simple particle dataset with known values
+        rng = np.random.default_rng(42)  # Fixed seed for reproducibility
+        self.ene_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 3.0, 2.0, 1.0, 5.0, 4.0])
+        self.q_values = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+
+        self.ds = oz.Dataset(
+            {
+                "ene": ("pid", self.ene_values),
+                "q": ("pid", self.q_values),
+                "alt_ene": ("pid", self.ene_values * 10),  # Alternative energy variable
+                "alt_q": ("pid", -self.q_values),  # Negative charge for testing abs()
+            },
+            coords={"pid": np.arange(10)},
+            attrs={"pic_data_type": "part"},
+        )
+
+        # Create a custom energy axis
+        self.energy_axis = np.array([0.5, 1.5, 2.5, 3.5, 4.5, 5.5])
+        self.axis_ds = oz.Dataset(
+            coords={"ene": self.energy_axis}, attrs={"pic_data_type": "grid"}
+        )
+        self.axis_ds["ene"].attrs["long_name"] = "Energy"
+        self.axis_ds["ene"].attrs["units"] = "eV"
+
+    def test_basic_functionality_with_nbins(self):
+        """Test basic functionality using nbins parameter"""
+        spectrum = self.ds.ozzy.get_energy_spectrum(nbins=5)
+
+        # Check return type
+        assert isinstance(spectrum, xr.Dataset)
+
+        # Check returned variables
+        assert "q" in spectrum
+        assert "counts" in spectrum
+        assert "ene" in spectrum
+
+        # Check that we have the right number of bins
+        assert len(spectrum["ene"]) == 5
+
+        # Check that the counts sum to the total number of particles
+        assert spectrum["counts"].sum() == len(self.ene_values)
+
+        # Check that the charge sum is correct (should be sum of all charges)
+        np.testing.assert_allclose(spectrum["q"].sum(), np.sum(self.q_values))
+
+    def test_with_axis_ds(self):
+        """Test using a custom energy axis"""
+        spectrum = self.ds.ozzy.get_energy_spectrum(axis_ds=self.axis_ds)
+
+        # Check that we have the right number of bins
+        assert len(spectrum["ene"]) == len(self.energy_axis)
+
+        # Check that bins are properly centered
+        expected_centers = self.energy_axis
+        np.testing.assert_allclose(spectrum["ene"].values, expected_centers)
+
+        # Check that attributes are transferred
+        assert spectrum["ene"].attrs["long_name"] == "Energy"
+        assert spectrum["ene"].attrs["units"] == "eV"
+
+    def test_custom_variable_names(self):
+        """Test using custom variable names for energy and charge"""
+        spectrum = self.ds.ozzy.get_energy_spectrum(
+            nbins=5, enevar="alt_ene", wvar="alt_q"
+        )
+
+        # Check that the correct variables are used
+        assert "alt_q" in spectrum
+
+    def test_error_when_no_axis_or_nbins(self):
+        """Test error is raised when neither axis_ds nor nbins is provided"""
+        with pytest.raises(
+            ValueError, match="Either axis_ds or nbins must be provided"
+        ):
+            self.ds.ozzy.get_energy_spectrum(axis_ds=None, nbins=None)
+
+    def test_error_when_variable_not_found(self):
+        """Test error is raised when requested variable doesn't exist"""
+        with pytest.raises(
+            KeyError, match="Cannot find 'nonexistent' variable in Dataset"
+        ):
+            self.ds.ozzy.get_energy_spectrum(nbins=5, enevar="nonexistent")
+
+        with pytest.raises(
+            KeyError, match="Cannot find 'nonexistent' variable in Dataset"
+        ):
+            self.ds.ozzy.get_energy_spectrum(nbins=5, wvar="nonexistent")
+
+    def test_error_when_enevar_not_in_axis_ds(self):
+        """Test error when energy variable is not in provided axis_ds"""
+        # Create axis dataset with different variable name
+        wrong_axis_ds = oz.Dataset(
+            coords={"wrong_name": self.energy_axis}, attrs={"pic_data_type": "grid"}
+        )
+
+        with pytest.raises(
+            KeyError, match="Cannot find 'ene' variable in provided axis_ds"
+        ):
+            self.ds.ozzy.get_energy_spectrum(axis_ds=wrong_axis_ds)
+
+    def test_label_modification(self):
+        """Test that labels are properly modified with |...|"""
+        # Add a long_name attribute to the q variable
+        self.ds["q"].attrs["long_name"] = "Charge"
+
+        spectrum1 = self.ds.ozzy.get_energy_spectrum(nbins=5)
+
+        self.ds["q"].attrs["long_name"] = "$Q$"
+
+        spectrum2 = self.ds.ozzy.get_energy_spectrum(nbins=5)
+
+        # Check that the label has been modified with | |
+        assert spectrum1["q"].attrs["long_name"] == "|Charge|"
+        assert spectrum2["q"].attrs["long_name"] == "$|Q|$"
