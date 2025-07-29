@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.3.2 
+
+Released 29-07-2025 
+
+### Bug Fixes
+
+* [`6effaee`](https://github.com/mtrocadomoreira/ozzy/commit/6effaee671c8b5f773f72091b4bbd1b355330dbf): Correct a couple of bugs in the calculation of the normalized emittance
+
+
+
+
+
+
+
 ## Version 1.3.1 
 
 Released 23-07-2025 
