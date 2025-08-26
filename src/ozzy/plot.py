@@ -645,7 +645,7 @@ def set_cmap(
     pass
 
 
-# HACK: quality seems to be shitty with ffmpeg, don't know how to improve. maybe set frames as default
+@mpl.rc_context({"savefig.transparent": False, "figure.facecolor": "white"})
 def movie(
     fig: mpl.figure.Figure,
     plot_objs: dict[mpl.artist.Artist, tuple[xr.DataArray, str]]
