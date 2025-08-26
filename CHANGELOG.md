@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 1.3.4 
+
+Released 26-08-2025 
+
+### Bug Fixes
+
+* [`d3403f1`](https://github.com/mtrocadomoreira/ozzy/commit/d3403f1568ecc28e245537428b0c9aea17e8a3d0): Turn off `savefig.transparent` in default `rcparams` when using the `movie` function
+
+
+
+    Each frame was previously being saved with a transparent background, which meant that the movies produced with `ozzy.plot.movie` were superimposing all of the frames.
+
+
+
 ## Version 1.3.3 
 
 Released 29-07-2025 
