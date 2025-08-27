@@ -261,6 +261,10 @@ class MutablePlotObj:
         da_it = self.da.sel({self.tvar: tval}, method="nearest")
         new_imo = da_it.plot(ax=self.ax)
 
+        # - save only first item if returned object is some sort of iterable
+        if isinstance(new_imo, Iterable):
+            new_imo = new_imo[0]
+
         # Set axis limits
         if self.xlim is not None:
             self.ax.set_xlim(self.xlim)
@@ -929,6 +933,7 @@ def movie(
         for tval in tqdm(t_arr):
             for obj in mpos:
                 obj.redraw(tval)
+                # fig.canvas.draw()
             fig.savefig(f"{folderpath}/frame_{i:04}.png")
             i += 1
 
