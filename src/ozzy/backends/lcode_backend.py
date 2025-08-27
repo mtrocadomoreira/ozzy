@@ -993,7 +993,8 @@ class Methods:
 
             ```python
             import ozzy as oz
-            ds = oz.open('lcode', [part example])
+            file = 'path/to/particle/file/tb02500.swp'
+            ds = oz.open('lcode', file)
             ds.ozzy.convert_q(dxi=0.01, n0=2e14, q_var='q')
             print(ds)
 
