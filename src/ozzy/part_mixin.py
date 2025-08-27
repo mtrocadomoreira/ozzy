@@ -788,9 +788,7 @@ class PartMixin:
                 suffix_dim = ""
 
         # Process xvar and pvar arguments
-        for ivar in [xvar, pvar] + all_pvars:
-            if ivar not in ds.data_vars:
-                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+        self._contains_datavars([xvar, pvar] + all_pvars)
 
         # Get secondary quantities
 
@@ -991,9 +989,7 @@ class PartMixin:
                 suffix_dim = ""
 
         # Process xvar and pvar arguments
-        for ivar in [slice_var, xvar, pvar, wvar] + all_pvars:
-            if ivar not in ds.data_vars:
-                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+        self._contains_datavars([slice_var, xvar, pvar, wvar] + all_pvars)
 
         # Process axis_ds and nbins arguments
         if (axis_ds is None) and (nbins is None):
@@ -1224,9 +1220,7 @@ class PartMixin:
         ds = self._obj
 
         # Process xvar and pvar arguments
-        for ivar in [enevar, wvar]:
-            if ivar not in ds.data_vars:
-                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+        self._contains_datavars([enevar, wvar])
 
         # Process axis_ds and nbins arguments
         if (axis_ds is None) and (nbins is None):
