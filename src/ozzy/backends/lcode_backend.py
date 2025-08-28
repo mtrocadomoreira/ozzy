@@ -957,8 +957,6 @@ def read(
 
 
 class Methods:
-    """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'lcode'`."""
-
     def convert_q(self, dxi: float, n0: float, q_var: str = "q") -> None:
         r"""Convert the charge variable to physical units (in units of $e$).
 

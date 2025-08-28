@@ -57,3 +57,19 @@
     text-decoration: none;
   }
 }
+
+
+
+/* Grid with single column */
+.grid.single-column {
+  grid-template-columns: 1fr;
+  margin: 2em auto ;
+  width: fit-content;
+  min-width: 35% ;
+}
+
+/* Cards with centered text */
+.grid.cards.center {
+  text-align: center;
+}
+

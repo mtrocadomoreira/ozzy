@@ -3,14 +3,14 @@
 Please navigate to a specific section for more information about the implementation of each simulation file type.
 
 
-<div class="grid cards" markdown>
+<div class="grid cards center single-column" markdown>
 
 - [__LCODE__](lcode.md)
 - [__OSIRIS__](osiris.md)
 - [__ozzy__](ozzy.md)
 </div>
 
-If you're looking for the backend-specific methods that you can call on a data object, see the [relevant section of *Data object methods*](../data-objects/backend-methods.md).
+If you're looking for the backend-specific methods that you can call on a data object, see [*Data object methods → Backend-specific methods*](../data-objects/backend-methods/index.md).
 
 ## Interface class
 

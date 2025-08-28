@@ -196,8 +196,16 @@ nav:
     - ozzy: reference/core.md
     - Data object methods:
       - reference/data-objects/index.md
-      - Data-type-specific methods: reference/data-objects/data-type-methods.md
-      - Backend-specific methods: reference/data-objects/backend-methods.md
+      - General methods: reference/data-objects/general-methods.md
+      - Data-type-specific methods:
+        - reference/data-objects/data-type-methods/index.md
+        - Grid data: reference/data-objects/data-type-methods/grid-data.md
+        - Particle data: reference/data-objects/data-type-methods/particle-data.md
+      - Backend-specific methods:
+        - reference/data-objects/backend-methods/index.md
+        - LCODE: reference/data-objects/backend-methods/lcode.md
+        - OSIRIS: reference/data-objects/backend-methods/osiris.md
+        - ozzy: reference/data-objects/backend-methods/ozzy.md
     - Backends: 
       - reference/backends/index.md
       - LCODE: reference/backends/lcode.md
@@ -209,10 +217,10 @@ nav:
     - ozzy.utils: reference/utils.md
   # - Developer Guide:
   #   - dev-guide/index.md
+  - Release Notes: release-notes/index.md
   - About: 
       - about/index.md
       - License: about/license.md
-      - Release Notes: about/release-notes.md
 
 
 

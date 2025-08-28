@@ -26,12 +26,6 @@ from .utils import (
 
 
 class PartMixin:
-    """Mixin class for operations on particle-like data objects.
-
-    The methods in this class are accessible to a data object when `<data_obj>.attrs['pic_data_type'] == 'part'`.
-
-    """
-
     @staticmethod
     def _define_q_units(raw_sdims, rvar_attrs: dict | None):
         if all("units" in raw_sdims[each].attrs for each in raw_sdims.data_vars):

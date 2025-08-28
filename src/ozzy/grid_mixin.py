@@ -16,12 +16,6 @@ from .utils import axis_from_extent, bins_from_axis
 
 
 class GridMixin:
-    """Mixin class for operations on grid-like data objects.
-
-    The methods in this class are accessible to a data object when `<data_obj>.attrs['pic_data_type'] == 'grid'`.
-
-    """
-
     def coords_from_extent(self, mapping: dict[str, tuple[float, float]]):
         """Add coordinates to [DataArray][xarray.DataArray] | [Dataset][xarray.Dataset] based on axis extents.
 
