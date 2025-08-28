@@ -12,6 +12,7 @@
 import numpy as np
 import xarray as xr
 from flox.xarray import xarray_reduce
+from tqdm import tqdm
 
 from .new_dataobj import new_dataset
 from .utils import (
@@ -1304,3 +1305,183 @@ class PartMixin:
                 ene_spectrum[enevar].attrs[attr_item] = ds[enevar].attrs[attr_item]
 
         return ene_spectrum
+
+    # CAVEAT: assumes particle dimension is "pid"
+    def get_weighted_median(
+        self,
+        var: str,
+        wvar: str = "q",
+        tvar: str = "t",
+    ):
+        r"""
+        Calculate the weighted median of a variable in the particle dataset.
+
+        This method computes the median of `var` weighted by the values in `wvar`,
+        for each value in the time variable `tvar` (if the `tvar` dimension exists).
+
+        Parameters
+        ----------
+        var : str
+            Name of the variable for which to calculate the weighted median.
+        wvar : str, optional
+            Name of the weighting variable, by default `"q"`.
+            The absolute value of this variable is used for weighting.
+        tvar : str, optional
+            Name of the time dimension to iterate over, by default `"t"`.
+            If this dimension exists in the dataset, a weighted median
+            is calculated for each time step.
+
+        Returns
+        -------
+        xarray.DataArray
+            DataArray containing the weighted median value(s).
+            If `tvar` is present in the dataset, the result will have
+            the same `tvar` dimension.
+
+        Notes
+        -----
+        The weighted median is calculated by:
+        1. Sorting the data according to the variable of interest
+        2. Computing the cumulative sum of weights
+        3. Finding the point where the cumulative sum of weights reaches half
+        of the total weight
+
+        For an odd number of observations, the midpoint value is used directly.
+        For an even number, the average of the two middle values is used.
+
+
+        Examples
+        --------
+        ???+ example "Basic usage with particle energy"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset
+            rng = np.random.default_rng(seed=42)
+            ds = oz.Dataset(
+                {
+                    "energy": ("pid", rng.normal(100, 20, size=1000)),
+                    "q": ("pid", rng.random(1000)),
+                },
+                coords={"pid": np.arange(1000)},
+                pic_data_type = "part",
+            )
+
+            # Calculate the weighted median of energy
+            median_energy = ds.ozzy.get_weighted_median(var="energy")
+            print(f"Weighted median energy: {median_energy.values:.2f}")
+            # Weighted median energy: ~100.00 (exact value will vary)
+            ```
+
+        ???+ example "Time-dependent weighted median"
+            ```python
+            import numpy as np
+            import ozzy as oz
+
+            # Create a sample particle dataset with time dimension
+            rng = np.random.default_rng(seed=42)
+            times = np.linspace(0, 10, 5)
+            energies = np.zeros((5, 100))
+
+            # Create time-dependent energies
+            for i, t in enumerate(times):
+                energies[i] = rng.normal(100 + t*10, 20, size=100)
+
+            ds = oz.Dataset(
+                {
+                    "energy": (["t", "pid"], energies),
+                    "q": (["t", "pid"], rng.random((5, 100))),
+                },
+                coords={
+                    "t": times,
+                    "pid": np.arange(100)
+                },
+                pic_data_type = "part",
+            )
+
+            # Calculate the time-dependent weighted median of energy
+            median_energy = ds.ozzy.get_weighted_median(var="energy")
+
+            # Plot the result
+            median_energy.plot()
+            # The plot will show the weighted median energy increasing over time
+            ```
+        """
+        ds = self._obj
+        pidvar = "pid"
+
+        # Process var and wvar arguments
+        self._contains_datavars([var, wvar])
+
+        # Define function where weighted median is calculated at each time
+        def process_single(ds_single):
+            # Sort according to values
+            ds_sorted = ds_single.sortby(var)
+
+            # Add variable with cumulative sum of weight
+            ds_sorted["w_cumsum"] = abs(ds_sorted[wvar]).cumsum(skipna=True).compute()
+
+            # Get value at which median cumulative sum of weight reaches 1/2 of total weights
+            mid_weight = (
+                0.5 * abs(ds_sorted[wvar]).sum(dim=pidvar, skipna=True).compute()
+            )
+
+            # Median value is determined differently depending on
+            # whether number of values/observations is even or odd
+
+            ntotal = ds_sorted.sizes[pidvar]
+
+            if ntotal % 2 == 0:
+                upper_half = ds_sorted.where(
+                    ds_sorted["w_cumsum"] > mid_weight, drop=True
+                )
+                lower_half = ds_sorted.where(
+                    ds_sorted["w_cumsum"] <= mid_weight, drop=True
+                )
+
+                val1 = upper_half[var][0].compute()
+                val2 = lower_half[var][-1].compute()
+
+                da_wmedian = (val1 + val2) * 0.5
+
+            else:
+                upper_half = ds_sorted.where(
+                    ds_sorted["w_cumsum"] >= mid_weight, drop=True
+                )
+
+                da_wmedian = upper_half[var][0].compute()
+
+            return da_wmedian
+
+        # Check whether iteration along t is necessary
+
+        if tvar in ds.dims:
+            ds_t_all = []
+            for tval in tqdm(ds[tvar]):
+                ds_t = ds.sel({tvar: tval})
+                ds_t_all.append(process_single(ds_t))
+            # Concatenate all median values
+            da_out = xr.concat(ds_t_all, tvar)
+
+        else:
+            da_out = process_single(ds)
+
+        # Change label of processed quantity
+
+        if "long_name" in da_out.attrs:
+            quant_label = da_out.attrs["long_name"]
+
+            if (quant_label[0] == "$") & (quant_label[-1] == "$"):
+                quant_label = quant_label.strip("$")
+                new_label = r"$\mathrm{med}\left(" + quant_label + r"\right) $"
+
+            else:
+                new_label = f"med({quant_label})"
+
+            da_out.attrs["long_name"] = new_label
+
+        else:
+            da_out.attrs["long_name"] = f"med({da_out.name})"
+
+        return da_out
