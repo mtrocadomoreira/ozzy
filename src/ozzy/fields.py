@@ -312,13 +312,13 @@ def _find_amplitude_maxima(
 # TODO: explain how fit works exactly
 # TODO: add example (perhaps using sample data?)
 # TODO: throw error if data isn't waterfall (2D with t and x1_box)
-# TODO: if xvar is not the horizontal index coordinate, fails with a weird error (delta_x becomes an array) -> better error handling, or maybe make xvar the index first
+# TODO: if x_var is not the horizontal index coordinate, fails with a weird error (delta_x becomes an array) -> better error handling, or maybe make x_var the index first
 @stopwatch
 def vphi_from_fit(
     da: xr.DataArray,
     x_zero: float,
-    xvar: str = "x1_box",
-    tvar: str = "t",
+    x_var: str = "x1_box",
+    t_var: str = "t",
     window_len: float = 2.5,
     k: float | str = 1.0,
     boundary: str = "trim",
@@ -335,9 +335,10 @@ def vphi_from_fit(
         The data should be two-dimensional: time or propagation distance along one dimension, and a longitudinal coordinate along the other dimension.
     x_zero : float
         Position along the longitudinal coordinate where the sine should be considered to start, and with respect to which the phase will be measured. For example, a seed position.
-    xvar : str, optional
+    x
+    x_var : str, optional
         The name of the spatial dimension along which to perform the fit. Default is `'x1'`.
-    tvar : str, optional
+    t_var : str, optional
         The name of the time or propagation dimension. Default is `'t'`.
     window_len : float, optional
         The length of the window (in units of the plasma wavelength) over which to perform the fit. Default is `2.5`.
@@ -379,25 +380,25 @@ def vphi_from_fit(
 
     if k_fft:
         pass
-        # take FFT of full data along xvar
+        # take FFT of full data along x_var
         # find peaks of spectrum for each z
         # take average of peaks
 
-    delta_x = (da.coords[xvar][1] - da.coords[xvar][0]).data
-    delta_t = (da.coords[tvar][1] - da.coords[tvar][0]).data
+    delta_x = (da.coords[x_var][1] - da.coords[x_var][0]).data
+    delta_t = (da.coords[t_var][1] - da.coords[t_var][0]).data
 
     wvl = 2 * np.pi / k
     dx = int(np.ceil(window_len * wvl / delta_x))
 
     # Split data into blocks
 
-    da_blocks = _coarsen_into_blocks(da, xvar, dx, boundary)
+    da_blocks = _coarsen_into_blocks(da, x_var, dx, boundary)
     nw = da_blocks.sizes["window"]
-    # nx = da_blocks.sizes[xvar + "_window"]
+    # nx = da_blocks.sizes[x_var + "_window"]
 
     # Prepare data
 
-    Nt = da.sizes[tvar]
+    Nt = da.sizes[t_var]
 
     phi = np.zeros((Nt, nw))
     phi_err = np.zeros((Nt, nw))
@@ -420,11 +421,11 @@ def vphi_from_fit(
 
             # for i in tqdm(range(nw - 1, -1, -1), leave=False):
             for i in range(nw - 1, -1, -1):
-                window_da = da_blocks.isel({"window": i, tvar: j}).dropna(
-                    xvar + "_window"
+                window_da = da_blocks.isel({"window": i, t_var: j}).dropna(
+                    x_var + "_window"
                 )
                 window = window_da.to_numpy()
-                axis = window_da[xvar].to_numpy()
+                axis = window_da[x_var].to_numpy()
 
                 # Set bounds and initial guess
 
@@ -454,7 +455,7 @@ def vphi_from_fit(
                     )
                     plt.title(f"Fit window #{i}, at time index {j}")
                     plt.ylabel("Field")
-                    plt.xlabel(f"Longitudinal coordinate ({xvar})")
+                    plt.xlabel(f"Longitudinal coordinate ({x_var})")
                     plt.legend()
                     plt.show()
                     input(
@@ -486,8 +487,8 @@ def vphi_from_fit(
     x_blocks = np.zeros((nw,))
     for i in np.arange(0, nw):
         x_blocks[i] = (
-            da_blocks.isel({"window": i, tvar: 0})
-            .dropna(xvar + "_window")[xvar]
+            da_blocks.isel({"window": i, t_var: 0})
+            .dropna(x_var + "_window")[x_var]
             .mean()
             .data
         )
@@ -496,11 +497,11 @@ def vphi_from_fit(
 
     res = xr.Dataset(
         {
-            "vphi": ([tvar, xvar], vphi),
-            "phi": ([tvar, xvar], phi),
-            "phi_err": ([tvar, xvar], phi_err),
+            "vphi": ([t_var, x_var], vphi),
+            "phi": ([t_var, x_var], phi),
+            "phi_err": ([t_var, x_var], phi_err),
         },
-        coords={tvar: da.coords[tvar].data, xvar: x_blocks},
+        coords={t_var: da.coords[t_var].data, x_var: x_blocks},
     )
     for var in res.coords:
         res[var].attrs = da[var].attrs
@@ -520,7 +521,7 @@ def local_maxima_and_zero_crossings(
     da,
     comoving_var: str = "x1_box",
     transv_var: str = "x2",
-    tvar: str = "t",
+    t_var: str = "t",
     transv_range=None,
     transv_irange=None,
     transv_pos=None,
@@ -544,7 +545,7 @@ def local_maxima_and_zero_crossings(
         The name of the coordinate representing the comoving dimension.
     transv_var : str
         The name of the coordinate representing the transverse dimension.
-    tvar : str
+    t_var : str
         The name of the coordinate representing time.
     transv_range : tuple | list | numpy.ndarray, optional
         Range of transverse positions to average over, specified as (min, max).
@@ -666,7 +667,7 @@ def local_maxima_and_zero_crossings(
     # -------------------------------------------------
 
     # Check that all variables are in DataArray
-    for var in [comoving_var, transv_var, tvar]:
+    for var in [comoving_var, transv_var, t_var]:
         if var not in da.coords:
             raise ValueError(f"Could not find variable '{var}' in DataArray")
 
@@ -752,8 +753,8 @@ def local_maxima_and_zero_crossings(
 
         # --- Loop along time ---
 
-        for t in tqdm(field_data[tvar]):
-            da_t = field_data.sel({tvar: t})
+        for t in tqdm(field_data[t_var]):
+            da_t = field_data.sel({t_var: t})
 
             # Split into sections
 
@@ -790,8 +791,8 @@ def local_maxima_and_zero_crossings(
             result_max = xr.concat(all_sections_max, period_var)
 
             # Assign time coordinate
-            result_zcr = _copy_time_var(da_t, result_zcr, tvar)
-            result_max = _copy_time_var(da_t, result_max, tvar)
+            result_zcr = _copy_time_var(da_t, result_zcr, t_var)
+            result_max = _copy_time_var(da_t, result_max, t_var)
 
             all_zcr.append(result_zcr)
             all_max.append(result_max)
@@ -801,8 +802,8 @@ def local_maxima_and_zero_crossings(
 
         # --- Loop along time ---
 
-        for t in tqdm(field_data[tvar]):
-            da_t = field_data.sel({tvar: t})
+        for t in tqdm(field_data[t_var]):
+            da_t = field_data.sel({t_var: t})
 
             ds_zcr = _find_zero_crossings(
                 da_t,
@@ -818,8 +819,8 @@ def local_maxima_and_zero_crossings(
             )
 
             # Assign time coordinate
-            result_zcr = _copy_time_var(da_t, ds_zcr, tvar)
-            result_max = _copy_time_var(da_t, ds_max, tvar)
+            result_zcr = _copy_time_var(da_t, ds_zcr, t_var)
+            result_max = _copy_time_var(da_t, ds_max, t_var)
 
             all_zcr.append(result_zcr)
             all_max.append(result_max)
@@ -847,7 +848,7 @@ def local_maxima_and_zero_crossings(
 
         # Interpolate all other time_steps
         f_interp = interp1d(
-            ref_ds[locs_var].isel(**{tvar: 0}).data,
+            ref_ds[locs_var].isel(**{t_var: 0}).data,
             ref_ds[locs_var][period_var].data,
             kind="nearest",
             bounds_error=False,
@@ -858,7 +859,7 @@ def local_maxima_and_zero_crossings(
             if i == i_ref:
                 ds_all[i] = ref_ds
             else:
-                new_i_arr = f_interp(ds_t[locs_var].isel(**{tvar: 0}).data)
+                new_i_arr = f_interp(ds_t[locs_var].isel(**{t_var: 0}).data)
 
                 # Get rid of duplicate indices
                 u, c = np.unique(new_i_arr, return_counts=True)
@@ -878,7 +879,7 @@ def local_maxima_and_zero_crossings(
     # Reassemble along time coordinate
     # -------------------------------------------------
 
-    ds_zeros = xr.concat(all_zcr, tvar)
-    ds_max = xr.concat(all_max, tvar)
+    ds_zeros = xr.concat(all_zcr, t_var)
+    ds_max = xr.concat(all_max, t_var)
 
     return ds_max, ds_zeros

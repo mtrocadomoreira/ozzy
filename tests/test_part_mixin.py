@@ -113,7 +113,7 @@ def test_get_emittance_geometric(sample_dataset):
 def test_get_emittance_invalid_var(sample_dataset):
     ds = sample_dataset
     with pytest.raises(KeyError, match="Cannot find 'invalid_var' variable in Dataset"):
-        ds.ozzy.get_emittance(xvar="invalid_var")
+        ds.ozzy.get_emittance(x_var="invalid_var")
 
 
 def test_get_slice_emittance_basic(sample_dataset):
@@ -227,7 +227,7 @@ class TestGetEnergySpectrum:
     def test_custom_variable_names(self):
         """Test using custom variable names for energy and charge"""
         spectrum = self.ds.ozzy.get_energy_spectrum(
-            nbins=5, enevar="alt_ene", wvar="alt_q"
+            nbins=5, ene_var="alt_ene", w_var="alt_q"
         )
 
         # Check that the correct variables are used
@@ -245,12 +245,12 @@ class TestGetEnergySpectrum:
         with pytest.raises(
             KeyError, match="Cannot find 'nonexistent' variable in Dataset"
         ):
-            self.ds.ozzy.get_energy_spectrum(nbins=5, enevar="nonexistent")
+            self.ds.ozzy.get_energy_spectrum(nbins=5, ene_var="nonexistent")
 
         with pytest.raises(
             KeyError, match="Cannot find 'nonexistent' variable in Dataset"
         ):
-            self.ds.ozzy.get_energy_spectrum(nbins=5, wvar="nonexistent")
+            self.ds.ozzy.get_energy_spectrum(nbins=5, w_var="nonexistent")
 
     def test_error_when_enevar_not_in_axis_ds(self):
         """Test error when energy variable is not in provided axis_ds"""
@@ -359,7 +359,7 @@ class TestGetWeightedMedian:
         # Mock the _contains_datavars method
         with patch.object(sample_dataset.ozzy, "_contains_datavars"):
             median_energy = sample_dataset.ozzy.get_weighted_median(
-                var="energy", wvar="weight"
+                var="energy", w_var="weight"
             )
 
             # Check return type
@@ -379,7 +379,7 @@ class TestGetWeightedMedian:
         # Mock the _contains_datavars method
         with patch.object(renamed_ds.ozzy, "_contains_datavars"):
             median_energy = renamed_ds.ozzy.get_weighted_median(
-                var="energy", tvar="time"
+                var="energy", t_var="time"
             )
 
             # Check return type and dimensions
@@ -445,7 +445,7 @@ class TestGetWeightedMedian:
 
         with pytest.raises(Exception):
             sample_dataset.ozzy.get_weighted_median(
-                var="energy", wvar="nonexistent_weight"
+                var="energy", w_var="nonexistent_weight"
             )
 
     def test_get_weighted_median_with_negative_weights(self, sample_dataset):
@@ -456,9 +456,9 @@ class TestGetWeightedMedian:
         # Mock the _contains_datavars method
         with patch.object(sample_dataset.ozzy, "_contains_datavars"):
             # Both should give the same result since abs() is used
-            median_1 = sample_dataset.ozzy.get_weighted_median(var="energy", wvar="q")
+            median_1 = sample_dataset.ozzy.get_weighted_median(var="energy", w_var="q")
             median_2 = sample_dataset.ozzy.get_weighted_median(
-                var="energy", wvar="neg_weight"
+                var="energy", w_var="neg_weight"
             )
 
             # Should be exactly equal

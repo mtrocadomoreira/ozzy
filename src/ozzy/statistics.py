@@ -21,8 +21,8 @@ from .utils import stopwatch
 
 # HACK: add function to get histogram (counts or otherwise) as function of axes_ds object
 # e.g. example for counts:
-# def get_histogram(da, ax_da, tvar = 't'):
-#     bin_edges = ax_da.ozzy.get_bin_edges(tvar)
+# def get_histogram(da, ax_da, t_var = 't'):
+#     bin_edges = ax_da.ozzy.get_bin_edges(t_var)
 #     data = [da.to_numpy()]
 #     dist, edges = np.histogramdd(data, bins=bin_edges, weights=np.ones(data[0].shape))
 #     return dist
@@ -133,8 +133,8 @@ def _define_q_units_general(raw_sdims, rvar_attrs: dict | None):
 def charge_in_field_quadrants(
     raw_ds,
     fields_ds,
-    time_dim="t",
-    weight_var="q",
+    t_var="t",
+    w_var="q",
     n0=None,
     xi_var=None,
 ):
@@ -150,9 +150,9 @@ def charge_in_field_quadrants(
         Dataset containing field data.
         !!! warning
             This function expects the `fields_ds` argument to be a dataset containing two variables, one of which corresponds to a longitudinal field/force and the other to a transverse field/force.
-    time_dim : str, optional
+    t_var : str, optional
         Name of the time dimension in the input datasets. Default is `'t'`.
-    weight_var : str, optional
+    w_var : str, optional
         Name of the variable representing particle weights or particle charge in `raw_ds`. Default is `'q'`.
     n0 : float | None, optional
         Reference plasma density value, in $\mathrm{cm}^{-3}$. If provided, the charge is converted to physical units. Default is None.
@@ -182,7 +182,7 @@ def charge_in_field_quadrants(
     print("\nBinning particles into a grid...")
 
     # No rvar because we want absolute charge, not density
-    parts = raw_ds.ozzy.bin_into_grid(axes_ds, time_dim, weight_var, r_var=None)
+    parts = raw_ds.ozzy.bin_into_grid(axes_ds, t_var, w_var, r_var=None)
 
     _check_n0_input(n0, xi_var)
 
@@ -192,7 +192,7 @@ def charge_in_field_quadrants(
 
     print("\nMatching particle distribution with sign of fields:")
 
-    spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
+    spatial_dims = axes_ds.ozzy.get_space_dims(t_var)
     fld_vars = list(fields_ds.data_vars)
     summed = []
 

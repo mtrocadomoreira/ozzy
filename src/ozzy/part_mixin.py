@@ -46,17 +46,19 @@ class PartMixin:
     @staticmethod
     def _calc_geometric_emittance(
         ds: xr.Dataset,
-        xvar: str,
-        pvar: str,
+        x_var: str,
+        p_var: str,
         p_longit: str,
-        wvar: str,
+        w_var: str,
     ) -> float | xr.DataArray:
-        q_tot = ds[wvar].sum(dim="pid", skipna=True)
+        q_tot = ds[w_var].sum(dim="pid", skipna=True)
 
-        x_prime = ds[pvar] / ds[p_longit]
-        x_sq = (ds[wvar] * ds[xvar] ** 2).sum(dim="pid", skipna=True) / q_tot
-        x_prime_sq = (ds[wvar] * x_prime**2).sum(dim="pid", skipna=True) / q_tot
-        x_x_prime = (ds[wvar] * ds[xvar] * x_prime).sum(dim="pid", skipna=True) / q_tot
+        x_prime = ds[p_var] / ds[p_longit]
+        x_sq = (ds[w_var] * ds[x_var] ** 2).sum(dim="pid", skipna=True) / q_tot
+        x_prime_sq = (ds[w_var] * x_prime**2).sum(dim="pid", skipna=True) / q_tot
+        x_x_prime = (ds[w_var] * ds[x_var] * x_prime).sum(
+            dim="pid", skipna=True
+        ) / q_tot
         emit = np.sqrt(x_sq * x_prime_sq - x_x_prime**2)
 
         return emit
@@ -64,7 +66,7 @@ class PartMixin:
     def _calc_beta_gamma(
         self,
         p_vars: list[str],
-        wvar: str,
+        w_var: str,
     ) -> xr.DataArray:
         ds = self._obj
 
@@ -72,7 +74,7 @@ class PartMixin:
         for p_var in p_vars:
             p_abs_sqr += ds[p_var] ** 2
 
-        return ds[wvar] * np.sqrt(p_abs_sqr)
+        return ds[w_var] * np.sqrt(p_abs_sqr)
 
     def sample_particles(self, n: int) -> xr.Dataset:
         """Downsample a particle Dataset by randomly choosing particles.
@@ -317,8 +319,8 @@ class PartMixin:
     def bin_into_grid(
         self,
         axes_ds: xr.Dataset,
-        time_dim: str = "t",
-        weight_var: str = "q",
+        t_var: str = "t",
+        w_var: str = "q",
         r_var: str | None = None,
     ):
         r"""
@@ -354,9 +356,9 @@ class PartMixin:
 
                 By default, the `long_name` and `units` attributes of the resulting grid axes are taken from the original particle Dataset. But these attributes are overriden if they are passed along with the `axes_ds` Dataset.
 
-        time_dim : str, optional
+        t_var : str, optional
             Name of the time dimension in the input datasets.
-        weight_var : str, optional
+        w_var : str, optional
             Name of the variable representing particle weights or particle charge.
         r_var : str | None, optional
             Name of the variable representing particle radial positions. If provided and if one of the `axes_ds` coordinates is `r_var`, the particle weights are divided by this variable.
@@ -417,7 +419,7 @@ class PartMixin:
 
             # Example 2: Using a different weight variable
             particles["w"] = ("pid", np.random.uniform(0.5, 1.5, 10000))
-            grid_data_weighted = particles.ozzy.bin_into_grid(axes, weight_var="w")
+            grid_data_weighted = particles.ozzy.bin_into_grid(axes, w_var="w")
 
             # Example 3: Axisymmetric geometry
             grid_data_axisym = particles.ozzy.bin_into_grid(axes, r_var="x2")
@@ -436,12 +438,12 @@ class PartMixin:
             )
 
         # Check spatial dims
-        spatial_dims = axes_ds.ozzy.get_space_dims(time_dim)
+        spatial_dims = axes_ds.ozzy.get_space_dims(t_var)
         if len(spatial_dims) == 0:
             raise KeyError("Did not find any non-time dimensions in input axes dataset")
 
         # Get bin edges
-        bin_edges = axes_ds.ozzy.get_bin_edges(time_dim)
+        bin_edges = axes_ds.ozzy.get_bin_edges(t_var)
 
         q_binned = []
         raw_ds = self._obj
@@ -464,7 +466,7 @@ class PartMixin:
                 dx_factor = dx_factor * dx
             return dx_factor * (da[r_var] * da).sum(dim=spatial_dims)
 
-        total_w = raw_ds[weight_var].sum()
+        total_w = raw_ds[w_var].sum()
 
         print("\nBinning particles into grid...")
 
@@ -472,29 +474,29 @@ class PartMixin:
             print(
                 f"\n   - assuming {r_var} is the radial coordinate in axisymmetric geometry"
             )
-            wvar_new = weight_var + "_r"
-            raw_ds[wvar_new] = raw_ds[weight_var] / raw_ds[r_var]
+            w_var_new = w_var + "_r"
+            raw_ds[w_var_new] = raw_ds[w_var] / raw_ds[r_var]
             integrate = integrate_cyl
         else:
-            wvar_new = weight_var
+            w_var_new = w_var
             integrate = integrate_cart
 
         def get_dist(ds):
             part_coords = [ds[var] for var in spatial_dims]
             dist, edges = np.histogramdd(
-                part_coords, bins=bin_edges, weights=ds[wvar_new]
+                part_coords, bins=bin_edges, weights=ds[w_var_new]
             )
             return dist
 
         # Loop along time
 
-        if time_dim in raw_ds.dims:
-            for i in np.arange(0, len(raw_ds[time_dim])):
-                ds_i = raw_ds.isel({time_dim: i})
+        if t_var in raw_ds.dims:
+            for i in np.arange(0, len(raw_ds[t_var])):
+                ds_i = raw_ds.isel({t_var: i})
                 dist = get_dist(ds_i)
 
                 newcoords = {var: axes_ds[var] for var in spatial_dims}
-                newcoords[time_dim] = ds_i[time_dim]
+                newcoords[t_var] = ds_i[t_var]
                 qds_i = new_dataset(
                     data_vars={"rho": (spatial_dims, dist)},
                     coords=newcoords,
@@ -503,7 +505,7 @@ class PartMixin:
                 )
                 q_binned.append(qds_i)
 
-            parts = xr.concat(q_binned, time_dim)
+            parts = xr.concat(q_binned, t_var)
 
         else:
             dist = get_dist(raw_ds)
@@ -549,7 +551,7 @@ class PartMixin:
 
         for option in [dims_2d, dims_2d_box, dims_3d, dims_3d_box]:
             if all([var in parts.dims for var in option]):
-                new_coords = option + [time_dim] if time_dim in parts.dims else option
+                new_coords = option + [t_var] if t_var in parts.dims else option
                 parts = parts.transpose(*new_coords).compute()
                 parts = parts.chunk()
 
@@ -562,8 +564,8 @@ class PartMixin:
         extents: dict[str, tuple[float, float]] | None = None,
         nbins: int | dict[str, int] = 200,
         r_var: str | None = None,
-        time_dim: str = "t",
-        weight_var: str = "q",
+        t_var: str = "t",
+        w_var: str = "q",
     ):
         """Generate a phase space grid from particle data.
 
@@ -580,9 +582,9 @@ class PartMixin:
             Number of bins for each variable. If `int`, the same number of bins is used for all variables.
         r_var : str | None, optional
             Name of the variable representing particle radial positions. If provided and if one of `vars` is `r_var`, the particle weights are divided by this variable.
-        time_dim : str, optional
+        t_var : str, optional
             Name of the time dimension in the input datasets.
-        weight_var : str, optional
+        w_var : str, optional
             Name of the variable representing particle weights or particle charge.
 
         Returns
@@ -652,9 +654,7 @@ class PartMixin:
 
         # Deposit quantities on phase space grid
 
-        ps = self.bin_into_grid(
-            axes_ds, r_var=r_var, weight_var=weight_var, time_dim=time_dim
-        )
+        ps = self.bin_into_grid(axes_ds, r_var=r_var, w_var=w_var, t_var=t_var)
         ps["rho"].attrs["units"] = r"a.u."
 
         return ps
@@ -664,10 +664,10 @@ class PartMixin:
         self,
         norm_emit: bool = True,
         axisym: bool = False,
-        all_pvars: list[str] = ["p1", "p2", "p3"],
-        xvar: str = "x2",
-        pvar: str = "p2",
-        wvar: str = "q",
+        p_all_vars: list[str] = ["p1", "p2", "p3"],
+        x_var: str = "x2",
+        p_var: str = "p2",
+        w_var: str = "q",
     ) -> xr.Dataset:
         r"""Calculate the RMS beam emittance.
 
@@ -684,7 +684,7 @@ class PartMixin:
             Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
         axisym : bool
             If `True`, calculate Lapostolle emittance for axisymmetric beams
-        all_pvars : list[str]
+        p_all_vars : list[str]
             List of names of momentum components.
 
             !!! note
@@ -693,11 +693,11 @@ class PartMixin:
 
                 If `axisym=True`, only the two first components will be adopted.
 
-        xvar : str
+        x_var : str
             Variable name for position coordinate in Dataset that should be used for emittance calculation
-        pvar : str
-            Variable name for momentum coordinate in Dataset that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `all_pvars[1]`.
-        wvar : str
+        p_var : str
+            Variable name for momentum coordinate in Dataset that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `p_all_vars[1]`.
+        w_var : str
             Variable name for particle weights in Dataset
 
 
@@ -755,7 +755,7 @@ class PartMixin:
                 attrs={"pic_data_type": "part"}
             )
 
-            emittance = particles.ozzy.get_emittance(axisym=True, xvar="r", all_pvars=["px", "pr"])
+            emittance = particles.ozzy.get_emittance(axisym=True, x_var="r", p_all_vars=["px", "pr"])
             # Returns Dataset with normalized emittance in k_p^(-1) rad
             ```
         """
@@ -766,34 +766,34 @@ class PartMixin:
         if axisym:
             factor = 4
             suffix_dim = ""
-            all_pvars = all_pvars[0:2]
-            pvar = all_pvars[1]
+            p_all_vars = p_all_vars[0:2]
+            p_var = p_all_vars[1]
         else:
             factor = 1
-            all_pvars = all_pvars[0:3]
+            p_all_vars = p_all_vars[0:3]
             try:
-                var_label = ds[xvar].attrs["long_name"].strip("$").split("_", 1)
+                var_label = ds[x_var].attrs["long_name"].strip("$").split("_", 1)
                 suffix_dim = var_label[1]
             except KeyError:
                 suffix_dim = ""
 
         # Process xvar and pvar arguments
-        self._contains_datavars([xvar, pvar] + all_pvars)
+        self._contains_datavars([x_var, p_var] + p_all_vars)
 
         # Get secondary quantities
 
-        p_longit = all_pvars[0]
+        p_longit = p_all_vars[0]
 
-        ds["x_prime"] = ds[pvar] / ds[p_longit]
-        ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
-        ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
-        ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
+        ds["x_prime"] = ds[p_var] / ds[p_longit]
+        ds["x_sq"] = ds[w_var] * ds[x_var] ** 2
+        ds["x_prime_sq"] = ds[w_var] * ds["x_prime"] ** 2
+        ds["x_x_prime"] = ds[w_var] * ds[x_var] * ds["x_prime"]
 
-        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(all_pvars, wvar)
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(p_all_vars, w_var)
 
         # Calculate emittance
 
-        q_tot = ds[wvar].sum(dim="pid", skipna=True)
+        q_tot = ds[w_var].sum(dim="pid", skipna=True)
 
         x_sq_mean = ds["x_sq"].sum(dim="pid", skipna=True) / q_tot
         x_prime_sq_mean = ds["x_prime_sq"].sum(dim="pid", skipna=True) / q_tot
@@ -815,7 +815,7 @@ class PartMixin:
 
         # Get number of particles in each bin
 
-        counts = ds[xvar].notnull().sum(dim="pid", skipna=True).rename("counts")
+        counts = ds[x_var].notnull().sum(dim="pid", skipna=True).rename("counts")
 
         # Create output dataset
 
@@ -844,12 +844,12 @@ class PartMixin:
         nbins: int | None = None,
         norm_emit: bool = True,
         axisym: bool = False,
-        all_pvars: list[str] = ["p1", "p2", "p3"],
+        p_all_vars: list[str] = ["p1", "p2", "p3"],
         min_count: int | None = None,
         slice_var: str = "x1_box",
-        xvar: str = "x2",
-        pvar: str = "p2",
-        wvar: str = "q",
+        x_var: str = "x2",
+        p_var: str = "p2",
+        w_var: str = "q",
     ) -> xr.Dataset:
         r"""
         Calculate the RMS slice emittance of particle data.
@@ -877,7 +877,7 @@ class PartMixin:
             Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
         axisym : bool, default False
             Whether to apply Lapostolle factor of 4.
-        all_pvars : list[str]
+        p_all_vars : list[str]
             List of names of momentum components.
 
             !!! note
@@ -890,11 +890,11 @@ class PartMixin:
             Minimum number of particles required in each bin for valid calculation.
         slice_var : str
             Variable name to use for slicing/binning the particles.
-        xvar : str
+        x_var : str
             Variable name for the transverse position coordinate that should be used for emittance calculation.
-        pvar : str
-            Variable name for the transverse momentum coordinate that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `all_pvars[1]`.
-        wvar : str
+        p_var : str
+            Variable name for the transverse momentum coordinate that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `p_all_vars[1]`.
+        w_var : str
             Variable name for the particle weights/charges.
 
 
@@ -957,7 +957,7 @@ class PartMixin:
             axis = oz.utils.axis_from_extent(500, (0,10))
             axis_ds = oz.Dataset({"x": axis}, pic_data_type = "grid")
 
-            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", xvar="r", all_pvars=["px","pr"])
+            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", x_var="r", p_all_vars=["px","pr"])
             # Returns Dataset with normalized emittance in k_p^(-1) rad
             ```
         """
@@ -967,19 +967,19 @@ class PartMixin:
         if axisym:
             factor = 4
             suffix_dim = ""
-            all_pvars = all_pvars[0:2]
-            pvar = all_pvars[1]
+            p_all_vars = p_all_vars[0:2]
+            p_var = p_all_vars[1]
         else:
             factor = 1
-            all_pvars = all_pvars[0:3]
+            p_all_vars = p_all_vars[0:3]
             try:
-                var_label = ds[xvar].attrs["long_name"].strip("$").split("_", 1)
+                var_label = ds[x_var].attrs["long_name"].strip("$").split("_", 1)
                 suffix_dim = var_label[1]
             except KeyError:
                 suffix_dim = ""
 
         # Process xvar and pvar arguments
-        self._contains_datavars([slice_var, xvar, pvar, wvar] + all_pvars)
+        self._contains_datavars([slice_var, x_var, p_var, w_var] + p_all_vars)
 
         # Process axis_ds and nbins arguments
         if (axis_ds is None) and (nbins is None):
@@ -1003,18 +1003,18 @@ class PartMixin:
             suffix_dim = ""
         else:
             factor = 1
-            suffix_dim = ds[xvar].attrs["long_name"].strip("$")
+            suffix_dim = ds[x_var].attrs["long_name"].strip("$")
 
         # Get secondary quantities
 
-        p_longit = all_pvars[0]
+        p_longit = p_all_vars[0]
 
-        ds["x_prime"] = ds[pvar] / ds[p_longit]
-        ds["x_sq"] = ds[wvar] * ds[xvar] ** 2
-        ds["x_prime_sq"] = ds[wvar] * ds["x_prime"] ** 2
-        ds["x_x_prime"] = ds[wvar] * ds[xvar] * ds["x_prime"]
+        ds["x_prime"] = ds[p_var] / ds[p_longit]
+        ds["x_sq"] = ds[w_var] * ds[x_var] ** 2
+        ds["x_prime_sq"] = ds[w_var] * ds["x_prime"] ** 2
+        ds["x_x_prime"] = ds[w_var] * ds[x_var] * ds["x_prime"]
 
-        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(all_pvars, wvar)
+        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(p_all_vars, w_var)
 
         # Calculate emittance and bin along slice_var
 
@@ -1027,7 +1027,7 @@ class PartMixin:
             "min_count": min_count,
         }
 
-        q_slice = xarray_reduce(ds[[wvar, slice_var]], slice_var, **reduce_args)[wvar]
+        q_slice = xarray_reduce(ds[[w_var, slice_var]], slice_var, **reduce_args)[w_var]
 
         x_sq_slice = (
             xarray_reduce(ds[["x_sq", slice_var]], slice_var, **reduce_args)["x_sq"]
@@ -1110,14 +1110,13 @@ class PartMixin:
 
         return emit
 
-    # TODO: add unit tests
     @stopwatch
     def get_energy_spectrum(
         self,
         axis_ds: xr.Dataset | None = None,
         nbins: int | None = None,
-        enevar: str = "ene",
-        wvar: str = "q",
+        ene_var: str = "ene",
+        w_var: str = "q",
     ) -> xr.Dataset:
         r"""
         Calculate the energy spectrum of particles.
@@ -1128,18 +1127,18 @@ class PartMixin:
         Parameters
         ----------
         axis_ds : xarray.Dataset or None, optional
-            Dataset containing the energy axis to use for binning. Must have `enevar`
+            Dataset containing the energy axis to use for binning. Must have `ene_var`
             as a coordinate. If `None`, `nbins` must be provided.
 
             !!! note
-                If the label and unit attributes exist in `axis_ds[enevar]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
+                If the label and unit attributes exist in `axis_ds[ene_var]` (`'long_name'` and `'units'`, respectively), these attributes are adopted for the output dataset.
 
         nbins : int or None, optional
             Number of bins to use for the energy axis. Only used if `axis_ds` is `None`.
             If `None`, `axis_ds` must be provided.
-        enevar : str, optional
+        ene_var : str, optional
             Name of the energy variable in the dataset, default is `"ene"`.
-        wvar : str, optional
+        w_var : str, optional
             Name of the weighting variable (typically charge) in the dataset,
             default is `"q"`.
 
@@ -1201,7 +1200,7 @@ class PartMixin:
             axis_ds["p1"].attrs["units"] = r"$m_\mathrm{sp} c$"
 
             # Get energy spectrum using this axis
-            spectrum = ds.ozzy.get_energy_spectrum(axis_ds=axis_ds, enevar="p1", wvar="weight")
+            spectrum = ds.ozzy.get_energy_spectrum(axis_ds=axis_ds, ene_var="p1", w_var="weight")
             # Plot the result
             spectrum["weight"].plot(marker=".")
             # Spectrum now contains the summed weights in each logarithmic energy bin
@@ -1210,20 +1209,20 @@ class PartMixin:
         ds = self._obj
 
         # Process xvar and pvar arguments
-        self._contains_datavars([enevar, wvar])
+        self._contains_datavars([ene_var, w_var])
 
         # Process axis_ds and nbins arguments
         if (axis_ds is None) and (nbins is None):
             raise ValueError("Either axis_ds or nbins must be provided")
         elif axis_ds is not None:
-            if enevar not in axis_ds.coords:
-                raise KeyError(f"Cannot find '{enevar}' variable in provided axis_ds")
+            if ene_var not in axis_ds.coords:
+                raise KeyError(f"Cannot find '{ene_var}' variable in provided axis_ds")
             bins = axis_ds.ozzy.get_bin_edges()[0]
         elif nbins is not None:
-            xmin = ds[enevar].min().compute().data
-            xmax = ds[enevar].max().compute().data
+            xmin = ds[ene_var].min().compute().data
+            xmax = ds[ene_var].max().compute().data
             axis = axis_from_extent(nbins, (xmin, xmax))
-            axis_ds = new_dataset({enevar: axis}, pic_data_type="grid")
+            axis_ds = new_dataset({ene_var: axis}, pic_data_type="grid")
             bins = axis_ds.ozzy.get_bin_edges()[0]
 
         # Bin along energy variable and sum charge
@@ -1237,40 +1236,40 @@ class PartMixin:
         }
 
         # Take absolute value of charge/weighting variable
-        ds[wvar] = abs(ds[wvar])
+        ds[w_var] = abs(ds[w_var])
 
-        ene_hist = xarray_reduce(ds[[wvar, enevar]], enevar, **reduce_args)[wvar]
+        ene_hist = xarray_reduce(ds[[w_var, ene_var]], ene_var, **reduce_args)[w_var]
 
         # Get number of particles in each bin
 
-        ds["counts"] = ds[enevar].notnull()
+        ds["counts"] = ds[ene_var].notnull()
         counts = xarray_reduce(
-            ds[["counts", enevar]], enevar, **reduce_args, fill_value=0
+            ds[["counts", ene_var]], ene_var, **reduce_args, fill_value=0
         )
         counts = counts["counts"]
 
         # Create output dataset
 
         ene_spectrum = new_dataset(
-            data_vars={wvar: ene_hist, "counts": counts},
+            data_vars={w_var: ene_hist, "counts": counts},
             pic_data_type="grid",
             data_origin="ozzy",
         )
 
         # Convert binned coordinate to normal Numpy array instead of pandas.Interval
         # (since this leads to an error when trying to save the object)
-        ene_spectrum = ene_spectrum.rename_dims({enevar + "_bins": enevar})
-        ene_spectrum = ene_spectrum.reset_index(enevar + "_bins")
+        ene_spectrum = ene_spectrum.rename_dims({ene_var + "_bins": ene_var})
+        ene_spectrum = ene_spectrum.reset_index(ene_var + "_bins")
         ene_spectrum = ene_spectrum.assign_coords(
-            {enevar: convert_interval_to_mid(ene_spectrum[enevar + "_bins"])}
+            {ene_var: convert_interval_to_mid(ene_spectrum[ene_var + "_bins"])}
         )
-        ene_spectrum = ene_spectrum.drop_vars(enevar + "_bins")
+        ene_spectrum = ene_spectrum.drop_vars(ene_var + "_bins")
 
         # Set units and labels
 
-        # Add "| ... |" to label of wvar
-        if "long_name" in ene_spectrum[wvar].attrs:
-            old_label = ene_spectrum[wvar].attrs["long_name"]
+        # Add "| ... |" to label of w_var
+        if "long_name" in ene_spectrum[w_var].attrs:
+            old_label = ene_spectrum[w_var].attrs["long_name"]
 
             if (old_label[0] == "$") & (old_label[-1] == "$"):
                 new_label = insert_str_at_index(old_label, "|", 1)
@@ -1278,20 +1277,22 @@ class PartMixin:
             else:
                 new_label = "|" + old_label + "|"
 
-            ene_spectrum[wvar].attrs["long_name"] = new_label
+            ene_spectrum[w_var].attrs["long_name"] = new_label
         else:
-            ene_spectrum[wvar].attrs["long_name"] = "Weighted counts"
+            ene_spectrum[w_var].attrs["long_name"] = "Weighted counts"
 
         ene_spectrum["counts"].attrs["units"] = r"1"
         ene_spectrum["counts"].attrs["long_name"] = "Counts"
 
-        # Overwrite attributes of enevar if they're provided with axis_ds,
+        # Overwrite attributes of ene_var if they're provided with axis_ds,
         # otherwise try to take the attributes from original dataset
         for attr_item in ["long_name", "units"]:
-            if attr_item in axis_ds[enevar].attrs:
-                ene_spectrum[enevar].attrs[attr_item] = axis_ds[enevar].attrs[attr_item]
-            elif attr_item in ds[enevar].attrs:
-                ene_spectrum[enevar].attrs[attr_item] = ds[enevar].attrs[attr_item]
+            if attr_item in axis_ds[ene_var].attrs:
+                ene_spectrum[ene_var].attrs[attr_item] = axis_ds[ene_var].attrs[
+                    attr_item
+                ]
+            elif attr_item in ds[ene_var].attrs:
+                ene_spectrum[ene_var].attrs[attr_item] = ds[ene_var].attrs[attr_item]
 
         return ene_spectrum
 
@@ -1299,23 +1300,23 @@ class PartMixin:
     def get_weighted_median(
         self,
         var: str,
-        wvar: str = "q",
-        tvar: str = "t",
+        w_var: str = "q",
+        t_var: str = "t",
     ):
         r"""
         Calculate the weighted median of a variable in the particle dataset.
 
-        This method computes the median of `var` weighted by the values in `wvar`,
-        for each value in the time variable `tvar` (if the `tvar` dimension exists).
+        This method computes the median of `var` weighted by the values in `w_var`,
+        for each value in the time variable `t_var` (if the `t_var` dimension exists).
 
         Parameters
         ----------
         var : str
             Name of the variable for which to calculate the weighted median.
-        wvar : str, optional
+        w_var : str, optional
             Name of the weighting variable, by default `"q"`.
             The absolute value of this variable is used for weighting.
-        tvar : str, optional
+        t_var : str, optional
             Name of the time dimension to iterate over, by default `"t"`.
             If this dimension exists in the dataset, a weighted median
             is calculated for each time step.
@@ -1324,8 +1325,8 @@ class PartMixin:
         -------
         xarray.DataArray
             DataArray containing the weighted median value(s).
-            If `tvar` is present in the dataset, the result will have
-            the same `tvar` dimension.
+            If `t_var` is present in the dataset, the result will have
+            the same `t_var` dimension.
 
         Notes
         -----
@@ -1400,8 +1401,8 @@ class PartMixin:
         ds = self._obj
         pidvar = "pid"
 
-        # Process var and wvar arguments
-        self._contains_datavars([var, wvar])
+        # Process var and w_var arguments
+        self._contains_datavars([var, w_var])
 
         # Define function where weighted median is calculated at each time
         def process_single(ds_single):
@@ -1409,11 +1410,11 @@ class PartMixin:
             ds_sorted = ds_single.sortby(var)
 
             # Add variable with cumulative sum of weight
-            ds_sorted["w_cumsum"] = abs(ds_sorted[wvar]).cumsum(skipna=True).compute()
+            ds_sorted["w_cumsum"] = abs(ds_sorted[w_var]).cumsum(skipna=True).compute()
 
             # Get value at which median cumulative sum of weight reaches 1/2 of total weights
             mid_weight = (
-                0.5 * abs(ds_sorted[wvar]).sum(dim=pidvar, skipna=True).compute()
+                0.5 * abs(ds_sorted[w_var]).sum(dim=pidvar, skipna=True).compute()
             )
 
             # Median value is determined differently depending on
@@ -1445,13 +1446,13 @@ class PartMixin:
 
         # Check whether iteration along t is necessary
 
-        if tvar in ds.dims:
+        if t_var in ds.dims:
             ds_t_all = []
-            for tval in tqdm(ds[tvar]):
-                ds_t = ds.sel({tvar: tval})
+            for tval in tqdm(ds[t_var]):
+                ds_t = ds.sel({t_var: tval})
                 ds_t_all.append(process_single(ds_t))
             # Concatenate all median values
-            da_out = xr.concat(ds_t_all, tvar)
+            da_out = xr.concat(ds_t_all, t_var)
 
         else:
             da_out = process_single(ds)
