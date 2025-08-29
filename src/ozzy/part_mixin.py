@@ -359,7 +359,7 @@ class PartMixin:
         weight_var : str, optional
             Name of the variable representing particle weights or particle charge.
         r_var : str | None, optional
-            Name of the variable representing particle radial positions. If provided, the particle weights are divided by this variable.
+            Name of the variable representing particle radial positions. If provided and if one of the `axes_ds` coordinates is `r_var`, the particle weights are divided by this variable.
 
         Returns
         -------
@@ -446,9 +446,10 @@ class PartMixin:
         q_binned = []
         raw_ds = self._obj
 
-        # Multiply weight by radius, if r_var is specified
+        # Divide weight by radius, if r_var is part of axes_ds
 
         def integrate_cart(da):
+            # Put all delta factors together in dx_factor
             dx_factor = 1
             for dim in spatial_dims:
                 dx = axes_ds[dim][1] - axes_ds[dim][0]
@@ -456,6 +457,7 @@ class PartMixin:
             return dx_factor * da.sum(dim=spatial_dims)
 
         def integrate_cyl(da):
+            # Put all delta factors together in dx_factor
             dx_factor = 1
             for dim in spatial_dims:
                 dx = axes_ds[dim][1] - axes_ds[dim][0]
@@ -465,22 +467,23 @@ class PartMixin:
         total_w = raw_ds[weight_var].sum()
 
         print("\nBinning particles into grid...")
-        if r_var is None:
-            wvar = weight_var
-            integrate = integrate_cart
-            print("\n   - assuming Cartesian geometry")
+
+        if (r_var is not None) & (r_var in axes_ds):
+            print(
+                f"\n   - assuming {r_var} is the radial coordinate in axisymmetric geometry"
+            )
+            wvar_new = weight_var + "_r"
+            raw_ds[wvar_new] = raw_ds[weight_var] / raw_ds[r_var]
+            integrate = integrate_cyl
         else:
-            raw_ds["w"] = raw_ds[weight_var] / raw_ds[r_var]
-            wvar = "w"
-            if r_var in axes_ds:
-                integrate = integrate_cyl
-            else:
-                integrate = integrate_cart
-            print("\n   - assuming axisymmetric geometry")
+            wvar_new = weight_var
+            integrate = integrate_cart
 
         def get_dist(ds):
             part_coords = [ds[var] for var in spatial_dims]
-            dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds[wvar])
+            dist, edges = np.histogramdd(
+                part_coords, bins=bin_edges, weights=ds[wvar_new]
+            )
             return dist
 
         # Loop along time
@@ -558,8 +561,7 @@ class PartMixin:
         vars: list[str],
         extents: dict[str, tuple[float, float]] | None = None,
         nbins: int | dict[str, int] = 200,
-        axisym: bool = False,
-        r_var: str = "x2",
+        r_var: str | None = None,
         time_dim: str = "t",
         weight_var: str = "q",
     ):
@@ -576,10 +578,8 @@ class PartMixin:
             Minimum and maximum extent for each variable. If not specified, extents are calculated from the data.
         nbins : int | dict[str, int], optional
             Number of bins for each variable. If `int`, the same number of bins is used for all variables.
-        axisym : bool, optional
-            Whether geometry is 2D cylindrical (axisymmetric), in which case the particle weights are divided by the radial coordinate (`r_var`).
-        r_var : str, optional
-            Name of the radial coordinate. This argument is ignored if `axisym = False`.
+        r_var : str | None, optional
+            Name of the variable representing particle radial positions. If provided and if one of `vars` is `r_var`, the particle weights are divided by this variable.
         time_dim : str, optional
             Name of the time dimension in the input datasets.
         weight_var : str, optional
@@ -652,13 +652,8 @@ class PartMixin:
 
         # Deposit quantities on phase space grid
 
-        if axisym:
-            r_arg = r_var
-        else:
-            r_arg = None
-
         ps = self.bin_into_grid(
-            axes_ds, r_var=r_arg, weight_var=weight_var, time_dim=time_dim
+            axes_ds, r_var=r_var, weight_var=weight_var, time_dim=time_dim
         )
         ps["rho"].attrs["units"] = r"a.u."
 
