@@ -176,3 +176,4 @@ poetry.lock
 testing/
 debug.py
 **/debug.py
+docs/site/

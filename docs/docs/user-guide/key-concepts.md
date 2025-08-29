@@ -43,8 +43,13 @@ A Dataset object contains:
 
 ### Specific methods
 
-Besides some general methods that are available to data objects (see [*Data object methods*](../reference/data-objects/index.md)), ozzy also makes different methods available depending on the type of data (see [*Data-type-specific methods*](../reference/data-objects/data-type-methods.md)) and the simulation code that produced it (see [*Backend-specific methods*](../reference/data-objects/backend-methods.md)).
-Access to these specific methods is granted based on two attributes: `'pic_data_type'` and `'data_origin'`. These attributes should be set when initializing a new data object with [`ozzy.DataArray()`][ozzy.core.DataArray] or [`ozzy.Dataset()`][ozzy.core.Dataset]. For example:
+Besides some general methods that are available to all data objects(1), ozzy also makes different methods available depending on the type of data(2) and the simulation code that produced it(3).
+Access to these specific methods is granted based on two attributes: `pic_data_type` and `data_origin`. These attributes should be set when initializing a new data object with [`ozzy.DataArray()`][ozzy.core.DataArray] or [`ozzy.Dataset()`][ozzy.core.Dataset]. For example:
+{ .annotate }
+
+1.  See [*Code Reference → Data object methods → General methods*](../reference/data-objects/general-methods.md).
+2.  See [*Code Reference → Data object methods → Data-type-specific methods*](../reference/data-objects/data-type-methods/index.md).
+3.  See [*Code Reference → Data object methods → Backend-specific methods*](../reference/data-objects/backend-methods/index.md)
 
 !!! example "Initializing new data objects"
 

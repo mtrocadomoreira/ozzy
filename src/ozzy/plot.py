@@ -233,7 +233,7 @@ class MutablePlotObj:
         imo: mpl.artist.Artist,
         ax: mpl.axes.Axes,
         da: xr.DataArray,
-        tvar: str,
+        t_var: str,
         xlim: None | tuple[float, float],
         ylim: None | tuple[float, float],
         clim: None | tuple[float, float],
@@ -242,14 +242,14 @@ class MutablePlotObj:
         self.imo = imo
         self.da = da
         self.ax = ax
-        self.tvar = tvar
+        self.t_var = t_var
         self.xlim = xlim
         self.ylim = ylim
         self.clim = clim
         self.pfunc = plot_func
         return
 
-    def redraw(self, tval: float) -> None:
+    def redraw(self, t_val: float) -> None:
         # Clear the axes
         if hasattr(self.imo, "colorbar"):
             if hasattr(self.imo.colorbar, "remove"):
@@ -258,7 +258,7 @@ class MutablePlotObj:
 
         # Create new plot object
 
-        da_it = self.da.sel({self.tvar: tval}, method="nearest")
+        da_it = self.da.sel({self.t_var: t_val}, method="nearest")
         new_imo = da_it.plot(ax=self.ax)
 
         # Set axis limits
@@ -271,8 +271,8 @@ class MutablePlotObj:
 
         # Run plot_func
         if self.pfunc is not None:
-            tsel = da_it[self.tvar].to_numpy()
-            self.pfunc(self.ax, new_imo, self.da, self.tvar, tsel)
+            tsel = da_it[self.t_var].to_numpy()
+            self.pfunc(self.ax, new_imo, self.da, self.t_var, tsel)
 
         # Update plot object
         self.imo = new_imo
@@ -688,7 +688,7 @@ def movie(
     clim_fixed : bool, optional
         If `False`, color scale limits vary for each time step.
     plot_func : Callable | dict[matplotlib.artist.Artist, Callable] | None, optional
-        A function or dictionary of functions to customize the plot at each time step. Each function must take 5 arguments in this order: `ax` (matplotlib Axes), `imo` (matplotlib Artist), `da` (DataArray), `tvar` (str), `tval` (float), and return None. The function overrides axis limits.
+        A function or dictionary of functions to customize the plot at each time step. Each function must take 5 arguments in this order: `ax` (matplotlib Axes), `imo` (matplotlib Artist), `da` (DataArray), `t_var` (str), `t_val` (float), and return None. The function overrides axis limits.
 
     writer : str, optional
         The [`matplotlib` animation writer](https://matplotlib.org/stable/api/animation_api.html#writer-classes) to use. Options are `'ffmpeg'`, `'pillow'`, `'html'`, `'imagemagick'`, and `'frames_png'`. When `'frames_png'` is selected, no writer is used and the animation frames are saved to a folder in PNG format.
@@ -955,7 +955,7 @@ def movie(
 
 def imovie(
     da: xr.DataArray,
-    tvar: str = "t",
+    t_var: str = "t",
     clim: str | Iterable[float, float] | None = "first",
     colormap: str | None = None,
     widget_location: str = "bottom",
@@ -967,7 +967,7 @@ def imovie(
     ----------
     da : xarray.DataArray
         Input data array to animate.
-    tvar : str, optional
+    t_var : str, optional
         Name of the time coordinate in the DataArray.
     clim : str | tuple of float, optional
         Color limits specification. Can be:
@@ -1020,16 +1020,16 @@ def imovie(
         da = oz.DataArray(data, coords={'time': time, 'y': range(20), 'x': range(30)})
 
         # Plot with custom settings
-        oplt.imovie(da, tvar='time', clim=(-1, 1), colormap='cmc.lisbon')
+        oplt.imovie(da, t_var='time', clim=(-1, 1), colormap='cmc.lisbon')
         ```
     """
 
     hvplot.extension("matplotlib")
 
-    # Check whether tvar is valid
-    if tvar not in da.coords:
+    # Check whether t_var is valid
+    if t_var not in da.coords:
         raise ValueError(
-            f"Could not find '{tvar}' variable in the DataArray. Please specify a valid time coordinate for this DataArray with the 'tvar' keyword argument."
+            f"Could not find '{t_var}' variable in the DataArray. Please specify a valid time coordinate for this DataArray with the 't_var' keyword argument."
         )
 
     # Get clims
@@ -1037,8 +1037,8 @@ def imovie(
         match clim:
             case "first":
                 clims = (
-                    da.isel({tvar: 0}).min().compute().to_numpy(),
-                    da.isel({tvar: 0}).max().compute().to_numpy(),
+                    da.isel({t_var: 0}).min().compute().to_numpy(),
+                    da.isel({t_var: 0}).max().compute().to_numpy(),
                 )
             case "global":
                 clims = (
@@ -1079,7 +1079,7 @@ def imovie(
     # Override widget_type if it is in kwargs
     if "widget_type" in kwargs:
         hvobj = da.hvplot(
-            groupby=tvar,
+            groupby=t_var,
             clim=clims,
             widget_location=widget_location,
             colormap=colormap,
@@ -1087,7 +1087,7 @@ def imovie(
         )
     else:
         hvobj = da.hvplot(
-            groupby=tvar,
+            groupby=t_var,
             clim=clims,
             widget_type="scrubber",
             widget_location=widget_location,
@@ -1102,7 +1102,7 @@ def hist(
     do: xr.Dataset | xr.DataArray,
     x: str | None = None,
     y: str | None = None,
-    weight_var: str | None = "q",
+    w_var: str | None = "q",
     bins: str | int | Iterable = "auto",
     cmap: str | None = "cmc.bamako",
     cbar: bool = False,
@@ -1118,7 +1118,7 @@ def hist(
         Variable name for x-axis
     y : str | None
         Variable name for y-axis
-    weight_var : str | None
+    w_var : str | None
         Variable name to use as weights
     bins : str | int | Iterable
         Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
@@ -1159,13 +1159,13 @@ def hist(
     if (x is not None) and (y is not None):
         cmap_opts["cmap"] = cmap
 
-    if (weight_var is not None) and (bins == "auto"):
+    if (w_var is not None) and (bins == "auto"):
         bins = 200
 
-    if weight_var is None:
+    if w_var is None:
         weights_pass = None
     else:
-        weights_pass = abs(do[weight_var])
+        weights_pass = abs(do[w_var])
 
     ax = sns.histplot(
         do.to_dataframe(),
@@ -1211,7 +1211,7 @@ def hist_proj(
     do: xr.Dataset | xr.DataArray,
     x: str,
     y: str,
-    weight_var: str | None = "q",
+    w_var: str | None = "q",
     bins: str | int | Iterable = "auto",
     cmap: str | None = "cmc.bamako",
     space: float = 0,
@@ -1229,7 +1229,7 @@ def hist_proj(
         Variable name for x-axis
     y : str
         Variable name for y-axis
-    weight_var : str | None
+    w_var : str | None
         Variable name to use as weights
     bins : str | int | Iterable
         Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
@@ -1272,13 +1272,13 @@ def hist_proj(
     if cmap is None:
         cmap = xr.get_options()["cmap_sequential"]
 
-    if (weight_var is not None) and (bins == "auto"):
+    if (w_var is not None) and (bins == "auto"):
         bins = 200
 
-    if weight_var is None:
+    if w_var is None:
         weights_pass = None
     else:
-        weights_pass = abs(do[weight_var])
+        weights_pass = abs(do[w_var])
 
     jg = sns.jointplot(
         do.to_dataframe(),

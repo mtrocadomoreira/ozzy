@@ -16,12 +16,6 @@ from .utils import axis_from_extent, bins_from_axis
 
 
 class GridMixin:
-    """Mixin class for operations on grid-like data objects.
-
-    The methods in this class are accessible to a data object when `<data_obj>.attrs['pic_data_type'] == 'grid'`.
-
-    """
-
     def coords_from_extent(self, mapping: dict[str, tuple[float, float]]):
         """Add coordinates to [DataArray][xarray.DataArray] | [Dataset][xarray.Dataset] based on axis extents.
 
@@ -56,15 +50,15 @@ class GridMixin:
             ds_new = ds_new.assign_coords({k: ax})
         return ds_new
 
-    def get_space_dims(self, time_dim: str = "t"):
+    def get_space_dims(self, t_var: str = "t"):
         """Get names of spatial dimensions.
 
         Returns coordinate names that are not the time dimension.
 
         Parameters
         ----------
-        time_dim : str, default 't'
-            Name of time coordinate
+        t_var : str, default 't'
+            Name of time dimension
 
         Returns
         -------
@@ -83,17 +77,17 @@ class GridMixin:
             print(spatial_dims)
             ```
         """
-        return list(set(list(self._obj.dims)) - {time_dim})
+        return list(set(list(self._obj.dims)) - {t_var})
 
-    def get_bin_edges(self, time_dim: str = "t"):
+    def get_bin_edges(self, t_var: str = "t"):
         """Get bin edges along each spatial axis.
 
         Calculates bin edges from coordinate values. This is useful for binning operations (see example below).
 
         Parameters
         ----------
-        time_dim : str, default 't'
-            Name of time coordinate
+        t_var : str, default 't'
+            Name of time dimension
 
         Returns
         -------
@@ -108,11 +102,11 @@ class GridMixin:
             ```python
             import numpy as np
             bin_edges = axes_ds.ozzy.get_bin_edges('t')
-            dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds_i[wvar])
+            dist, edges = np.histogramdd(part_coords, bins=bin_edges, weights=ds_i[w_var])
             ```
         """
         bin_edges = []
-        for axis in self._obj.ozzy.get_space_dims(time_dim):
+        for axis in self._obj.ozzy.get_space_dims(t_var):
             axis_arr = np.array(self._obj[axis])
             bin_edges.append(bins_from_axis(axis_arr))
         return bin_edges

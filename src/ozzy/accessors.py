@@ -252,6 +252,12 @@ class OzzyDataset(*mixins, metaclass=Gatekeeper):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
+    def _contains_datavars(self, vars_list: list[str]) -> None:
+        for ivar in vars_list:
+            if ivar not in self._obj.data_vars:
+                raise KeyError(f"Cannot find '{ivar}' variable in Dataset")
+        return
+
     def coord_to_physical_distance(
         self,
         coord: str,

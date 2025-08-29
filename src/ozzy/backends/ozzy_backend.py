@@ -109,9 +109,6 @@ def read(files, **kwargs):
 
 # Defines specific methods for data from this code
 class Methods:
-    """The methods in this class are accessible to a data object when `<data_obj>.attrs['data_origin'] == 'ozzy'`.
-
-    This class is currently empty.
-    """
+    """_There are currently no ozzy-specific methods._"""
 
     ...

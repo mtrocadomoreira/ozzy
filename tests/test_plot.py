@@ -176,8 +176,8 @@ def test_movie_with_default_time_variable(tmp_path, sample_data):
 
 
 def test_movie_with_custom_plot_func(tmp_path, sample_data):
-    def custom_plot(ax, imo, da, tvar, tval):
-        ax.set_title(f"Time: {tval:.2f}")
+    def custom_plot(ax, imo, da, t_var, t_val):
+        ax.set_title(f"Time: {t_val:.2f}")
 
     fig, ax = plt.subplots()
     line = sample_data.isel(time=0).plot(ax=ax)
@@ -189,11 +189,11 @@ def test_movie_with_custom_plot_func(tmp_path, sample_data):
 
 
 def test_movie_with_dict_plot_func(tmp_path, sample_data):
-    def plot_func1(ax, imo, da, tvar, tval):
-        ax.set_title(f"Plot 1 - Time: {tval:.2f}")
+    def plot_func1(ax, imo, da, t_var, t_val):
+        ax.set_title(f"Plot 1 - Time: {t_val:.2f}")
 
-    def plot_func2(ax, imo, da, tvar, tval):
-        ax.set_title(f"Plot 2 - Time: {tval:.2f}")
+    def plot_func2(ax, imo, da, t_var, t_val):
+        ax.set_title(f"Plot 2 - Time: {t_val:.2f}")
 
     fig, (ax1, ax2) = plt.subplots(2, 1)
     line1 = sample_data.isel(time=0).plot(ax=ax1)

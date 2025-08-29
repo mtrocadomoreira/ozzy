@@ -6,7 +6,7 @@ hide:
 # Welcome to the ozzy User Guide!
 
 
-<div class="grid cards" markdown>
+<div class="grid cards center" markdown>
 
 - :material-desktop-classic:  [__Installation__](installation/index.md)
 - :material-run-fast:  [__Getting started__](getting-started/index.md)
@@ -15,7 +15,7 @@ hide:
 - :material-chart-areaspline:  [__Plotting__](plotting.md)
 </div>
 
-<div class="grid cards" markdown>
+<div class="grid cards center" markdown>
 
 - :material-math-compass:  [Analysis](analysis.md "Page under development")
 - :material-speedometer:  [Notes on speed](speed.md "Page under development")

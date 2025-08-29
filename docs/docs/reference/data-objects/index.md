@@ -1,5 +1,19 @@
 # Data object methods
 
+
+Different methods are available depending on the type of PIC data (e.g. **grid** versus **particle** data), and on the PIC code the data originates from (e.g. **OSIRIS** versus **LCODE**). 
+
+Please check the sections below for more details about all the available data object methods.
+
+<div class="grid cards center single-column" markdown>
+
+- [__General methods__](general-methods.md)
+- [__Data-type-specific methods__](data-type-methods/index.md)
+- [__Backend-specific methods__](backend-methods/index.md)
+</div>
+
+## Calling a method on an ozzy data object
+
 Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[^1]. All the ozzy functionality built on top of xarray data objects ([Datasets][xarray.Dataset] or [DataArrays][xarray.DataArray]) can therefore be accessed via 
 
 === "DataArray"
@@ -15,6 +29,7 @@ Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[
     ```
 
 [^1]: See [_Extending xarray using accessors_](https://docs.xarray.dev/en/latest/internals/extending-xarray.html)
+
 
 ???+ example
 
@@ -49,13 +64,4 @@ Ozzy is implemented according to [xarray](https://xarray.dev/)'s accessor model[
         # True
         ```
 
-## Methods
-
-=== "xarray.DataArray.ozzy"
-
-    ::: ozzy.accessors.OzzyDataArray
-
-=== "xarray.Dataset.ozzy"
-
-    ::: ozzy.accessors.OzzyDataset
 

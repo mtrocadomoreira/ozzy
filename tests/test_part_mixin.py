@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import numpy as np
 import pytest
 import xarray as xr
@@ -19,7 +21,8 @@ def sample_dataset():
             "q": ("pid", np.ones(1000)),
         },
         coords={"pid": np.arange(1000)},
-        attrs={"pic_data_type": "part", "data_origin": "ozzy"},
+        pic_data_type="part",
+        data_origin="ozzy",
     )
 
 
@@ -110,7 +113,7 @@ def test_get_emittance_geometric(sample_dataset):
 def test_get_emittance_invalid_var(sample_dataset):
     ds = sample_dataset
     with pytest.raises(KeyError, match="Cannot find 'invalid_var' variable in Dataset"):
-        ds.ozzy.get_emittance(xvar="invalid_var")
+        ds.ozzy.get_emittance(x_var="invalid_var")
 
 
 def test_get_slice_emittance_basic(sample_dataset):
@@ -224,7 +227,7 @@ class TestGetEnergySpectrum:
     def test_custom_variable_names(self):
         """Test using custom variable names for energy and charge"""
         spectrum = self.ds.ozzy.get_energy_spectrum(
-            nbins=5, enevar="alt_ene", wvar="alt_q"
+            nbins=5, ene_var="alt_ene", w_var="alt_q"
         )
 
         # Check that the correct variables are used
@@ -242,12 +245,12 @@ class TestGetEnergySpectrum:
         with pytest.raises(
             KeyError, match="Cannot find 'nonexistent' variable in Dataset"
         ):
-            self.ds.ozzy.get_energy_spectrum(nbins=5, enevar="nonexistent")
+            self.ds.ozzy.get_energy_spectrum(nbins=5, ene_var="nonexistent")
 
         with pytest.raises(
             KeyError, match="Cannot find 'nonexistent' variable in Dataset"
         ):
-            self.ds.ozzy.get_energy_spectrum(nbins=5, wvar="nonexistent")
+            self.ds.ozzy.get_energy_spectrum(nbins=5, w_var="nonexistent")
 
     def test_error_when_enevar_not_in_axis_ds(self):
         """Test error when energy variable is not in provided axis_ds"""
@@ -275,3 +278,188 @@ class TestGetEnergySpectrum:
         # Check that the label has been modified with | |
         assert spectrum1["q"].attrs["long_name"] == "|Charge|"
         assert spectrum2["q"].attrs["long_name"] == "$|Q|$"
+
+
+class TestGetWeightedMedian:
+    @pytest.fixture
+    def sample_dataset(self):
+        """Create a simple particle dataset for testing."""
+        rng = np.random.default_rng(seed=42)
+        ds = oz.Dataset(
+            {
+                "energy": ("pid", rng.normal(100, 20, size=1000)),
+                "q": ("pid", rng.random(1000)),
+            },
+            coords={"pid": np.arange(1000)},
+            pic_data_type="part",
+            data_origin="ozzy",
+        )
+        return ds
+
+    @pytest.fixture
+    def time_dependent_dataset(self):
+        """Create a time-dependent particle dataset for testing."""
+        rng = np.random.default_rng(seed=42)
+        times = np.linspace(0, 10, 5)
+        energies = np.zeros((5, 100))
+
+        # Create time-dependent energies
+        for i, t in enumerate(times):
+            energies[i] = rng.normal(100 + t * 10, 20, size=100)
+
+        ds = oz.Dataset(
+            {
+                "energy": (["t", "pid"], energies),
+                "q": (["t", "pid"], rng.random((5, 100))),
+            },
+            coords={"t": times, "pid": np.arange(100)},
+            pic_data_type="part",
+            data_origin="ozzy",
+        )
+        return ds
+
+    def test_get_weighted_median_basic(self, sample_dataset):
+        """Test basic functionality of get_weighted_median."""
+        # Mock the _contains_datavars method to avoid dependency issues
+        with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+            median_energy = sample_dataset.ozzy.get_weighted_median(var="energy")
+
+            # Check return type
+            assert isinstance(median_energy, xr.DataArray)
+
+            # Check the result is a scalar (no dimensions)
+            assert len(median_energy.dims) == 0
+
+            # Check value is reasonable (should be near 100 given our normal distribution)
+            assert 80 <= float(median_energy) <= 120
+
+    def test_get_weighted_median_time_dependent(self, time_dependent_dataset):
+        """Test get_weighted_median with time-dependent data."""
+        # Mock the _contains_datavars method
+        with patch.object(time_dependent_dataset.ozzy, "_contains_datavars"):
+            # Test with default time variable
+            median_energy = time_dependent_dataset.ozzy.get_weighted_median(
+                var="energy"
+            )
+
+            # Check return type and dimensions
+            assert isinstance(median_energy, xr.DataArray)
+            assert "t" in median_energy.dims
+            assert len(median_energy.dims) == 1
+            assert median_energy.sizes["t"] == 5
+
+            # Values should increase with time since we added t*10 to the means
+            assert np.all(np.diff(median_energy.values) > 0)
+
+    def test_get_weighted_median_custom_weight(self, sample_dataset):
+        """Test get_weighted_median with a custom weight variable."""
+        # Add another weight variable
+        sample_dataset["weight"] = ("pid", np.random.random(1000))
+
+        # Mock the _contains_datavars method
+        with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+            median_energy = sample_dataset.ozzy.get_weighted_median(
+                var="energy", w_var="weight"
+            )
+
+            # Check return type
+            assert isinstance(median_energy, xr.DataArray)
+
+            # Result should be different from using default weights
+            with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+                default_median = sample_dataset.ozzy.get_weighted_median(var="energy")
+                # Not exactly equal due to floating point, but likely different
+                assert abs(float(median_energy) - float(default_median)) > 1e-10
+
+    def test_get_weighted_median_custom_time_var(self, time_dependent_dataset):
+        """Test get_weighted_median with a custom time variable."""
+        # Rename t to time
+        renamed_ds = time_dependent_dataset.rename({"t": "time"})
+
+        # Mock the _contains_datavars method
+        with patch.object(renamed_ds.ozzy, "_contains_datavars"):
+            median_energy = renamed_ds.ozzy.get_weighted_median(
+                var="energy", t_var="time"
+            )
+
+            # Check return type and dimensions
+            assert isinstance(median_energy, xr.DataArray)
+            assert "time" in median_energy.dims
+            assert len(median_energy.dims) == 1
+            assert median_energy.sizes["time"] == 5
+
+    def test_get_weighted_median_even_odd_observations(self):
+        """Test get_weighted_median with even and odd numbers of observations."""
+        # Create datasets with even and odd number of observations
+        ds_even = oz.Dataset(
+            {
+                "energy": ("pid", [1, 2, 3, 4]),
+                "q": ("pid", [1, 1, 1, 1]),  # Equal weights
+            },
+            coords={"pid": np.arange(4)},
+            attrs={"pic_data_type": "part"},
+        )
+
+        ds_odd = oz.Dataset(
+            {
+                "energy": ("pid", [1, 2, 3, 4, 5]),
+                "q": ("pid", [1, 1, 1, 1, 1]),  # Equal weights
+            },
+            coords={"pid": np.arange(5)},
+            attrs={"pic_data_type": "part"},
+        )
+
+        # Mock the _contains_datavars method
+        with patch.object(ds_even.ozzy, "_contains_datavars"):
+            median_even = ds_even.ozzy.get_weighted_median(var="energy")
+            # For even number with equal weights, should be average of middle values
+            assert float(median_even) == 2.5
+
+        with patch.object(ds_odd.ozzy, "_contains_datavars"):
+            median_odd = ds_odd.ozzy.get_weighted_median(var="energy")
+            # For odd number with equal weights, should be middle value
+            assert float(median_odd) == 3
+
+    def test_get_weighted_median_with_labels(self, sample_dataset):
+        """Test the long_name attribute handling in get_weighted_median."""
+        # Add long_name attribute to energy
+        sample_dataset["energy"].attrs["long_name"] = "Energy"
+
+        # Mock the _contains_datavars method
+        with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+            median_energy = sample_dataset.ozzy.get_weighted_median(var="energy")
+            assert median_energy.attrs["long_name"] == "med(Energy)"
+
+        # Test with math notation
+        sample_dataset["energy"].attrs["long_name"] = "$E$"
+
+        with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+            median_energy = sample_dataset.ozzy.get_weighted_median(var="energy")
+            assert median_energy.attrs["long_name"] == r"$\mathrm{med}\left(E\right) $"
+
+    def test_get_weighted_median_missing_variables(self, sample_dataset):
+        """Test error handling when variables are missing."""
+        # The real _contains_datavars method should raise KeyError for missing variables
+        with pytest.raises(Exception):  # Could be KeyError or custom exception
+            sample_dataset.ozzy.get_weighted_median(var="nonexistent_var")
+
+        with pytest.raises(Exception):
+            sample_dataset.ozzy.get_weighted_median(
+                var="energy", w_var="nonexistent_weight"
+            )
+
+    def test_get_weighted_median_with_negative_weights(self, sample_dataset):
+        """Test that absolute values of weights are used."""
+        # Add a weight variable with negative values
+        sample_dataset["neg_weight"] = ("pid", -1 * sample_dataset["q"].values)
+
+        # Mock the _contains_datavars method
+        with patch.object(sample_dataset.ozzy, "_contains_datavars"):
+            # Both should give the same result since abs() is used
+            median_1 = sample_dataset.ozzy.get_weighted_median(var="energy", w_var="q")
+            median_2 = sample_dataset.ozzy.get_weighted_median(
+                var="energy", w_var="neg_weight"
+            )
+
+            # Should be exactly equal
+            np.testing.assert_almost_equal(float(median_1), float(median_2))
