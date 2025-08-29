@@ -3,6 +3,73 @@
 <!--start-docs-->
 
 
+## Version 2.0.0 
+
+Released 29-08-2025 
+
+### Bug Fixes
+
+* [`6404186`](https://github.com/mtrocadomoreira/ozzy/commit/6404186acba85245e711428be7e4f1d1936ca111): Fix bug in `bin_into_grid` (and `get_phase_space`, which depends on it) for axisymmetric data
+
+
+
+    This bug was possibly producing incorrect results when `bin_into_grid` or `get_phase_space` were called on an axisymmetric particle dataset, and where **all** of these conditions were met:
+
+    - `r_var` was provided as an argument (other than `None`)
+
+    - for `get_phase_space`, the argument `axisym` was set to `True`
+
+    - the radial variable `r_var` was **not** part of either the `axes_ds` (for `bin_into_grid`) or `vars` (for `get_phase_space`) argument
+
+
+### Documentation
+
+* [`4ff3d2e`](https://github.com/mtrocadomoreira/ozzy/commit/4ff3d2efcb1f3c18e20451a530b9f5b92c7a0c73): Restructure the &#34;data object methods&#34; section of the code reference and other small updates
+
+
+
+
+
+
+* [`6cec2a7`](https://github.com/mtrocadomoreira/ozzy/commit/6cec2a7b1b106da15de204ae05bcbc0249747e7b): Improve example of `convert_q` method
+
+
+
+
+
+
+### Features
+
+* [`7855a10`](https://github.com/mtrocadomoreira/ozzy/commit/7855a10f8a14c1e487f834a76585503d16b4f355): Add function to get the weighted median of some variable in a particle dataset
+
+
+
+    Particle data from PIC codes is often weighted (often in the form of an individual macroparticle "charge"), which means that the calculation of a median value is not as straightforward as for other discrete and unweighted data. This method ensures that a median value can be calculated correctly, taking the macroparticle weights into account.
+
+    This function can be called as a particle method, e.g. `part_ds.ozzy.get_weighted_mean`, where `part_ds` is an ozzy particle Dataset object (i.e., with attribute `pic_data_type = "part"`).
+
+
+### Refactoring
+
+* [`cb5973f`](https://github.com/mtrocadomoreira/ozzy/commit/cb5973f56b946d364533968ab48a5eca18f88a9e): Make all arguments for variable names consistent
+
+
+
+    Some functions have input arguments where the name of a certain variable can be specificied. The naming for this type of argument has been made consistent across the code. For example, the arguments `time_dim` or `tvar` have been renamed to `t_var`.
+
+    **Breaking change:** `TypeError` may be raised when some functions are called using the old argument names
+
+    Please make sure to update your scripts with the new arguments (e.g. `w_var` instead of `wvar`).
+
+
+* [`f668c5d`](https://github.com/mtrocadomoreira/ozzy/commit/f668c5d32c3707fa1723644cb6805e6c733d8b25): Add hidden method `_contains_datavars` to ozzy dataset objects to simplify input validation in other parts of the code
+
+
+
+    Given a list of variable names, this method checks whether each variable exists in the Dataset as a data variable and raises a `KeyError` if it doesn't. This is useful when implementing new functions that require some data variables as input (for example `get_emittance` or `get_energy_spectrum`).
+
+
+
 ## Version 1.3.4 
 
 Released 26-08-2025 
