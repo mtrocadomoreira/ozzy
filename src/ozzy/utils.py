@@ -333,8 +333,7 @@ def prep_file_input(files: str | list[str]) -> list[str]:
         expandlist = [os.path.expanduser(f) for f in files]
         globlist = []
         for f in expandlist:
-            globlist.append(glob.glob(f, recursive=True))
-
+            globlist = globlist + glob.glob(f, recursive=True)
         filelist = []
         for f in globlist:
             try:
