@@ -505,7 +505,7 @@ class PartMixin:
                 )
                 q_binned.append(qds_i)
 
-            parts = xr.concat(q_binned, t_var)
+            parts = xr.concat(q_binned, t_var, join="outer")
 
         else:
             dist = get_dist(raw_ds)
@@ -1452,7 +1452,7 @@ class PartMixin:
                 ds_t = ds.sel({t_var: tval})
                 ds_t_all.append(process_single(ds_t))
             # Concatenate all median values
-            da_out = xr.concat(ds_t_all, t_var)
+            da_out = xr.concat(ds_t_all, t_var, join="outer")
 
         else:
             da_out = process_single(ds)

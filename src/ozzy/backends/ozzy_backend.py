@@ -89,7 +89,7 @@ def read(files, **kwargs):
                     ds_tmp = xr.open_dataset(file, engine="h5netcdf", chunks="auto")
                     ds_t.append(config_ozzy(ds_tmp))
                 print("\nConcatenating along time... (this may take a while)")
-                ds = xr.concat(ds_t, "t", fill_value={"q": 0.0})
+                ds = xr.concat(ds_t, "t", fill_value={"q": 0.0}, join="outer")
 
             ds = ds.assign_attrs(
                 source=os.path.commonpath(files),

@@ -223,7 +223,7 @@ def charge_in_field_quadrants(
         q_quad.name = "Q"
         summed = summed + [q_quad]
 
-    charge_ds = xr.merge(summed)
+    charge_ds = xr.merge(summed, join="outer")
 
     charge_ds[q_quad.name].attrs["long_name"] = r"$Q$"
     charge_ds[q_quad.name].attrs["long_name"] = units_str

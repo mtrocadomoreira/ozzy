@@ -787,8 +787,8 @@ def local_maxima_and_zero_crossings(
                 all_sections_max.append(ds_max_s)
 
             # Reassemble sections
-            result_zcr = xr.concat(all_sections_zcr, period_var)
-            result_max = xr.concat(all_sections_max, period_var)
+            result_zcr = xr.concat(all_sections_zcr, period_var, join="outer")
+            result_max = xr.concat(all_sections_max, period_var, join="outer")
 
             # Assign time coordinate
             result_zcr = _copy_time_var(da_t, result_zcr, t_var)
@@ -879,7 +879,7 @@ def local_maxima_and_zero_crossings(
     # Reassemble along time coordinate
     # -------------------------------------------------
 
-    ds_zeros = xr.concat(all_zcr, t_var)
-    ds_max = xr.concat(all_max, t_var)
+    ds_zeros = xr.concat(all_zcr, t_var, join="outer")
+    ds_max = xr.concat(all_max, t_var, join="outer")
 
     return ds_max, ds_zeros

@@ -399,7 +399,7 @@ def lcode_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
 
     The resulting concatenated Dataset is sorted along the `'t'` dimension.
     """
-    ds = xr.concat(ds, "t", fill_value={"q": 0.0})
+    ds = xr.concat(ds, "t", fill_value={"q": 0.0}, join="outer")
     ds = ds.sortby("t")
     ds = ds.astype(float).chunk("auto")
     return ds
@@ -730,7 +730,7 @@ def read_beamfile(
         ds = lcode_append_time(ds, thistime)
         datasets.append(ds)
 
-    ds_out = xr.merge(datasets)
+    ds_out = xr.merge(datasets, join="outer")
     ds_out = set_quant_metadata(ds_out, file_info.type)
     return ds_out
 
