@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 2.0.1 
+
+Released 05-09-2025 
+
+### Bug Fixes
+
+* [`bcd0bf6`](https://github.com/mtrocadomoreira/ozzy/commit/bcd0bf66c0fdb4343e20d1f86a40119ede68ffe5): Bug in helper function `ozzy.utils.prep_file_input` was preventing ozzy from finding files to open, raising `filenotfounderror`
+
+
+
+
+
+
+
 ## Version 2.0.0 
 
 Released 29-08-2025 
