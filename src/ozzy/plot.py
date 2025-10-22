@@ -648,8 +648,10 @@ def set_cmap(
 @mpl.rc_context({"savefig.transparent": False, "figure.facecolor": "white"})
 def movie(
     fig: mpl.figure.Figure,
-    plot_objs: dict[mpl.artist.Artist, tuple[xr.DataArray, str]]
-    | dict[mpl.artist.Artist, xr.DataArray],
+    plot_objs: (
+        dict[mpl.artist.Artist, tuple[xr.DataArray, str]]
+        | dict[mpl.artist.Artist, xr.DataArray]
+    ),
     filename: str,
     fps: int = 5,
     dpi: int = 300,
@@ -1165,7 +1167,10 @@ def hist(
     if w_var is None:
         weights_pass = None
     else:
-        weights_pass = abs(do[w_var])
+        try:
+            weights_pass = abs(do[w_var]).compute().data
+        except AttributeError:
+            weights_pass = abs(do[w_var]).data
 
     ax = sns.histplot(
         do.to_dataframe(),
@@ -1274,11 +1279,18 @@ def hist_proj(
 
     if (w_var is not None) and (bins == "auto"):
         bins = 200
+        bins_marginal = bins
+    elif isinstance(bins, Iterable):
+        bins = bins
+        bins_marginal = max(bins)
 
     if w_var is None:
         weights_pass = None
     else:
-        weights_pass = abs(do[w_var])
+        try:
+            weights_pass = abs(do[w_var]).compute().data
+        except AttributeError:
+            weights_pass = abs(do[w_var]).data
 
     jg = sns.jointplot(
         do.to_dataframe(),
@@ -1292,6 +1304,7 @@ def hist_proj(
         color=mpl.colormaps[cmap](
             0.0
         ),  # choose the lower bound of the color scale as the color for the projected bins
+        marginal_kws={"weights": weights_pass, "bins": bins_marginal},
         **kwargs,
     )
 
