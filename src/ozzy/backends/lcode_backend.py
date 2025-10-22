@@ -963,7 +963,7 @@ class Methods:
         Parameters
         ----------
         dxi : float
-            The grid spacing in the longitudinal direction in normalized units, i.e., in units of $k_p^{-1}$. or $\mathrm{cm}$.
+            The grid spacing in the longitudinal direction in normalized units, i.e., in units of $k_p^{-1}$.
         n0 : float
             The reference density, in $\mathrm{cm}^{-3}$.
         q_var : str, default 'q'
