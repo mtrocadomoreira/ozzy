@@ -224,7 +224,15 @@ def open(
     **kwargs :
         Additional keyword arguments to be passed to the backend-specific reader function.
 
-        See available keyword arguments for each backend:
+        ??? info "LCODE-specific keyword arguments"
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`axes_lims`** | `dict[str, tuple[float, float]] | None` |  A dictionary specifying the limits for each axis in the data. Keys are axis names, and values are tuples of (min, max) values. | `None` |
+            | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
+            | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
+
+        See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
@@ -252,7 +260,12 @@ def open(
 
         ```python
         import ozzy as oz
-        ds = oz.open('lcode', 'path/to/file/ez02500.swp', axes_lims = {'x1': (-100,0.0), 'x2': (0.0, 6.0)})
+        ds = oz.open(
+            'lcode',
+            'path/to/file/ez02500.swp',
+            axes_lims = {'x1': (-100,0.0), 'x2': (0.0, 6.0)},
+            axisym = True
+        )
         ```
 
     """
@@ -288,11 +301,20 @@ def open_series(file_type, files, nfiles=None, **kwargs):
     **kwargs :
         Additional keyword arguments to be passed to the backend-specific reader function.
 
-        See available keyword arguments for each backend:
+        ??? info "LCODE-specific keyword arguments"
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`axes_lims`** | `dict[str, tuple[float, float]] | None` |  A dictionary specifying the limits for each axis in the data. Keys are axis names, and values are tuples of (min, max) values. | `None` |
+            | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
+            | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
+
+        See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
         * [ozzy][ozzy.backends.ozzy_backend.read]
+
 
     Returns
     -------
@@ -372,11 +394,20 @@ def open_compare(
     **kwargs :
         Additional keyword arguments to be passed to the backend-specific reader function.
 
-        See available keyword arguments for each backend:
+        ??? info "LCODE-specific keyword arguments"
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`axes_lims`** | `dict[str, tuple[float, float]] | None` |  A dictionary specifying the limits for each axis in the data. Keys are axis names, and values are tuples of (min, max) values. | `None` |
+            | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
+            | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
+
+        See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
         * [ozzy][ozzy.backends.ozzy_backend.read]
+
 
     Returns
     -------
