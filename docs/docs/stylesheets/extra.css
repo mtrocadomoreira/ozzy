@@ -73,3 +73,8 @@
   text-align: center;
 }
 
+/* https://stackoverflow.com/questions/1899772/what-is-the-best-practice-for-showing-an-icon-next-to-text */
+.md-typeset a.plugin_open_external_links_in_new_tab::after {
+  content: " \2197" ;
+  font-size: smaller;
+}

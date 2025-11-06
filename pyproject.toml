@@ -76,6 +76,7 @@ mkdocs-git-revision-date-localized-plugin = "^1.4.7"
 mkdocs-glightbox = "^0.4.0"
 black = "^25.1.0"
 mkdocs-include-markdown-plugin = "^7.1.6"
+mkdocs-plugin-open-external-links-in-new-tab = {git = "https://github.com/z-aki/mkdocs-plugin-open-external-links-in-new-tab/"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

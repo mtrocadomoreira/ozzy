@@ -149,7 +149,6 @@ plugins:
           - https://docs.h5py.org/en/stable/objects.inv
           - https://matplotlib.org/stable/objects.inv
           - https://seaborn.pydata.org/objects.inv
-
   - git-revision-date-localized:
       enabled: true #!ENV [CI, false]
       enable_creation_date: true
@@ -166,6 +165,10 @@ plugins:
       start: <!--start-->
       end: <!--end-->
       recursive: true
+  - mkdocs-plugin-open-external-links-in-new-tab:
+      # Optional config. Default values are these:
+      external_extensions:
+        - ".pdf"
 
 extra_javascript:
   - javascripts/mathjax.js
