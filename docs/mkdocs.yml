@@ -141,7 +141,7 @@ plugins:
             docstring_section_style: table
             separate_signature: true
             heading_level: 3
-          import:
+          inventories:
           - https://docs.xarray.dev/en/stable/objects.inv
           - https://docs.dask.org/en/stable/objects.inv
           - https://numpy.org/doc/stable/objects.inv
