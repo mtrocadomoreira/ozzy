@@ -3,6 +3,42 @@
 <!--start-docs-->
 
 
+## Version 2.0.2 
+
+Released 06-11-2025 
+
+### Bug Fixes
+
+* [`1e3d55d`](https://github.com/mtrocadomoreira/ozzy/commit/1e3d55da09fafc62f75a960f9c5cc2974657f600): Bug that was preventing lcode files like `emaxf.dat` to be read
+
+
+
+
+
+
+### Documentation
+
+* [`c966cd4`](https://github.com/mtrocadomoreira/ozzy/commit/c966cd4eabdd93aec3cee762f2b5829b1e0a6355): Correct typo in docstring of `lcode_backends.convert_q`
+
+
+
+
+
+
+### Refactoring
+
+* [`70da7e3`](https://github.com/mtrocadomoreira/ozzy/commit/70da7e3ff7dbb7e5d9a43e90640538669f5753dc): Add argument to `xarray.concat` and `xarray.merge` calls due to xarray `futurewarning`
+
+
+
+    Add the argument `join="outer"` explicitly when call `xarray.concat` to avoid getting an error in the future, when xarray changes the default value of `join` from `"outer"` to `"exact"`.
+    See warning:
+    ```
+    FutureWarning: In a future version of xarray the default value for join will change from join='outer' to join='exact'.
+    ```
+
+
+
 ## Version 2.0.1 
 
 Released 05-09-2025 
