@@ -754,7 +754,7 @@ def read_extrema(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ddf = dd_read_table(files)
 
-    match = re.fullmatch(file_info.regex, files[0])
+    match = re.fullmatch(file_info.regex, os.path.basename(files[0]))
     quant = match.group(1)
 
     prefix = ""
