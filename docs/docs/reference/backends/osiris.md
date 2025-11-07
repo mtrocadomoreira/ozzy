@@ -17,7 +17,8 @@ Ozzy simply imports most of the metadata stored in OSIRIS HDF5 files as [Dataset
 
 The `'LABEL'` or `'LABELS'` attributes are renamed to `'long_name'`, since this is the default property that xarray looks for when labelling quantities in plots. All the label and unit metadata is encased in `'$...$'` so as to be rendered as LaTeX formulas in plots.
 
-In general, the names of the data dimensions correspond to the notation in OSIRIS (`'x1'`, `'x2'`, `'x3'`), while the time dimension is given the name `'t'`. An additional coordinate called `'iter'`, which contains the iteration number for a given time step, is indexed to the time dimension and attached to each dataset. 
+In general, the names of the data dimensions correspond to the notation in OSIRIS (`'x1'`, `'x2'`, `'x3'`), while the time dimension is given the name `'t'`. An additional coordinate called `'iter'`, which contains the iteration number for a given time step, is indexed to the time dimension and attached to each dataset.
+
 
 !!! important "Naming convention with a moving window"
 
@@ -25,7 +26,8 @@ In general, the names of the data dimensions correspond to the notation in OSIRI
 
     For example, for a two-dimensional window with a longitudinal axis initially spanning $[-14,2] ~ k_p^{-1}$, the [Dataset][xarray.Dataset] obtained from the simulation data is shown below, depending on whether the simulation moves the window along `x1` or not.
 
-    === With a moving window
+
+    === "With a moving window"
 
         ```python
             print(ds)
@@ -44,7 +46,7 @@ In general, the names of the data dimensions correspond to the notation in OSIRI
             #     ...
         ```
 
-    === No moving window
+    === "No moving window"
 
         ```python
             print(ds)
