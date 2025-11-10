@@ -49,8 +49,8 @@ def test_lcode_concat_time():
 def test_set_quant_metadata():
     ds = xr.Dataset({"x1": (["pid"], [1, 2, 3])})
     result = set_quant_metadata(ds, "parts")
-    assert result["x1"].attrs["long_name"] == r"$\xi$"
-    assert result["x1"].attrs["units"] == r"$k_p^{-1}$"
+    assert result["x1"].attrs["long_name"] == r"$t - z/c$"
+    assert result["x1"].attrs["units"] == r"$\omega_p^{-1}$"
 
 
 @pytest.mark.parametrize("file_type", ["parts", "grid", "extrema", "lineout"])
