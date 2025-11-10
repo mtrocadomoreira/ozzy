@@ -800,9 +800,13 @@ class PartMixin:
         # Get dimension suffix
         try:
             var_label = ds[x_var].attrs["long_name"].strip("$").split("_", 1)
-            suffix_dim = var_label[1]
         except KeyError:
             suffix_dim = ""
+        else:
+            try:
+                suffix_dim = var_label[1]
+            except IndexError:
+                suffix_dim = ""
 
         # Get secondary quantities
 
