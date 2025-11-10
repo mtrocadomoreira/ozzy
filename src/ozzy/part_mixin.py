@@ -770,10 +770,10 @@ class PartMixin:
             # Create a sample particle dataset
             particles = oz.Dataset(
                 {
-                    "x": ("pid", np.random.uniform(0, 10, 10000)),
+                    "z": ("pid", np.random.uniform(0, 10, 10000)),
                     "r": ("pid", np.random.uniform(0, 5, 10000)),
                     "pz": ("pid", np.random.uniform(99, 101, 10000)),
-                    "pr": ("pid", np.random.uniform(-2e-4, 2e-4, 10000)),
+                    "pr": ("pid", np.random.uniform(0, 2e-4, 10000)),
                     "q": ("pid", np.ones(10000)),
                 },
                 coords={"pid": np.arange(10000)},
@@ -789,9 +789,13 @@ class PartMixin:
         ds = self._obj
 
         # Check whether there are three components in p_all_vars
-        if len(p_all_vars) != 3:
+        if (len(p_all_vars) == 2) & (p_all_vars[1] != "pr"):
             raise ValueError(
-                "The argument p_all_vars should contain the coordinate names for three momentum components"
+                "Argument p_all_vars may only have two elements if the second element is 'pr'"
+            )
+        elif len(p_all_vars) != 3:
+            raise ValueError(
+                "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
             )
 
         # Process xvar and pvar arguments
@@ -835,9 +839,12 @@ class PartMixin:
         emit_da = np.sqrt(wmean("x_sq") * wmean("x_prime_sq") - x_x_prime_mean**2)
 
         if norm_emit:
-            ds["beta_gamma"] = np.sqrt(
-                ds[p_longit] ** 2 + ds[p_all_vars[1]] ** 2 + ds[p_all_vars[2]] ** 2
-            )
+
+            bg = 0
+            for el in p_all_vars:
+                bg = bg + ds[el] ** 2
+            ds["beta_gamma"] = np.sqrt(bg)
+
             emit_da = wmean("beta_gamma") * emit_da
             suffix_norm = "N"
             var_name = "emit_norm"
@@ -888,9 +895,8 @@ class PartMixin:
         r"""
         Calculate the RMS slice emittance of particle data.
 
-        This method computes the slice emittance by binning particles along a specified
-        variable and calculating the RMS emittance (normalized or geometric) for each slice.
-        For axisymmetric beams, returns the Lapostolle emittance (see _Notes_ below).
+        This method computes the slice emittance by binning particles along a specified variable and calculating the RMS emittance (normalized or geometric) for each slice.
+        See _Notes_ below for instructions on how to handle axisymmetric data.
 
         !!! warning
 
@@ -910,26 +916,24 @@ class PartMixin:
         norm_emit : bool, default True
             Whether to calculate normalized emittance (multiplied by $\left< \beta \gamma \right>$).
         axisym : bool, default False
-            Whether to apply Lapostolle factor of 4.
+            If `True`, neglect cross term $\left<x_i x'_i\right>^2$. Should be used when `x_var` represents a radius $r$ and `p_var` represents $p_r$. See _Notes_ for more details.
         p_all_vars : list[str]
             List of names of momentum components.
 
-            !!! note
+            !!! warning
 
-                The components should be sorted, e.g. `["px", "py", "pz"]`.
-
-                If `axisym=True`, only the two first components will be adopted.
+                The first list element should correspond to the longitudinal component.
 
         min_count : int or None, optional
             Minimum number of particles required in each bin for valid calculation.
         slice_var : str
             Variable name to use for slicing/binning the particles.
         x_var : str
-            Variable name for the transverse position coordinate that should be used for emittance calculation.
+            Variable name for the transverse position coordinate that should be used for emittance calculation
         p_var : str
-            Variable name for the transverse momentum coordinate that should be used for emittance calculation. This argument is only relevant when `axisym=False`, otherwise it is set to `p_all_vars[1]`.
+            Variable name for the transverse momentum coordinate that should be used for emittance calculation
         w_var : str
-            Variable name for the particle weights/charges.
+            Variable name for the particle weights/charges
 
 
         Returns
@@ -950,21 +954,74 @@ class PartMixin:
 
         $\epsilon_i = \sqrt{\left<x_i^2\right> \left<{x'_i}^2\right> - \left(x_i x'_i\right)^2}$
 
-        where $x_i$ is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ and transverse momentum $p_i \ll p_\parallel$. The angle brackets denote a weighted average over particles.
+        where $x_i$ (`x_var`) is the particle position, and $x'_i \approx p_i / p_\parallel$ is the trace for relativistic particles with longitudinal momentum $p_\parallel$ (`p_all_vars[0]`) and transverse momentum $p_i \ll p_\parallel$ (`p_var`). The angle brackets denote a weighted average over particles.
 
         The normalized emittance (`norm_emit=True`, default) is calculated as:
 
         $\epsilon_{N,i} = \left< \beta \gamma \right> \ \epsilon_i$
 
-        where $\beta \gamma = \left| \vec{p} \right| / (m_\mathrm{sp} c)$.
+        where $\beta \gamma = \left| \vec{p} \right| / (m_\mathrm{sp} c)$. The total momentum is calculated by summing all the momentum components in `p_all_vars` in quadrature.
 
-        For a 2D cylindrical, axisymmetric geometry (`axisym=True`) this function returns the Lapostolle emittance[^1]<sup>,</sup>[^2], i.e.:
+        # Axisymmetric geometry
 
-        $\epsilon = 4 \ \epsilon_i$
+        For data originating from a simulation in 2D cylindrical geometry $(z,r,\theta)$, the two transverse momentum components read by ozzy are generally assumed to be the Cartesian components (i.e., `p1` and `p2` correspond to $p_x$ and $p_y$, for example), while `x2` is assumed to be the radius ($r = \sqrt{x^2 + y^2}$). In this case, there are two ways to obtain the emittance correctly:
 
+        1. Via the radial emittance
 
-        [^1]: [J. D. Lawson, P. M. Lapostolle, and R. L. Gluckstern, Particle Accelerators **5**, 61–65 (1973)](https://inspirehep.net/literature/87013),
-        [^2]: [P. M. Lapostolle, IEEE Transactions on Nuclear Science **18**, 1101–1104 (1971)](https://ieeexplore-ieee-org.ezproxy.cern.ch/document/4326292)
+            Given the particle dataset `particles` with standard coordinate names:
+
+            ```python
+            # Define the radial momentum first
+            particles["pr"] = np.sqrt(particles["p2"]**2 + particles["p3"]**2) # p2, p3 correspond to px, py
+
+            # Longitudinal axis along which to bin
+            axis = oz.utils.axis_from_extent(500, (0,10))
+            axis_ds = oz.Dataset({"x1": axis}, pic_data_type = "grid")
+
+            emittance = particles.ozzy.get_slice_emittance(
+                axis_ds=axis_ds,
+                axisym=True,
+                slice_var="x1",
+                x_var="x2",
+                p_var="pr",
+                p_all_vars=["p1", "p2", "p3"]
+            )
+            ```
+
+            Here it is important to set `axisym = True` to neglect the cross term in the emittance.
+
+            We are therefore calculating:
+
+            $\epsilon_r = \sqrt{\left<r^2\right> \left<{r'}^2\right>}$ with $r'_i = p_r / p_z$
+
+            Assuming axisymmetry, the single-plane Cartesian emittance can then be obtained via $\epsilon_x = \tfrac{1}{2} \epsilon_r$.
+
+        2. Via Cartesian coordinates
+
+            Given the same dataset, and assuming $x = y$ due to axisymmetry:
+
+            ```python
+            # Define the x coordinate first
+            particles["x"] = particles["x2"] / np.sqrt(2)   # x2 corresponds to r
+
+            # Longitudinal axis along which to bin
+            axis = oz.utils.axis_from_extent(500, (0,10))
+            axis_ds = oz.Dataset({"x1": axis}, pic_data_type = "grid")
+
+            emittance = particles.ozzy.get_slice_emittance(
+                axis_ds=axis_ds,
+                axisym=False,
+                slice_var="x1",
+                x_var="x",
+                p_var="p2",
+                p_all_vars=["p1", "p2", "p3"]
+            )
+            ```
+
+            Here we are calculating $\epsilon_x$ directly:
+
+            $\epsilon_x = \sqrt{\left<x^2\right> \left<{x'}^2\right> - \left(x x'\right)^2}$ with $x' = p_x / p_z$
+
 
 
         Examples
@@ -977,10 +1034,10 @@ class PartMixin:
             # Create a sample particle dataset
             particles = oz.Dataset(
                 {
-                    "x": ("pid", np.random.uniform(0, 10, 10000)),
+                    "z": ("pid", np.random.uniform(0, 10, 10000)),
                     "r": ("pid", np.random.uniform(0, 5, 10000)),
-                    "px": ("pid", np.random.uniform(99, 101, 10000)),
-                    "pr": ("pid", np.random.uniform(-2e-4, 2e-4, 10000)),
+                    "pz": ("pid", np.random.uniform(99, 101, 10000)),
+                    "pr": ("pid", np.random.uniform(0, 2e-4, 10000)),
                     "q": ("pid", np.ones(10000)),
                 },
                 coords={"pid": np.arange(10000)},
@@ -989,31 +1046,38 @@ class PartMixin:
 
             # Longitudinal axis along which to bin
             axis = oz.utils.axis_from_extent(500, (0,10))
-            axis_ds = oz.Dataset({"x": axis}, pic_data_type = "grid")
+            axis_ds = oz.Dataset({"z": axis}, pic_data_type = "grid")
 
-            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="x", x_var="r", p_all_vars=["px","pr"])
-            # Returns Dataset with normalized emittance in k_p^(-1) rad
+            emittance = particles.ozzy.get_slice_emittance(axis_ds=axis_ds, axisym=True, slice_var="z", x_var="r", p_var="pr", p_all_vars=["pz","pr"])
+            emit_x_norm = 0.5 * emittance["slice_emit_norm"]
+            # Returns normalized single-plane emittance in k_p^(-1) rad
             ```
         """
         ds = self._obj
 
-        # Process axisymmetry option
-        if axisym:
-            factor = 4
-            suffix_dim = ""
-            p_all_vars = p_all_vars[0:2]
-            p_var = p_all_vars[1]
-        else:
-            factor = 1
-            p_all_vars = p_all_vars[0:3]
-            try:
-                var_label = ds[x_var].attrs["long_name"].strip("$").split("_", 1)
-                suffix_dim = var_label[1]
-            except KeyError:
-                suffix_dim = ""
+        # Check whether there are three components in p_all_vars
+        if (len(p_all_vars) == 2) & (p_all_vars[1] != "pr"):
+            raise ValueError(
+                "Argument p_all_vars may only have two elements if the second element is 'pr'"
+            )
+        elif len(p_all_vars) != 3:
+            raise ValueError(
+                "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
+            )
 
         # Process xvar and pvar arguments
         self._contains_datavars([slice_var, x_var, p_var, w_var] + p_all_vars)
+
+        # Get dimension suffix
+        try:
+            var_label = ds[x_var].attrs["long_name"].strip("$").split("_", 1)
+        except KeyError:
+            suffix_dim = ""
+        else:
+            try:
+                suffix_dim = var_label[1]
+            except IndexError:
+                suffix_dim = ""
 
         # Process axis_ds and nbins arguments
         if (axis_ds is None) and (nbins is None):
@@ -1031,14 +1095,6 @@ class PartMixin:
             axis_ds = new_dataset({slice_var: axis}, pic_data_type="grid")
             bins = axis_ds.ozzy.get_bin_edges()[0]
 
-        # Process axisymmetry option
-        if axisym:
-            factor = 4
-            suffix_dim = ""
-        else:
-            factor = 1
-            suffix_dim = ds[x_var].attrs["long_name"].strip("$")
-
         # Get secondary quantities
 
         p_longit = p_all_vars[0]
@@ -1046,9 +1102,6 @@ class PartMixin:
         ds["x_prime"] = ds[p_var] / ds[p_longit]
         ds["x_sq"] = ds[w_var] * ds[x_var] ** 2
         ds["x_prime_sq"] = ds[w_var] * ds["x_prime"] ** 2
-        ds["x_x_prime"] = ds[w_var] * ds[x_var] * ds["x_prime"]
-
-        ds["beta_gamma"] = ds.ozzy._calc_beta_gamma(p_all_vars, w_var)
 
         # Calculate emittance and bin along slice_var
 
@@ -1073,22 +1126,34 @@ class PartMixin:
             ]
             / q_slice
         )
-        x_x_prime_slice = (
-            xarray_reduce(ds[["x_x_prime", slice_var]], slice_var, **reduce_args)[
-                "x_x_prime"
-            ]
-            / q_slice
-        )
-        bg_slice = (
-            xarray_reduce(ds[["beta_gamma", slice_var]], slice_var, **reduce_args)[
-                "beta_gamma"
-            ]
-            / q_slice
-        )
+
+        if axisym:
+            x_x_prime_slice = 0
+        else:
+            ds["x_x_prime"] = ds[w_var] * ds[x_var] * ds["x_prime"]
+            x_x_prime_slice = (
+                xarray_reduce(ds[["x_x_prime", slice_var]], slice_var, **reduce_args)[
+                    "x_x_prime"
+                ]
+                / q_slice
+            )
 
         emit_slice = np.sqrt(x_sq_slice * x_prime_sq_slice - x_x_prime_slice**2)
 
         if norm_emit:
+
+            bg = 0
+            for el in p_all_vars:
+                bg = bg + ds[el] ** 2
+            ds["beta_gamma"] = ds[w_var] * np.sqrt(bg)
+
+            bg_slice = (
+                xarray_reduce(ds[["beta_gamma", slice_var]], slice_var, **reduce_args)[
+                    "beta_gamma"
+                ]
+                / q_slice
+            )
+            # beta gamma calculations go here
             emit_slice = bg_slice * emit_slice
             suffix_norm = "N"
             var_name = "slice_emit_norm"
@@ -1096,8 +1161,7 @@ class PartMixin:
             suffix_norm = ""
             var_name = "slice_emit"
 
-        emit_result = factor * emit_slice
-        emit_result = emit_result.rename(var_name)
+        emit_result = emit_slice.rename(var_name)
 
         # Get number of particles in each bin
 
