@@ -67,7 +67,7 @@ Ozzy is a data visualization and data wrangling tool geared towards particle-in-
 -   :material-lightning-bolt:{ .lg .middle } __Fast and furious__
 
     ---
-    Vectorized operations, fast [Pandas](https://pandas.pydata.org/)-like indexing, and more to make your analysis run even faster.
+    Vectorized operations, fast Pandas-like indexing, and more to make your analysis run even faster.
 
     [:octicons-arrow-right-24: Notes on speed](user-guide/speed.md "Page under development")
 
@@ -75,7 +75,7 @@ Ozzy is a data visualization and data wrangling tool geared towards particle-in-
 
     ---
 
-    We embrace [xarray](https://xarray.dev/) and [Dask](https://www.dask.org/), but you don't have to. Easily manipulate your data as trusty [NumPy](https://numpy.org/) arrays whenever convenient.
+    We embrace xarray and Dask, but you don't have to. Easily manipulate your data as trusty NumPy arrays whenever convenient.
 
     [:octicons-arrow-right-24: Data analysis](user-guide/analysis.md "Page under development")
 

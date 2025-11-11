@@ -59,6 +59,8 @@ lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
 # - Define metadata of different file types -
 # -------------------------------------------
 
+# TODO: define different metadata defaults based on geometry
+
 # Coordinates
 default_coord_metadata = {
     "t": {"long_name": r"$t$", "units": r"$\omega_p^{-1}$"},
@@ -97,18 +99,18 @@ for i, pref in enumerate(prefix):
 # Particle data
 prefix = ["x1", "x2", "p1", "p2", "p3", "L", "abs_rqm", "q", "pid"]
 label = [
-    r"$\xi$",
+    r"$t - z/c$",
     r"$r$",
-    r"$p_1$",
-    r"$p_2$",
-    r"$p_3$",
+    r"$p_z$",
+    r"$p_x$",
+    r"$p_y$",
     r"$L$",
     r"$|\mathrm{rqm}|$",
     r"$q$",
     "pid",
 ]
 units = [
-    r"$k_p^{-1}$",
+    r"$\omega_p^{-1}$",
     r"$k_p^{-1}$",
     r"$m_\mathrm{sp} c$",
     r"$m_\mathrm{sp} c$",
@@ -465,6 +467,7 @@ def read_parts_single(file: str, axisym: bool, abs_q: float) -> xr.Dataset:
     # Add p3 data variable
 
     if axisym:
+        # Convert parallel and perpendicular momentum components to Cartesian components
         ds = ds.rename_vars({"p3": "L"})
         ds["p3"] = ds["L"] / ds["x2"]
 

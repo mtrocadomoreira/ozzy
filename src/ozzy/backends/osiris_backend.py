@@ -21,6 +21,7 @@ general_file_endings = ["h5"]
 quants_ignore = None
 
 # TODO: make compatible with particle track data
+# TODO: define default variable metadata that is consistent with ozzy and depends on geometry
 
 special_vars = {
     "ene": [r"$E_{\mathrm{kin}}$", r"$m_\mathrm{sp} c^2$"],
@@ -220,7 +221,7 @@ def config_osiris(ds):
 
                     var_symbol = ds[og_var].attrs["long_name"].strip("$")
                     if i == 0:
-                        new_lab = tex_format(var_symbol + "- t")
+                        new_lab = tex_format(var_symbol + "- c t")
                     else:
                         new_lab = tex_format(var_symbol) + " (fixed)"
 

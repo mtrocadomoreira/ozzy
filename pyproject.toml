@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "ozzy-pic"
-dynamic = [ "version", "classifiers" , "dependencies"]
+dynamic = [ "version", "classifiers"]
 description = "PIC simulation data analysis for the lazy and impatient"
 authors = [
      {name = "Mariana Moreira", email = "mtrocadomoreira@gmail.com"},
@@ -12,8 +12,23 @@ authors = [
 license = "MIT"
 readme = "README.md"
 keywords = []
-requires-python = ">=3.10,<4.0"
-
+requires-python = ">=3.10,<3.14"
+dependencies = [
+  "xarray>=2025.6.1,<2026.0.0",
+  "tqdm>=4.67.1,<5.0.0",
+  "numba (>=0.62,<1.0)",
+  "h5py>=3.14.0,<4.0.0",
+  "h5netcdf>=1.6.1,<2.0.0",
+  "flox>=0.10.4,<0.11.0",
+  "dask>=2025.5.1,<2026",
+  "dask-expr>=2.0.0,<3",
+  "matplotlib>=3.10.3,<4.0.0",
+  "cmcrameri",
+  "seaborn>=0.13.2,<0.14.0",
+  "numpy-groupies>=0.11.3,<0.12.0",
+  "numbagg>=0.9.0,<0.10.0",
+  "pyarrow>=20.0.0,<21.0.0",
+]
 
 [project.urls]
 homepage = "https://mtrocadomoreira.github.io/ozzy/"
@@ -27,7 +42,6 @@ version = "2.0.2"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "License :: OSI Approved :: MIT License",
   "Framework :: Hypothesis",
   "Framework :: Pytest",
   "Framework :: IPython",
@@ -45,45 +59,39 @@ classifiers = [
 ]
 packages = [{include = "ozzy", from="src"}]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4"
-xarray = "^2025.6.1"
-tqdm = "^4.67.1"
-numba = "^0.61.2"
-h5py = "^3.14.0"
-h5netcdf = "^1.6.1"
-flox = "^0.10.4"
-dask = "^2025.5.1,<2026"
-dask-expr = "^2.0.0,<3"
-matplotlib = "^3.10.3"
-cmcrameri = "*"
-seaborn = "^0.13.2"
-# Optional packages
-numpy-groupies = "^0.11.3"
-numbagg = "^0.9.0"
-pyarrow = "^20.0.0"
+[project.optional-dependencies]
+interactive = [
+  "ipython>=8.28.0,<9.0", 
+  "ipykernel>=6.29.5,<7.0",
+  "hvplot>=0.11.3,<1.0", 
+  "jupyter-bokeh>=4.0.5,<5.0"
+]
 
-[tool.poetry.group.interactive.dependencies]
-ipython = "^8.28.0"
-ipykernel = "^6.29.5"
-hvplot = "^0.11.3"
-jupyter-bokeh = "^4.0.5"
+[dependency-groups]
+docs = [
+  "mkdocs-material (>=9.6.14,<10.0)",
+  "mkdocstrings-python (>=1.16.12,<2.0)",
+  "mkdocs-git-revision-date-localized-plugin (>=1.4.7,<2.0)",
+  "mkdocs-glightbox (>=0.4.0,<1.0)",
+  "mkdocs-include-markdown-plugin (>=7.1.6,<8.0)",
+  "mkdocs-plugin-open-external-links-in-new-tab @ git+https://github.com/z-aki/mkdocs-plugin-open-external-links-in-new-tab.git",
+]
+test = [
+    "pytest (>=8.4.1,<9.0.0)",
+    "hypothesis (>=6.135.12,<7.0)",
+    "pytest-mock (>=3.15.1,<4.0.0)",
+]
+lint = [
+    "ruff (>=0.12.0,<1.0)",
+    "black (>=25.11.0,<26.0.0)",
+]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    "python-semantic-release (>=10.1.0,<11.0)",
+    "setuptools (>=80.9.0,<81.0)",
+]
 
-[tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.6.14"
-mkdocstrings-python = "^1.16.12"
-mkdocs-git-revision-date-localized-plugin = "^1.4.7"
-mkdocs-glightbox = "^0.4.0"
-black = "^25.1.0"
-mkdocs-include-markdown-plugin = "^7.1.6"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.4.1"
-hypothesis = "^6.135.12"
-pytest-mock = "^3.14.1"
-python-semantic-release = "^10.1.0"
-ruff = "^0.12.0"
-setuptools = "^80.9.0"
 
 [tool.semantic_release]
 version_variables = [

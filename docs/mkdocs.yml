@@ -59,6 +59,7 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
   - pymdownx.details
+  - pymdownx.blocks.caption
   - pymdownx.snippets:
       base_path:
         - "./"
@@ -66,11 +67,11 @@ markdown_extensions:
       url_download: false
       url_max_size: 33554432
       url_timeout: 10
+  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.arithmatex:
       generic: true
-  - pymdownx.superfences
   - pymdownx.tasklist:
       custom_checkbox: true
   - attr_list
@@ -141,7 +142,7 @@ plugins:
             docstring_section_style: table
             separate_signature: true
             heading_level: 3
-          import:
+          inventories:
           - https://docs.xarray.dev/en/stable/objects.inv
           - https://docs.dask.org/en/stable/objects.inv
           - https://numpy.org/doc/stable/objects.inv
@@ -149,7 +150,6 @@ plugins:
           - https://docs.h5py.org/en/stable/objects.inv
           - https://matplotlib.org/stable/objects.inv
           - https://seaborn.pydata.org/objects.inv
-
   - git-revision-date-localized:
       enabled: true #!ENV [CI, false]
       enable_creation_date: true
@@ -166,6 +166,10 @@ plugins:
       start: <!--start-->
       end: <!--end-->
       recursive: true
+  - mkdocs-plugin-open-external-links-in-new-tab:
+      # Optional config. Default values are these:
+      external_extensions:
+        - ".pdf"
 
 extra_javascript:
   - javascripts/mathjax.js
