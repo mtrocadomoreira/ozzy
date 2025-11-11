@@ -789,14 +789,13 @@ class PartMixin:
         ds = self._obj
 
         # Check whether there are three components in p_all_vars
-        if (len(p_all_vars) == 2) & (p_all_vars[1] != "pr"):
-            raise ValueError(
-                "Argument p_all_vars may only have two elements if the second element is 'pr'"
-            )
-        elif len(p_all_vars) != 3:
-            raise ValueError(
-                "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
-            )
+        if len(p_all_vars) != 3:
+            if (len(p_all_vars) == 2) & (p_all_vars[1] == "pr"):
+                pass
+            else:
+                raise ValueError(
+                    "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
+                )
 
         # Process xvar and pvar arguments
         self._contains_datavars([x_var, p_var] + p_all_vars)
@@ -1056,14 +1055,13 @@ class PartMixin:
         ds = self._obj
 
         # Check whether there are three components in p_all_vars
-        if (len(p_all_vars) == 2) & (p_all_vars[1] != "pr"):
-            raise ValueError(
-                "Argument p_all_vars may only have two elements if the second element is 'pr'"
-            )
-        elif len(p_all_vars) != 3:
-            raise ValueError(
-                "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
-            )
+        if len(p_all_vars) != 3:
+            if (len(p_all_vars) == 2) & (p_all_vars[1] == "pr"):
+                pass
+            else:
+                raise ValueError(
+                    "The argument p_all_vars should contain the coordinate names for three momentum components, or two if the second component is 'pr'"
+                )
 
         # Process xvar and pvar arguments
         self._contains_datavars([slice_var, x_var, p_var, w_var] + p_all_vars)
