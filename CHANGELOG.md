@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 2.0.4 
+
+Released 11-11-2025 
+
+### Bug Fixes
+
+* [`1ddd4af`](https://github.com/mtrocadomoreira/ozzy/commit/1ddd4afbcca8941bd20466339bea841290b5fc4f): Badly formulated if-statement in emittance functions
+
+
+
+
+
+
+
 ## Version 2.0.3 
 
 Released 11-11-2025 
