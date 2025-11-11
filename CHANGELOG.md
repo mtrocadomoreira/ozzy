@@ -3,6 +3,59 @@
 <!--start-docs-->
 
 
+## Version 2.0.3 
+
+Released 11-11-2025 
+
+### Bug Fixes
+
+* [`577afa7`](https://github.com/mtrocadomoreira/ozzy/commit/577afa71e5733a464203af5b293e8904aa7eb095): Improve handling of variable labels in ´get_emittance´
+
+
+
+
+
+
+### Documentation
+
+* [`176bc05`](https://github.com/mtrocadomoreira/ozzy/commit/176bc0579e38db9afa44a53e830f2d50088e40ad): Formatting issue in one of documentation pages
+
+
+
+
+
+
+* [`928cb92`](https://github.com/mtrocadomoreira/ozzy/commit/928cb9253aba30361c5b44281b77e5bc218c69b6): Add icon to mark external links, and open these links in new tab by default
+
+
+
+
+
+
+* [`6e285d2`](https://github.com/mtrocadomoreira/ozzy/commit/6e285d204c2a94fc43336a8f61af84014bbc7df0): Add information about backend-specific arguments in the `ozzy` open functions
+
+
+
+
+
+
+### Refactoring
+
+* [`3131e16`](https://github.com/mtrocadomoreira/ozzy/commit/3131e1667b60312019288965c8b80648f788190e): Change how emittance is handled for axisymmetric geometry in `get_slice_emittance`, update docstring
+
+
+
+
+
+
+* [`afb8ca4`](https://github.com/mtrocadomoreira/ozzy/commit/afb8ca40509bbb916e0823dd283e29aca97e81c0): Change how emittance is handled for axisymmetric in `get_emittance`, update docstring
+
+
+
+
+
+
+
 ## Version 2.0.2 
 
 Released 06-11-2025 
