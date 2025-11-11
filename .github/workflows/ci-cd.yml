@@ -66,42 +66,6 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref_name }}
           fetch-depth: 0
 
-      - name: Setup | Force release branch to be at workflow sha
-        run: |
-          git reset --hard ${{ github.sha }}
-
-      - name: Evaluate | Verify upstream has NOT changed
-        # Last chance to abort before causing an error as another PR/push was applied to
-        # the upstream branch while this workflow was running. This is important
-        # because we are committing a version change (--commit). You may omit this step
-        # if you have 'commit: false' in your configuration.
-        #
-        # You may consider moving this to a repo script and call it from this step instead
-        # of writing it in-line.
-        shell: bash
-        run: |
-
-          # Set the expected upstream branch name explicitly (replace 'main' if needed)
-          UPSTREAM_BRANCH_NAME="origin/main"
-
-          git fetch origin
-
-          UPSTREAM_SHA="$(git rev-parse "$UPSTREAM_BRANCH_NAME")" || {
-              printf >&2 '%s\n' "::error::Unable to determine upstream branch sha!"
-              exit 1
-          }
-
-          HEAD_SHA="$(git rev-parse HEAD)"
-
-          if [ "$HEAD_SHA" != "$UPSTREAM_SHA" ]; then
-              printf >&2 '%s\n' "[HEAD SHA] $HEAD_SHA != $UPSTREAM_SHA [UPSTREAM SHA]"
-              printf >&2 '%s\n' "::error::Upstream has changed, aborting release..."
-              exit 1
-          fi
-
-          printf '%s\n' "Verified upstream branch has not changed, continuing with release..."
-
-
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
