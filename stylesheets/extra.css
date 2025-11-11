@@ -1,0 +1,80 @@
+.md-typeset a {
+  color: var(--md-typeset-color);
+  accent-color: var(--md-typeset-a-color);
+  text-decoration: solid underline hsla(4, 100%, 72%, 0.45) 2px;
+  text-underline-offset: 4px;
+}
+
+/* Defaults, text colors etc. */
+:root {
+
+    /* Primary color shades */
+    --md-primary-fg-color:               hsl(245, 66%, 22%); /* Primary color (header bg, links in text */ /* hsl(172, 60%, 47%); */
+    --md-primary-bg-color:               hsla(0, 0%, 100%, 1);  /* Text in header */
+    --md-primary-bg-color--light:        hsla(0, 0%, 100%, 0.7); /* "Search" */
+
+    /* Accent color shades */
+    --md-accent-fg-color:                hsl(4, 100%, 72%); /* Secondary color (accents in text links) */
+    --md-accent-bg-color:                hsla(0, 0%, 100%, 1); /* accented button text */
+  
+    /* Footer color shades */
+    --md-footer-fg-color:                hsla(0, 0%, 100%, 1);
+    --md-footer-fg-color--light:         hsla(0, 0%, 100%, 0.7);
+    --md-footer-fg-color--lighter:       hsla(0, 0%, 100%, 0.45);
+    --md-footer-bg-color:                hsla(0, 0%, 0%, 0.87);
+    --md-footer-bg-color--dark:          hsla(0, 0%, 0%, 0.32);
+  
+}
+
+/* Dark mode */
+[data-md-color-scheme="slate"] {
+  --md-hue: 245; /* 180; */
+  --md-primary-fg-color:               hsl(245, 28%, 35%);
+  --md-typeset-a-color:                hsl(4, 100%, 72%); /* Secondary color (accents in text links) */
+
+  /* Form button */
+  .md-button {
+    color: var(--md-typeset-color);
+    text-decoration: none;
+
+    /* Primary button
+    &--primary {
+      color: hsla(var(--md-hue), 0%, 100%, 1);
+      background-color: var(--md-typeset-a-color);
+      border-color: var(--md-typeset-a-color);
+    } */
+  }
+
+}
+
+/* Light mode */
+[data-md-color-scheme="default"] {
+  --md-default-bg-color:               hsl(14, 90%, 95%) ; /* Text bg, hsl(51, 52%, 95%) */ 
+  --md-code-fg-color:                  hsla(200, 18%, 26%, 1); /* Code text */
+  --md-code-bg-color:                  hsl(14, 75%, 91%) ; /* Code bg */
+  --md-typeset-a-color:                hsl(4, 100%, 72%);
+  .md-button {
+    text-decoration: none;
+  }
+}
+
+
+
+/* Grid with single column */
+.grid.single-column {
+  grid-template-columns: 1fr;
+  margin: 2em auto ;
+  width: fit-content;
+  min-width: 35% ;
+}
+
+/* Cards with centered text */
+.grid.cards.center {
+  text-align: center;
+}
+
+/* https://stackoverflow.com/questions/1899772/what-is-the-best-practice-for-showing-an-icon-next-to-text */
+.md-typeset a.plugin_open_external_links_in_new_tab::after {
+  content: " \2197" ;
+  font-size: smaller;
+}
