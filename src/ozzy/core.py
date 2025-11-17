@@ -212,7 +212,7 @@ def open(
     axes_lims: dict[str, tuple[float, float]] | None = None,
     **kwargs,
 ) -> xr.Dataset | xr.DataArray:
-    """
+    r"""
     Open a data file and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
 
     Parameters
@@ -287,7 +287,7 @@ def open(
 
 @stopwatch
 def open_series(file_type, files, nfiles=None, **kwargs):
-    """
+    r"""
     Open a series of data files and return a data object ([DataArray][xarray.DataArray] or [Dataset][xarray.Dataset]).
 
     Parameters
@@ -378,7 +378,7 @@ def open_compare(
     quants: str | list[str] = "*",
     **kwargs,
 ) -> pd.DataFrame:
-    """
+    r"""
     Open and compare data files of different types and from different runs.
 
     Parameters
