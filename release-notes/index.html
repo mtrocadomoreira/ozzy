@@ -1,0 +1,6204 @@
+<html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://mtrocadomoreira.github.io/ozzy/release-notes/">
+      
+      
+        <link rel="prev" href="../reference/utils/">
+      
+      
+        <link rel="next" href="../about/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/ozzy_icon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Release Notes - Ozzy Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Atkinson+Hyperlegible:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Atkinson Hyperlegible";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  <script>
+    /* Add custom analytics integration here, e.g. */
+    var property = "views" 
+  
+    /* Wait for page to load and application to mount */
+    document.addEventListener("DOMContentLoaded", function() {
+      location$.subscribe(function(url) {
+        /* Add custom page event tracking here */ 
+        umami.track();
+      })
+    })
+  </script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+
+<!-- Umami analytics -->
+<script defer src="https://cloud.umami.is/script.js" data-website-id="72d7b149-8d7d-4390-a33f-edee1a3fa316" data-auto-track="false"></script>
+ 
+
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#release-notes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Ozzy Documentation" class="md-header__button md-logo" aria-label="Ozzy Documentation" data-md-component="logo">
+      
+  <img src="../assets/ozzy_icon_dark.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ozzy Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Release Notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mtrocadomoreira/ozzy" title="Go to repository" class="md-source plugin_open_external_links_in_new_tab" data-md-component="source" target="_blank" rel="noopener noreferrer">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../user-guide/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Code Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Release Notes
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Ozzy Documentation" class="md-nav__button md-logo" aria-label="Ozzy Documentation" data-md-component="logo">
+      
+  <img src="../assets/ozzy_icon_dark.svg" alt="logo">
+
+    </a>
+    Ozzy Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mtrocadomoreira/ozzy" title="Go to repository" class="md-source plugin_open_external_links_in_new_tab" data-md-component="source" target="_blank" rel="noopener noreferrer">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../user-guide/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../user-guide/installation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/installation/virtual-environments/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Virtual environment setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../user-guide/getting-started/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/getting-started/subtract-two-field-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Subtract two field components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/getting-started/phase-space/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phase space and histograms from particle data
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--in-progress" title="Page under development">
+    </span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/getting-started/charge-density/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Charge density from particle data
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--in-progress" title="Page under development">
+    </span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/key-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Key concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/reading-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reading files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/plotting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/analysis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Analysis
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--in-progress" title="Page under development">
+    </span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/speed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notes on speed
+  
+
+    
+  </span>
+  
+  
+    
+  
+  
+    <span class="md-status md-status--in-progress" title="Page under development">
+    </span>
+  
+
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code Reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/data-objects/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data object methods
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data object methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/general-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_3">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/data-objects/data-type-methods/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data-type-specific methods
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3_3" id="__nav_3_3_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data-type-specific methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/data-type-methods/grid-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Grid data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/data-type-methods/particle-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Particle data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/data-objects/backend-methods/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend-specific methods
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_3_4" id="__nav_3_3_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Backend-specific methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/backend-methods/lcode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LCODE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/backend-methods/osiris/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OSIRIS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/data-objects/backend-methods/ozzy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../reference/backends/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backends
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Backends
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/backends/lcode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LCODE
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/backends/osiris/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OSIRIS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/backends/ozzy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/plot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy.plot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/statistics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy.statistics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy.fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ozzy.utils
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-204" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-203" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-202" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-201" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-134" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-132" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-130" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-1210" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.10
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-129" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.9
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.8
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-127" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-126" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-125" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-124" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-123" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-122" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.9
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-108" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.8
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-107" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-106" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-104" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-101" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.2.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-020" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.2.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-017" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-015" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-014" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-001" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-000" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.0.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../about/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#version-204" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-203" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-202" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-201" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-200" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 2.0.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 2.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-134" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-133" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-132" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-130" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.3.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.3.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-1210" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.10
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.10">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-129" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.9
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-128" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.8
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-127" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-126" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-125" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-124" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-123" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-122" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-121" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-120" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.2.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-111" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-110" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.1.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-109" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.9
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.9">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-108" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.8
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.8">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-107" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-106" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-105" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-104" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-103" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-102" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-101" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 1.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 1.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-021" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.2.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.2.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_29" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-020" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.2.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.2.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-017" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.7
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.7">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-016" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.6
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.6">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_31" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-015" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.5
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.5">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#performance-improvements_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Improvements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-014" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_32" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#features_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-013" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_33" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.2
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.2">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-011" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_35" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#refactoring_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refactoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.1.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.1.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-001" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.0.1
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.0.1">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bug-fixes_36" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bug Fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#version-000" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Version 0.0.0
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Version 0.0.0">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#documentation_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+  
+
+
+
+  
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+
+
+
+  
+  
+
+
+<h1 id="release-notes">Release Notes<a class="headerlink" href="#release-notes" title="Link to this section">§</a></h1>
+<!-- BEGIN INCLUDE ./../../../CHANGELOG.md '&lt;!--start-docs--&gt;' '&lt;!--end--&gt;' -->
+
+<h2 id="version-204">Version 2.0.4<a class="headerlink" href="#version-204" title="Link to this section">§</a></h2>
+<p>Released 11-11-2025 </p>
+<h3 id="bug-fixes">Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1ddd4afbcca8941bd20466339bea841290b5fc4f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1ddd4af</code></a>: Badly formulated if-statement in emittance functions</li>
+</ul>
+<h2 id="version-203">Version 2.0.3<a class="headerlink" href="#version-203" title="Link to this section">§</a></h2>
+<p>Released 11-11-2025 </p>
+<h3 id="bug-fixes_1">Bug Fixes<a class="headerlink" href="#bug-fixes_1" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/577afa71e5733a464203af5b293e8904aa7eb095" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>577afa7</code></a>: Improve handling of variable labels in ´get_emittance´</li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/176bc0579e38db9afa44a53e830f2d50088e40ad" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>176bc05</code></a>: Formatting issue in one of documentation pages</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/928cb9253aba30361c5b44281b77e5bc218c69b6" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>928cb92</code></a>: Add icon to mark external links, and open these links in new tab by default</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/6e285d204c2a94fc43336a8f61af84014bbc7df0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6e285d2</code></a>: Add information about backend-specific arguments in the <code>ozzy</code> open functions</p>
+</li>
+</ul>
+<h3 id="refactoring">Refactoring<a class="headerlink" href="#refactoring" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/3131e1667b60312019288965c8b80648f788190e" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3131e16</code></a>: Change how emittance is handled for axisymmetric geometry in <code>get_slice_emittance</code>, update docstring</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/afb8ca40509bbb916e0823dd283e29aca97e81c0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>afb8ca4</code></a>: Change how emittance is handled for axisymmetric in <code>get_emittance</code>, update docstring</p>
+</li>
+</ul>
+<h2 id="version-202">Version 2.0.2<a class="headerlink" href="#version-202" title="Link to this section">§</a></h2>
+<p>Released 06-11-2025 </p>
+<h3 id="bug-fixes_2">Bug Fixes<a class="headerlink" href="#bug-fixes_2" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1e3d55da09fafc62f75a960f9c5cc2974657f600" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1e3d55d</code></a>: Bug that was preventing lcode files like <code>emaxf.dat</code> to be read</li>
+</ul>
+<h3 id="documentation_1">Documentation<a class="headerlink" href="#documentation_1" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/c966cd4eabdd93aec3cee762f2b5829b1e0a6355" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>c966cd4</code></a>: Correct typo in docstring of <code>lcode_backends.convert_q</code></li>
+</ul>
+<h3 id="refactoring_1">Refactoring<a class="headerlink" href="#refactoring_1" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/70da7e3ff7dbb7e5d9a43e90640538669f5753dc" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>70da7e3</code></a>: Add argument to <code>xarray.concat</code> and <code>xarray.merge</code> calls due to xarray <code>futurewarning</code></p>
+<p>Add the argument <code>join="outer"</code> explicitly when call <code>xarray.concat</code> to avoid getting an error in the future, when xarray changes the default value of <code>join</code> from <code>"outer"</code> to <code>"exact"</code>.
+See warning:
+</p><div class="highlight"><pre><span></span><code>FutureWarning: In a future version of xarray the default value for join will change from join='outer' to join='exact'.
+</code></pre></div><p></p>
+</li>
+</ul>
+<h2 id="version-201">Version 2.0.1<a class="headerlink" href="#version-201" title="Link to this section">§</a></h2>
+<p>Released 05-09-2025 </p>
+<h3 id="bug-fixes_3">Bug Fixes<a class="headerlink" href="#bug-fixes_3" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/bcd0bf66c0fdb4343e20d1f86a40119ede68ffe5" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>bcd0bf6</code></a>: Bug in helper function <code>ozzy.utils.prep_file_input</code> was preventing ozzy from finding files to open, raising <code>filenotfounderror</code></li>
+</ul>
+<h2 id="version-200">Version 2.0.0<a class="headerlink" href="#version-200" title="Link to this section">§</a></h2>
+<p>Released 29-08-2025 </p>
+<h3 id="bug-fixes_4">Bug Fixes<a class="headerlink" href="#bug-fixes_4" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/6404186acba85245e711428be7e4f1d1936ca111" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6404186</code></a>: Fix bug in <code>bin_into_grid</code> (and <code>get_phase_space</code>, which depends on it) for axisymmetric data</p>
+<p>This bug was possibly producing incorrect results when <code>bin_into_grid</code> or <code>get_phase_space</code> were called on an axisymmetric particle dataset, and where <strong>all</strong> of these conditions were met:</p>
+<ul>
+<li>
+<p><code>r_var</code> was provided as an argument (other than <code>None</code>)</p>
+</li>
+<li>
+<p>for <code>get_phase_space</code>, the argument <code>axisym</code> was set to <code>True</code></p>
+</li>
+<li>
+<p>the radial variable <code>r_var</code> was <strong>not</strong> part of either the <code>axes_ds</code> (for <code>bin_into_grid</code>) or <code>vars</code> (for <code>get_phase_space</code>) argument</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="documentation_2">Documentation<a class="headerlink" href="#documentation_2" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/4ff3d2efcb1f3c18e20451a530b9f5b92c7a0c73" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>4ff3d2e</code></a>: Restructure the "data object methods" section of the code reference and other small updates</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/6cec2a7b1b106da15de204ae05bcbc0249747e7b" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6cec2a7</code></a>: Improve example of <code>convert_q</code> method</p>
+</li>
+</ul>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/7855a10f8a14c1e487f834a76585503d16b4f355" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>7855a10</code></a>: Add function to get the weighted median of some variable in a particle dataset</p>
+<p>Particle data from PIC codes is often weighted (often in the form of an individual macroparticle "charge"), which means that the calculation of a median value is not as straightforward as for other discrete and unweighted data. This method ensures that a median value can be calculated correctly, taking the macroparticle weights into account.</p>
+<p>This function can be called as a particle method, e.g. <code>part_ds.ozzy.get_weighted_mean</code>, where <code>part_ds</code> is an ozzy particle Dataset object (i.e., with attribute <code>pic_data_type = "part"</code>).</p>
+</li>
+</ul>
+<h3 id="refactoring_2">Refactoring<a class="headerlink" href="#refactoring_2" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/cb5973f56b946d364533968ab48a5eca18f88a9e" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>cb5973f</code></a>: Make all arguments for variable names consistent</p>
+<p>Some functions have input arguments where the name of a certain variable can be specificied. The naming for this type of argument has been made consistent across the code. For example, the arguments <code>time_dim</code> or <code>tvar</code> have been renamed to <code>t_var</code>.</p>
+<p><strong>Breaking change:</strong> <code>TypeError</code> may be raised when some functions are called using the old argument names</p>
+<p>Please make sure to update your scripts with the new arguments (e.g. <code>w_var</code> instead of <code>wvar</code>).</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/f668c5d32c3707fa1723644cb6805e6c733d8b25" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>f668c5d</code></a>: Add hidden method <code>_contains_datavars</code> to ozzy dataset objects to simplify input validation in other parts of the code</p>
+<p>Given a list of variable names, this method checks whether each variable exists in the Dataset as a data variable and raises a <code>KeyError</code> if it doesn't. This is useful when implementing new functions that require some data variables as input (for example <code>get_emittance</code> or <code>get_energy_spectrum</code>).</p>
+</li>
+</ul>
+<h2 id="version-134">Version 1.3.4<a class="headerlink" href="#version-134" title="Link to this section">§</a></h2>
+<p>Released 26-08-2025 </p>
+<h3 id="bug-fixes_5">Bug Fixes<a class="headerlink" href="#bug-fixes_5" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/d3403f1568ecc28e245537428b0c9aea17e8a3d0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d3403f1</code></a>: Turn off <code>savefig.transparent</code> in default <code>rcparams</code> when using the <code>movie</code> function</p>
+<p>Each frame was previously being saved with a transparent background, which meant that the movies produced with <code>ozzy.plot.movie</code> were superimposing all of the frames.</p>
+</li>
+</ul>
+<h2 id="version-133">Version 1.3.3<a class="headerlink" href="#version-133" title="Link to this section">§</a></h2>
+<p>Released 29-07-2025 </p>
+<h3 id="bug-fixes_6">Bug Fixes<a class="headerlink" href="#bug-fixes_6" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/3675499ed05628cd6c658e68dd8cad870aa05410" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3675499</code></a>: Correct a bug in <code>get_energy_spectrum</code></li>
+</ul>
+<h2 id="version-132">Version 1.3.2<a class="headerlink" href="#version-132" title="Link to this section">§</a></h2>
+<p>Released 29-07-2025 </p>
+<h3 id="bug-fixes_7">Bug Fixes<a class="headerlink" href="#bug-fixes_7" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/6effaee671c8b5f773f72091b4bbd1b355330dbf" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6effaee</code></a>: Correct a couple of bugs in the calculation of the normalized emittance</li>
+</ul>
+<h2 id="version-131">Version 1.3.1<a class="headerlink" href="#version-131" title="Link to this section">§</a></h2>
+<p>Released 23-07-2025 </p>
+<h3 id="bug-fixes_8">Bug Fixes<a class="headerlink" href="#bug-fixes_8" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/8a024471b036891ccc4113470cbe0397148ff637" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>8a02447</code></a>: Error when trying to save the output of <code>get_slice_emittance</code> or <code>get_energy_spectrum</code></p>
+<p>These particle methods use a special binning and grouping function (<code>flox.xarray.xarray_reduce</code>) for increased efficiency. However, this function creates a coordinate for the binned variable with the data type <code>pandas.Interval</code>, which makes it impossible to save the data with <code>ds.ozzy.save</code>. The binned coordinate is now converted into a normal <code>numpy</code> array, using the midpoints of each interval element.</p>
+</li>
+</ul>
+<h3 id="documentation_3">Documentation<a class="headerlink" href="#documentation_3" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/32424684c24559c3955fc75fdef0bf6d604bac77" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3242468</code></a>: Add docstring to new utility function <code>convert_interval_to_mid</code></li>
+</ul>
+<h3 id="refactoring_3">Refactoring<a class="headerlink" href="#refactoring_3" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/4fc223d76a4fc8305f54e013ed751367a0ac1ba6" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>4fc223d</code></a>: Add timing information to several particle methods</p>
+<p>The particle methods get_phase_space, get_emittance, get_slice_emittance, get_energy_spectrum now print the time taken to complete.</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/ef3420f2eef1db5631561ed216f2eab7be3d42ab" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>ef3420f</code></a>: Add timing information to several particle methods</p>
+<p>The particle methods <code>get_phase_space</code>, <code>get_emittance</code>, <code>get_slice_emittance</code>, <code>get_energy_spectrum</code> now print the time taken to complete.</p>
+</li>
+</ul>
+<h2 id="version-130">Version 1.3.0<a class="headerlink" href="#version-130" title="Link to this section">§</a></h2>
+<p>Released 16-07-2025 </p>
+<h3 id="bug-fixes_9">Bug Fixes<a class="headerlink" href="#bug-fixes_9" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/2f8993b4b220753736e648e20c72fc6aa614610d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2f8993b</code></a>: Use absolute value of weight variable for <code>ozzy.plot.hist</code> and <code>ozzy.plot.hist_proj</code></p>
+<p>The weighting variable in data objects is often a charge (e.g. <code>do['q']</code>), which means that it has a charge sign. This would show up in histograms as negative counts.</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/ade788157a9372e66c1a52a87ab5e5202e64aa29" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>ade7881</code></a>: Accept filenames for beamfiles (and plasma and fields files) with more flexible patterns</p>
+<p>Now accepts the regex filename pattern <code>"beamfile\w*\.bin"</code> instead of <code>"beamfile.bin"</code>. The same applies to <code>plasma.bin</code> and <code>fields.bin</code> files.</p>
+<p><em>Before:</em></p>
+<p>✅ <code>beamfile.bin</code></p>
+<p>❌ <code>beamfile_changed.bin</code></p>
+<p>❌ <code>beamfile2.bin</code></p>
+<p><em>Now:</em></p>
+<p>✅ <code>beamfile.bin</code></p>
+<p>✅ <code>beamfile_changed.bin</code></p>
+<p>✅ <code>beamfile2.bin</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/cdf5a87941b323f6a73cd0faa10d5759936639e0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>cdf5a87</code></a>: Bug in <code>bin_into_grid</code> where the time dimension was hardcoded as <code>&amp;#34;t&amp;#34;</code></p>
+</li>
+</ul>
+<h3 id="documentation_4">Documentation<a class="headerlink" href="#documentation_4" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/411f68dbb44607719a3a4124618e5dfd78332d47" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>411f68d</code></a>: Hide toc sidebar in homepage of documentation while keeping the margins</p>
+<p>Solution adopted from this <a href="https://stackoverflow.com/a/79647644" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab">StackOverflow answer</a>.</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/8e3538f11dca89b1fbb2b2c0b9ce6293a75ff1d7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>8e3538f</code></a>: Update changelog manually</p>
+</li>
+</ul>
+<h3 id="features_1">Features<a class="headerlink" href="#features_1" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/cfa894900d356b1a5f0e037b1d0cdecd29980ba3" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>cfa8949</code></a>: Add energy spectrum calculation</p>
+<p>Add <code>get_energy_spectrum</code> method to particle datasets, which calculates energy histograms with proper binning and attribute handling. See documentation for examples of usage.</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/a5429918859f4e5bb8a46e2f71771c92580ca8c6" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>a542991</code></a>: Add method to get the slice emittance <code>get_slice_emittance</code></p>
+<p>Includes some changes to the <code>get_emittance</code> method and its documentation. It is now possible to choose between the normalized and geometric emittance, for example.</p>
+</li>
+</ul>
+<h3 id="refactoring_4">Refactoring<a class="headerlink" href="#refactoring_4" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/10eef350fa8363496657541cb10f71bff61f5b6a" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>10eef35</code></a>: The output of <code>get_slice_emittance</code> now adopts any label and units attributes provided with <code>axis_ds</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/4d876cacb76214112ea7eb3a3ae704349b50e7f1" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>4d876ca</code></a>: Add utility function to insert string at a given index</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/fb3cc12a9b03b7def8c16b7d278475267d8432a0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>fb3cc12</code></a>: Add <code>time_dim</code> and <code>weight_var</code> arguments in <code>get_phase_space</code></p>
+<p>The function <code>get_phase_space</code> calls <code>bin_into_grid</code>, which was setting some defaults for the <code>time_dim</code> and <code>weight_var</code> arguments. This is not the case anymore.</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/f0e45a73401fc8a25959562c58bd9a6521938f6f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>f0e45a7</code></a>: Add <code>time_dim</code> and <code>weight_var</code> arguments in <code>get_phase_space</code></p>
+<p>The function <code>get_phase_space</code> calls <code>bin_into_grid</code>, which was setting some defaults for the <code>time_dim</code> and <code>weight_var</code> arguments. This is not the case anymore.</p>
+</li>
+</ul>
+<h2 id="version-1210">Version 1.2.10<a class="headerlink" href="#version-1210" title="Link to this section">§</a></h2>
+<p>Released 23-06-2025 </p>
+<h3 id="bug-fixes_10">Bug Fixes<a class="headerlink" href="#bug-fixes_10" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/3953907884a089a666ae3255f95624dbf521ee64" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3953907</code></a>: Use absolute value of weight variable for <code>ozzy.plot.hist</code> and <code>ozzy.plot.hist_proj</code></p>
+<p>The weighting variable in data objects is often a charge (e.g. <code>do['q']</code>), which means that it has a charge sign. This would show up in histograms as negative counts.</p>
+</li>
+</ul>
+<h3 id="documentation_5">Documentation<a class="headerlink" href="#documentation_5" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/0e9829a6296e9f82388b365770d0b29b6ef0de54" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0e9829a</code></a>: Update changelog manually</li>
+</ul>
+<h2 id="version-129">Version 1.2.9<a class="headerlink" href="#version-129" title="Link to this section">§</a></h2>
+<p>Released 20-06-2025 </p>
+<h3 id="bug-fixes_11">Bug Fixes<a class="headerlink" href="#bug-fixes_11" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/f25affb685eada6b81a775ef3f8bd26f96cab236" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>f25affb</code></a>: Accept filenames for beamfiles (and plasma and fields files) with more flexible patterns</p>
+<p>Now accepts the regex filename pattern <code>"beamfile\w*\.bin"</code> instead of <code>"beamfile.bin"</code>. The same applies to <code>plasma.bin</code> and <code>fields.bin</code> files.</p>
+<p><em>Before:</em></p>
+<p>✅ <code>beamfile.bin</code></p>
+<p>❌ <code>beamfile_changed.bin</code></p>
+<p>❌ <code>beamfile2.bin</code></p>
+<p><em>Now:</em></p>
+<p>✅ <code>beamfile.bin</code></p>
+<p>✅ <code>beamfile_changed.bin</code></p>
+<p>✅ <code>beamfile2.bin</code></p>
+</li>
+</ul>
+<h2 id="version-128">Version 1.2.8<a class="headerlink" href="#version-128" title="Link to this section">§</a></h2>
+<p>Released 20-06-2025 </p>
+<h3 id="bug-fixes_12">Bug Fixes<a class="headerlink" href="#bug-fixes_12" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/4cc2da92663de208d1ae54a7d9b5e82b7f422073" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>4cc2da9</code></a>: Bug in <code>bin_into_grid</code> where the time dimension was hardcoded as <code>&amp;#34;t&amp;#34;</code></li>
+</ul>
+<h2 id="version-127">Version 1.2.7<a class="headerlink" href="#version-127" title="Link to this section">§</a></h2>
+<p>Released 23-05-2025 </p>
+<h3 id="bug-fixes_13">Bug Fixes<a class="headerlink" href="#bug-fixes_13" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/741f0af0406b8356b9d681ea200159024683f7d0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>741f0af</code></a>: Ability to use paul tol's reversed colormaps by appending <code>&amp;#39;_r&amp;#39;</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/d5bcdcbccc4f74dbe9a0d2bcbc0ac4b0d7453d46" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d5bcdcb</code></a>: Assign <code>dtype</code> to concatenated data before chunking</p>
+</li>
+</ul>
+<h2 id="version-126">Version 1.2.6<a class="headerlink" href="#version-126" title="Link to this section">§</a></h2>
+<p>Released 08-05-2025 </p>
+<h3 id="bug-fixes_14">Bug Fixes<a class="headerlink" href="#bug-fixes_14" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/d5d84f2870216cec7f8cc2696aa51fd8041b22be" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d5d84f2</code></a>: Make sure that raw files containing no particles at all can still be assigned times and concatenated</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/824cfed0ae8dcfbc5e86f3e5fb5ddc3e482992b2" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>824cfed</code></a>: Bug for raw files with no particle tag data</p>
+</li>
+</ul>
+<h2 id="version-125">Version 1.2.5<a class="headerlink" href="#version-125" title="Link to this section">§</a></h2>
+<p>Released 30-04-2025 </p>
+<h3 id="bug-fixes_15">Bug Fixes<a class="headerlink" href="#bug-fixes_15" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/08ad9a60134874734f23d314bfa2ff1ee2d84e49" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>08ad9a6</code></a>: Fix bug that was causing an error when <code>hist</code> or <code>hist_proj</code> were called with <code>weight_var = none</code></li>
+</ul>
+<h2 id="version-124">Version 1.2.4<a class="headerlink" href="#version-124" title="Link to this section">§</a></h2>
+<p>Released 30-04-2025 </p>
+<h3 id="bug-fixes_16">Bug Fixes<a class="headerlink" href="#bug-fixes_16" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/89eac7e51d660fa4a36cc2c642491f11d7e1b398" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>89eac7e</code></a>: Change algorithm so that spatially averaged (<code>savg</code>) grid data can be read</li>
+</ul>
+<h3 id="refactoring_5">Refactoring<a class="headerlink" href="#refactoring_5" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/83b988eb439dab23a55fd69a514c54f366503b4d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>83b988e</code></a>: Tweaked some parameters in <code>local_maxima_and_zero_crossings</code> to improve peak and zero finding</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0ff220f75386d8b0a8bb68c7234ba7999ea7046a" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0ff220f</code></a>: Better formatting of progress bar in <code>vphi_from_fit</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/a89915974e6dc8b2f6b4a366e1af4469fadd082d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>a899159</code></a>: Minor improvements to the <code>vphi_from_fit</code> function</p>
+</li>
+</ul>
+<h2 id="version-123">Version 1.2.3<a class="headerlink" href="#version-123" title="Link to this section">§</a></h2>
+<p>Released 14-04-2025 </p>
+<h3 id="bug-fixes_17">Bug Fixes<a class="headerlink" href="#bug-fixes_17" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/92a2ed0231395c0c165cf25fae4d6015ceb89c93" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>92a2ed0</code></a>: Bug in <code>ozzy.plot.hist</code> and <code>ozzy.plot.hist_proj</code> for weighted data</li>
+</ul>
+<h2 id="version-122">Version 1.2.2<a class="headerlink" href="#version-122" title="Link to this section">§</a></h2>
+<p>Released 09-04-2025 </p>
+<h3 id="bug-fixes_18">Bug Fixes<a class="headerlink" href="#bug-fixes_18" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1319ddf50aadba601b00c5fcfa0b1c96f0d2e1c4" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1319ddf</code></a>: Typo was preventing <code>ozzy.statistics</code> from being imported</li>
+</ul>
+<h2 id="version-121">Version 1.2.1<a class="headerlink" href="#version-121" title="Link to this section">§</a></h2>
+<p>Released 09-04-2025 </p>
+<h3 id="bug-fixes_19">Bug Fixes<a class="headerlink" href="#bug-fixes_19" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/57dadddf1c8f04fe8837be727f6e6cd2494b373b" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>57daddd</code></a>: Bug in <code>local_maxima_and_zero_crossings</code></li>
+</ul>
+<h3 id="documentation_6">Documentation<a class="headerlink" href="#documentation_6" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/f4700b4a183b1818e89206e5e3ea505dec92dbcd" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>f4700b4</code></a>: Correct typos in docstring for <code>ozzy.fields.local_maxima_and_zero_crossings</code></li>
+</ul>
+<h2 id="version-120">Version 1.2.0<a class="headerlink" href="#version-120" title="Link to this section">§</a></h2>
+<p>Released 03-04-2025 </p>
+<h3 id="features_2">Features<a class="headerlink" href="#features_2" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/454aeeeae6a40a699ae7c3dfca5e767769ef61bf" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>454aeee</code></a>: Add function to find local field maxima and zero crossings</li>
+</ul>
+<h2 id="version-112">Version 1.1.2<a class="headerlink" href="#version-112" title="Link to this section">§</a></h2>
+<p>Released 17-02-2025 </p>
+<h3 id="bug-fixes_20">Bug Fixes<a class="headerlink" href="#bug-fixes_20" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/46d59fcc5236b4f79f0c44ccc550b28bad3f5ae2" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>46d59fc</code></a>: Trigger new release to publish python-3.13-compatible update to pypi</li>
+</ul>
+<h2 id="version-111">Version 1.1.1<a class="headerlink" href="#version-111" title="Link to this section">§</a></h2>
+<p>Released 17-02-2025 </p>
+<h3 id="bug-fixes_21">Bug Fixes<a class="headerlink" href="#bug-fixes_21" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/6066a3fc3dd7bfe8a5dac1413713bc1bce42abe7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6066a3f</code></a>: Update package dependencies so that package works with python 3.13</li>
+</ul>
+<h2 id="version-110">Version 1.1.0<a class="headerlink" href="#version-110" title="Link to this section">§</a></h2>
+<p>Released 17-02-2025 </p>
+<h3 id="documentation_7">Documentation<a class="headerlink" href="#documentation_7" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/a156af7dff24e2217eb0d8afece365c811a78ecf" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>a156af7</code></a>: Instruct users to use the function <code>ozzy.utils.axis_from_extent</code> to create the axes dataset required for <code>bin_into_grid</code></li>
+</ul>
+<h3 id="features_3">Features<a class="headerlink" href="#features_3" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/7c392077b1f0f54e76963cfd99614b0239138c7f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>7c39207</code></a>: Add functions to plot distributions of particle data</p>
+<p>Add <code>ozzy.plot.hist</code> and <code>ozzy.plot.hist_proj</code> to easily plot density distributions (histograms) of particle data, taking advantage of the seaborn functions <a href="https://seaborn.pydata.org/generated/seaborn.histplot.html" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>seaborn.histplot</code></a> and <a href="https://seaborn.pydata.org/generated/seaborn.jointplot.html" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>seaborn.jointplot</code></a>.</p>
+<p>Previously it would have been necessary to bin the data first, and then plot, e.g.:
+</p><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">ozzy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oz</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ozzy.plot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oplt</span>
+<span class="c1"># A particle data Dataset</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">oz</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">pic_data_type</span><span class="o">=</span><span class="s2">"part"</span><span class="p">)</span>
+<span class="n">ds_ps</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">ozzy</span><span class="o">.</span><span class="n">get_phase_space</span><span class="p">([</span><span class="s2">"p2"</span><span class="p">,</span> <span class="s2">"x2"</span><span class="p">])</span>
+<span class="n">ds_ps</span><span class="p">[</span><span class="s2">"rho"</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div>
+While now the following code is enough:
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">ozzy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oz</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ozzy.plot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oplt</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">oz</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">pic_data_type</span><span class="o">=</span><span class="s1">'part'</span><span class="p">)</span>
+<span class="n">oplt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">"x2"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"p2"</span><span class="p">)</span>
+</code></pre></div><p></p>
+</li>
+</ul>
+<h3 id="refactoring_6">Refactoring<a class="headerlink" href="#refactoring_6" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/703dfd33f8c071a252a5525cc86323efe50dc3ca" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>703dfd3</code></a>: Change <code>ozzy.plot</code> defaults to display a plot grid</li>
+</ul>
+<h2 id="version-109">Version 1.0.9<a class="headerlink" href="#version-109" title="Link to this section">§</a></h2>
+<p>Released 28-01-2025 </p>
+<h3 id="bug-fixes_22">Bug Fixes<a class="headerlink" href="#bug-fixes_22" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/a3cfe10f77172817294f7330690d665a7a1a71a9" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>a3cfe10</code></a>: One argument of <code>set_attr_if_exists</code> was missing its default value, which was throwing an error e.g. when <code>ds.ozzy.save</code> was called</li>
+</ul>
+<h2 id="version-108">Version 1.0.8<a class="headerlink" href="#version-108" title="Link to this section">§</a></h2>
+<p>Released 24-01-2025 </p>
+<h3 id="bug-fixes_23">Bug Fixes<a class="headerlink" href="#bug-fixes_23" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/83329ef6253cfcfb652229b522bc097aa45898e7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>83329ef</code></a>: Fft method was throwing error due to data being a chunked dask array</li>
+</ul>
+<h3 id="documentation_8">Documentation<a class="headerlink" href="#documentation_8" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/85a5f7125310c90b245a0b624b07784123418085" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>85a5f71</code></a>: Small formatting corrections</li>
+</ul>
+<h2 id="version-107">Version 1.0.7<a class="headerlink" href="#version-107" title="Link to this section">§</a></h2>
+<p>Released 26-11-2024 </p>
+<h3 id="bug-fixes_24">Bug Fixes<a class="headerlink" href="#bug-fixes_24" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/48d0b14622414cea5005699e6511f85393558544" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>48d0b14</code></a>: Fix bug that would throw error when using <code>open_compare</code> with multiple backends and with backend-specific keyword arguments</li>
+</ul>
+<h3 id="documentation_9">Documentation<a class="headerlink" href="#documentation_9" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/25b11d86a7b349ef9c22d58948741383dbd4b88d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>25b11d8</code></a>: Disable <a href="https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab">instant loading</a> since this causes the feedback widget to only show after reloading the page</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/e2c93ce354c3f6b01599dfecee05c785872d218d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>e2c93ce</code></a>: Update installation instructions (now available on <code>conda-forge</code>) and update package dependencies (especially <code>makedocs-material</code>)</p>
+</li>
+</ul>
+<h2 id="version-106">Version 1.0.6<a class="headerlink" href="#version-106" title="Link to this section">§</a></h2>
+<p>Released 13-11-2024 </p>
+<h3 id="bug-fixes_25">Bug Fixes<a class="headerlink" href="#bug-fixes_25" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/65c7549571e5130dac7656eb055d854ea936e4b8" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>65c7549</code></a>: Expression with double quotes inside double quotes was throwing an error for python 3.10</li>
+</ul>
+<h2 id="version-105">Version 1.0.5<a class="headerlink" href="#version-105" title="Link to this section">§</a></h2>
+<p>Released 13-11-2024 </p>
+<h3 id="bug-fixes_26">Bug Fixes<a class="headerlink" href="#bug-fixes_26" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/2c5fa8eb4c939c17143ad80d8c3faf22e1eb2aae" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2c5fa8e</code></a>: Remove obsolete argument for <code>backend.parse_data</code> that was being called from <code>ozzy.open_compare</code> and raising an error</li>
+</ul>
+<h3 id="documentation_10">Documentation<a class="headerlink" href="#documentation_10" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/60afa7d34ca879633c0d650242b8bd1749b41a77" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>60afa7d</code></a>: Fix some broken links after update</li>
+</ul>
+<h2 id="version-104">Version 1.0.4<a class="headerlink" href="#version-104" title="Link to this section">§</a></h2>
+<p>Released 12-11-2024 </p>
+<h3 id="bug-fixes_27">Bug Fixes<a class="headerlink" href="#bug-fixes_27" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/5cd488cbaf6819eabe91cf75e4d16c7bfd1ae3ff" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>5cd488c</code></a>: Fix error thrown by <code>bin_into_grid</code> when called on a data object that didn't contain a <code>&amp;#39;t&amp;#39;</code> coordinate</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/776a1a2f0e6754aa4a0aaf2d7a5fda7b9bd91416" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>776a1a2</code></a>: Fix missing-argument error when trying to read <code>beamfile.bin</code> files</p>
+</li>
+</ul>
+<h3 id="documentation_11">Documentation<a class="headerlink" href="#documentation_11" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/b43f5dcd8f169e7f13e358e4baf115b518be7044" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>b43f5dc</code></a>: Update documentation</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/6c726a56eba8a465246a5df1c6805e61b979edaa" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6c726a5</code></a>: Update "installation" and "getting started" page</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/1bf9a954efc837d543557360dab6dddf7ca4db42" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1bf9a95</code></a>: Change heading formatting of changelog template</p>
+</li>
+</ul>
+<h3 id="refactoring_7">Refactoring<a class="headerlink" href="#refactoring_7" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/825b7abbe60d9876d6a4c260f8cb39c0882deaaf" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>825b7ab</code></a>: Change how backend-specific arguments are passed from the <code>open</code> functions to each backend (easier to extend)</li>
+</ul>
+<h2 id="version-103">Version 1.0.3<a class="headerlink" href="#version-103" title="Link to this section">§</a></h2>
+<p>Released 04-11-2024 </p>
+<h3 id="documentation_12">Documentation<a class="headerlink" href="#documentation_12" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1c505822c1096fb0d6bf1c3a9ff390ff84f48216" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1c50582</code></a>: Correct changelog template</li>
+</ul>
+<h2 id="version-102">Version 1.0.2<a class="headerlink" href="#version-102" title="Link to this section">§</a></h2>
+<p>Released 04-11-2024 </p>
+<h3 id="documentation_13">Documentation<a class="headerlink" href="#documentation_13" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/2d1afe079632a6ef7188378746f55bc4f1482ddc" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2d1afe0</code></a>: Update installation instructions</li>
+</ul>
+<h2 id="version-101">Version 1.0.1<a class="headerlink" href="#version-101" title="Link to this section">§</a></h2>
+<p>Released 04-11-2024 </p>
+<h3 id="bug-fixes_28">Bug Fixes<a class="headerlink" href="#bug-fixes_28" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0e0f1f25cb8e1ba203995b2b7c8cc007ecbbf1b9" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0e0f1f2</code></a>: Fix attribute assignment in <code>bin_into_grid</code> and reorder dimensions after binning (for chunking and performance)</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/9674d638d8c98b7cfbefe4af021ec28ae9c5adff" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>9674d63</code></a>: Fix bug where <code>open_compare</code> was printing out "reading files" even when it had found no files</p>
+</li>
+</ul>
+<h3 id="documentation_14">Documentation<a class="headerlink" href="#documentation_14" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/28e05c22f5e153482030258ba265b7c7649b7993" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>28e05c2</code></a>: Change template for automatic changelog generation</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/d91795b8a0eb531013abf7fd842ac04ae88b3eb2" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d91795b</code></a>: Add <code>plot_func</code> argument to <code>movie</code> docstring</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/2a97bb6cacbee5adad178347ebac69ca47d721ff" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2a97bb6</code></a>: Add release notes to website, create custom changelog template</p>
+</li>
+</ul>
+<h3 id="features_4">Features<a class="headerlink" href="#features_4" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/10abc79ae06d6bba0b78f1fa48b02868943897ef" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>10abc79</code></a>: Publish package on pypi with as <code>ozzy-pic</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0d2020a3bb273ff34208dd9b3417c7e1948f2b2f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0d2020a</code></a>: Add function to get beam emittance</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/1ac93ae564719ec6c9c4b4af09535b32fcf81d28" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1ac93ae</code></a>: Add function to create an interactive animation using <code>hvplot</code></p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/3540a8e7c60e83beb29dc9d19a484aa28e1b42ed" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3540a8e</code></a>: Make <code>movie</code> more customisable by having a function argument that can edit the plot at each frame</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/dd58a21e42fdb6730e1437a434989fff24c66992" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>dd58a21</code></a>: Add co-moving variables such as <code>x1_box</code> to particle data as well</p>
+</li>
+</ul>
+<h3 id="performance-improvements">Performance Improvements<a class="headerlink" href="#performance-improvements" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/e67f696fa3c97af7f4837b2d3a5e569b220ac3ff" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>e67f696</code></a>: Reorder and rechunk dimensions of data after binning in <code>bin_into_grid</code></li>
+</ul>
+<h3 id="refactoring_8">Refactoring<a class="headerlink" href="#refactoring_8" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0e98bbb53b826628db562691513157ee644f4571" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0e98bbb</code></a>: Harmonize the metadata of lcode particle data (momentum) to standard names and units, update docs and tests</p>
+<p>The third momentum component in LCODE particle data corresponds to either <span class="arithmatex">\(p_z\)</span> in Cartesian geometry or the angular momentum <span class="arithmatex">\(L\)</span> in axisymmetric/cylindrical geometry. This is now taken into account via the boolean parameter <code>axisym</code> (<code>True</code> by default). In cylindrical geometry the third momentum component is renamed and a new <code>'p3'</code> variable is added to the dataset, corresponding to <span class="arithmatex">\(p_\theta = L / r\)</span>.</p>
+<p>In addition, all momenta in LCODE particle data are normalised to <span class="arithmatex">\(m_e \ c\)</span>. The units are now converted to <span class="arithmatex">\(m_\mathrm{sp} \ c\)</span>, using the charge-to-mass ratio in the data and the new argument <code>abs_q</code> (absolute value of the normalised bunch particle charge).</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/d7da0c893acfe8d9eb22917dd4eb07643d92aa8f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d7da0c8</code></a>: Replace <code>statistics.parts_into_grid</code> with dataset method <code>bin_into_grid</code></p>
+<p>Replace <code>statistics.parts_into_grid</code> with a Dataset method called <code>bin_into_grid</code> accessible to particle data (<code>pic_data_type = 'part'</code>).</p>
+<p><strong>Breaking change:</strong> <code>statistics.parts_into_grid</code> does not work anymore</p>
+<p>Please replace the function <code>statistics.parts_into_grid</code> with the <code>ds.ozzy.bin_into_grid</code> method. As an example, the following code</p>
+<p></p><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">ozzy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oz</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ozzy.statistics</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">stats</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">particles</span> <span class="o">=</span> <span class="n">oz</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"x1"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"pid"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)),</span>
+        <span class="s2">"x2"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"pid"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)),</span>
+        <span class="s2">"q"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"pid"</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">10000</span><span class="p">)),</span>
+    <span class="p">},</span>
+    <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s2">"pid"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10000</span><span class="p">)},</span>
+    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">"pic_data_type"</span><span class="p">:</span> <span class="s2">"part"</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">axes</span> <span class="o">=</span> <span class="n">oz</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
+    <span class="n">coords</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"x1"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span>
+        <span class="s2">"x2"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">51</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">"pic_data_type"</span><span class="p">:</span> <span class="s2">"grid"</span><span class="p">}</span>
+<span class="p">)</span>
+
+<span class="n">binned</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">parts_into_grid</span><span class="p">(</span><span class="n">particles</span><span class="p">,</span> <span class="n">axes</span><span class="p">,</span> <span class="n">r_var</span><span class="o">=</span><span class="s2">"x2"</span><span class="p">)</span>
+<span class="n">grid_data_axisym</span> <span class="o">=</span> <span class="n">particles</span><span class="o">.</span><span class="n">ozzy</span><span class="o">.</span><span class="n">bin_into_grid</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">r_var</span><span class="o">=</span><span class="s2">"x2"</span><span class="p">)</span>
+</code></pre></div>
+should be replaced by<p></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">ozzy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">oz</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="o">...</span>
+<span class="n">binned</span> <span class="o">=</span> <span class="n">particles</span><span class="o">.</span><span class="n">ozzy</span><span class="o">.</span><span class="n">bin_into_grid</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">r_var</span><span class="o">=</span><span class="s2">"x2"</span><span class="p">)</span>
+</code></pre></div>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/5840bc44884455dbe20508715e52a1cb4321773a" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>5840bc4</code></a>: Make str_exists argument of get_attr_if_exists optional</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/5d53830538f88959180e5762b6d4893855d16cc1" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>5d53830</code></a>: Use helper functions to handle dataarray attributes whenever possible</p>
+</li>
+</ul>
+<h2 id="version-021">Version 0.2.1<a class="headerlink" href="#version-021" title="Link to this section">§</a></h2>
+<p>Released 21-10-2024 </p>
+<h3 id="bug-fixes_29">Bug Fixes<a class="headerlink" href="#bug-fixes_29" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/0c2bb5f88ca717159a0cda2139615cbff3f7b983" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0c2bb5f</code></a>: Error is now raised when an invalid n0 argument is passed to convert_q</li>
+</ul>
+<h3 id="documentation_15">Documentation<a class="headerlink" href="#documentation_15" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/426b187550daa689faf24f429a723d33692bf5d9" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>426b187</code></a>: Add feedback widget across pages</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/7877d0edc04c04895f1c3298ff2ddd28f66a26f7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>7877d0e</code></a>: Try to add umami analytics in different way</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/3e62f7b76b4f0b1ee07fe803b363a46828ff91d4" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3e62f7b</code></a>: Add umami analytics for documentation website</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/ae7b7b379f77f7766f98d3d502ab1b331eb022ec" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>ae7b7b3</code></a>: Add black as project dependency for better formatting of code signatures in documentation</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0bd401bd85f93aac6873a776460dabac622f8a15" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0bd401b</code></a>: Debug and small corrections</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/29be6fd2c45944b7e59e56582351bb168dc65de0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>29be6fd</code></a>: Change main blurb, include install instructions with git and poetry</p>
+</li>
+</ul>
+<h3 id="refactoring_9">Refactoring<a class="headerlink" href="#refactoring_9" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/a2d20bc7ba723f2175275a8c3be61a023a4e71e6" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>a2d20bc</code></a>: Add two helper functions to set dataarray attributes depending on whether they already exist or not, + unit tests for these functions</li>
+</ul>
+<h2 id="version-020">Version 0.2.0<a class="headerlink" href="#version-020" title="Link to this section">§</a></h2>
+<p>Released 15-10-2024 </p>
+<h3 id="features_5">Features<a class="headerlink" href="#features_5" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/b4b61c794b92ad71105cc3b7b3e8ce7d6f794b77" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>b4b61c7</code></a>: Save movies of ozzy plots</li>
+</ul>
+<h2 id="version-017">Version 0.1.7<a class="headerlink" href="#version-017" title="Link to this section">§</a></h2>
+<p>Released 07-10-2024 </p>
+<h3 id="bug-fixes_30">Bug Fixes<a class="headerlink" href="#bug-fixes_30" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/6fcd37da2e497f119969eec30cea933d4f5568f0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6fcd37d</code></a>: Get_phase_space bug fixes</p>
+<ul>
+<li>no error when limits are set automatically and all quantity values are zero</li>
+<li>make sure that axisymmetric geometry is taken into account correctly when the radius variable isn't being binned directly</li>
+</ul>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/c12f766205346da546da2ab6bbdde1b6420f53e2" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>c12f766</code></a>: Correct units of particle momenta</p>
+</li>
+</ul>
+<h2 id="version-016">Version 0.1.6<a class="headerlink" href="#version-016" title="Link to this section">§</a></h2>
+<p>Released 30-09-2024 </p>
+<h3 id="bug-fixes_31">Bug Fixes<a class="headerlink" href="#bug-fixes_31" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/96a734016ba1ae22f78fe73e6c4aaef9f5a2305d" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>96a7340</code></a>: Units in parts_into_grid are now fetched from raw_ds argument</li>
+</ul>
+<h2 id="version-015">Version 0.1.5<a class="headerlink" href="#version-015" title="Link to this section">§</a></h2>
+<p>Released 23-09-2024 </p>
+<h3 id="performance-improvements_1">Performance Improvements<a class="headerlink" href="#performance-improvements_1" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/d4d08a59979fcbc1a0cd15ed60ca2202ff752fad" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d4d08a5</code></a>: Improve concatenation of tb files along time</li>
+</ul>
+<h3 id="refactoring_10">Refactoring<a class="headerlink" href="#refactoring_10" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1816b9bd834aedd568ced1a699c5c65b44cdb634" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1816b9b</code></a>: Add commented todo's</li>
+</ul>
+<h2 id="version-014">Version 0.1.4<a class="headerlink" href="#version-014" title="Link to this section">§</a></h2>
+<p>Released 18-09-2024 </p>
+<h3 id="bug-fixes_32">Bug Fixes<a class="headerlink" href="#bug-fixes_32" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/6e84664fc63914c84a51285cad7f32e5eacf8988" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>6e84664</code></a>: Change momentum units</li>
+</ul>
+<h3 id="features_6">Features<a class="headerlink" href="#features_6" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/de9520ce033c4bb835973175f0b81cd1891068b9" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>de9520c</code></a>: Scaffolding for emittance method</li>
+</ul>
+<h3 id="refactoring_11">Refactoring<a class="headerlink" href="#refactoring_11" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/506f060a08e18f543557acc8edefc75ddded3a23" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>506f060</code></a>: Replace ~ with not</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/9ce2c8a171e036078c535172dab3a10382dea39c" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>9ce2c8a</code></a>: Utils function to set attributes if they exist</p>
+</li>
+</ul>
+<h2 id="version-013">Version 0.1.3<a class="headerlink" href="#version-013" title="Link to this section">§</a></h2>
+<p>Released 17-09-2024 </p>
+<h3 id="bug-fixes_33">Bug Fixes<a class="headerlink" href="#bug-fixes_33" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/022b0c465d5bcaff80658910919ade6b88a07dd9" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>022b0c4</code></a>: Change momentum units</li>
+</ul>
+<h2 id="version-012">Version 0.1.2<a class="headerlink" href="#version-012" title="Link to this section">§</a></h2>
+<p>Released 17-09-2024 </p>
+<h3 id="bug-fixes_34">Bug Fixes<a class="headerlink" href="#bug-fixes_34" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/d48785cc737cb874b692002a179416d03fc7c788" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>d48785c</code></a>: Change units of density in parts_into_grid</li>
+</ul>
+<h3 id="refactoring_12">Refactoring<a class="headerlink" href="#refactoring_12" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0bd8cc1bcfeba8278fab803d7321f48ec483e94b" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0bd8cc1</code></a>: Change norm. units of q in particle data</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/1c5d48ed97e508b5ae165a0cf9e319a47f4206a3" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1c5d48e</code></a>: Add axisym argument to get_phase_space</p>
+</li>
+</ul>
+<h2 id="version-011">Version 0.1.1<a class="headerlink" href="#version-011" title="Link to this section">§</a></h2>
+<p>Released 13-08-2024 </p>
+<h3 id="bug-fixes_35">Bug Fixes<a class="headerlink" href="#bug-fixes_35" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/fed8f276a8ddb5969732e34b7f51c82c7b019465" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>fed8f27</code></a>: Automatic extent calculation for phase space even when min = max</li>
+</ul>
+<h3 id="documentation_16">Documentation<a class="headerlink" href="#documentation_16" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/1ef5d22b4f0c7e172eb2d3d16bbba582001448e7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1ef5d22</code></a>: Include zenodo reference</li>
+</ul>
+<h3 id="refactoring_13">Refactoring<a class="headerlink" href="#refactoring_13" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/2d79f50853de754baf930a05bc836c76f901c8f2" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2d79f50</code></a>: Utils function to set attributes if they exist</li>
+</ul>
+<h2 id="version-010">Version 0.1.0<a class="headerlink" href="#version-010" title="Link to this section">§</a></h2>
+<p>Released 16-07-2024 </p>
+<h3 id="features_7">Features<a class="headerlink" href="#features_7" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/109e196a553ac923cb94005d06e283d72df68bbd" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>109e196</code></a>: Set up cd of ozzy releases</li>
+</ul>
+<h2 id="version-001">Version 0.0.1<a class="headerlink" href="#version-001" title="Link to this section">§</a></h2>
+<p>Released 16-07-2024 </p>
+<h3 id="bug-fixes_36">Bug Fixes<a class="headerlink" href="#bug-fixes_36" title="Link to this section">§</a></h3>
+<ul>
+<li><a href="https://github.com/mtrocadomoreira/ozzy/commit/8e5fabdf12c0cefc23b6c171f85416b42f256126" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>8e5fabd</code></a>: Use correct function to register colormap</li>
+</ul>
+<h2 id="version-000">Version 0.0.0<a class="headerlink" href="#version-000" title="Link to this section">§</a></h2>
+<p>Released 16-07-2024 </p>
+<h3 id="documentation_17">Documentation<a class="headerlink" href="#documentation_17" title="Link to this section">§</a></h3>
+<ul>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/62db3698c54a1b399a380ba4e83340805a64326e" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>62db369</code></a>: Write plotting section</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/9fb57d8d7e0ee7fa865e380599a7c049899e20b7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>9fb57d8</code></a>: Write reading-files</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/892ed52d5f0231c38af1a5a7fa2d3cfab04e950c" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>892ed52</code></a>: Add file save to quick example in getting started</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/7c1fbd0da84d4bfbb1facfe59148a1cce4b6e48e" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>7c1fbd0</code></a>: Finish key concepts</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/727268359b61d4fafb0d811ff46f8b34a892601f" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>7272683</code></a>: Work on getting started</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/079304f028e9f4703e548bfc6e8f393c84b3153c" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>079304f</code></a>: Work on getting started</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/2d96a1082ef88b516e211cd2f2f090e98930d015" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>2d96a10</code></a>: Key concepts</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/afd1953e3c2df1009e069dc958802d495ca166b8" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>afd1953</code></a>: Write pages for each backend</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/db3cd72b56d2199da83cb1eeb700c3b6176483eb" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>db3cd72</code></a>: Work on getting started</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/c566890fa782868c7f725f98fb750d984a8248db" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>c566890</code></a>: Formatting + start getting started</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/1ce02895b5ec18ac925deaefa7d99308c67064ac" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1ce0289</code></a>: Activate section permalinks</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/eb042d1516c5e330f11254652ad8d8f01985c2a7" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>eb042d1</code></a>: Activate git date plugin</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/1401ba454e9fe7e9c12392657dc573bf26ba9511" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>1401ba4</code></a>: Small changes</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/df428f22d83ad4fb7e56b32ccad64c1ae6e54dbf" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>df428f2</code></a>: Solve bugs</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/3481bfba1190e7a066c6d5ae211d6906f7d5e92a" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>3481bfb</code></a>: Try to solve snippets issue</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/4eb3b326ea5fc017b72909158875960646bb09aa" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>4eb3b32</code></a>: Try to solve snippets issue</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/8cab69252d21a8c1aff9d872f06dbdb02d622bd0" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>8cab692</code></a>: Try to solve snippets issue</p>
+</li>
+<li>
+<p><a href="https://github.com/mtrocadomoreira/ozzy/commit/0ecd7109385025f822fde66ce2800e87da2b3098" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab"><code>0ecd710</code></a>: Finish license and about</p>
+</li>
+</ul>
+<!-- END INCLUDE -->
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 20, 2025 02:48:48 UTC">November 20, 2025</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"></path></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="November 20, 2025 02:48:48 UTC">November 20, 2025</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+  
+
+
+  
+
+
+  <form class="md-feedback" name="feedback" hidden>
+    <fieldset>
+      <legend class="md-feedback__title">
+        Was this page helpful?
+      </legend>
+      <div class="md-feedback__inner">
+        <div class="md-feedback__list">
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page could be improved" data-md-value="0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10m-6.5-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5-1.5-.7-1.5-1.5.7-1.5 1.5-1.5M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m2 4.5c1.75 0 3.29.72 4.19 1.81l-1.42 1.42C14.32 16.5 13.25 16 12 16s-2.32.5-2.77 1.23l-1.42-1.42C8.71 14.72 10.25 14 12 14"></path></svg>
+            </button>
+          
+            <button class="md-feedback__icon md-icon" type="submit" title="This page was helpful" data-md-value="1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 12a8 8 0 0 0-8-8 8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8m2 0a10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2a10 10 0 0 1 10 10M10 9.5c0 .8-.7 1.5-1.5 1.5S7 10.3 7 9.5 7.7 8 8.5 8s1.5.7 1.5 1.5m7 0c0 .8-.7 1.5-1.5 1.5S14 10.3 14 9.5 14.7 8 15.5 8s1.5.7 1.5 1.5m-5 7.73c-1.75 0-3.29-.73-4.19-1.81L9.23 14c.45.72 1.52 1.23 2.77 1.23s2.32-.51 2.77-1.23l1.42 1.42c-.9 1.08-2.44 1.81-4.19 1.81"></path></svg>
+            </button>
+          
+        </div>
+        <div class="md-feedback__note">
+          
+            <div data-md-value="0" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback! Help us improve this page by using our <a href="https://tally.so/r/w7VQq6?title=Release%20Notes&amp;url=/release-notes/" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab">feedback form</a>.
+            </div>
+          
+            <div data-md-value="1" hidden>
+              
+              
+                
+              
+              
+              
+                
+                
+              
+              Thanks for your feedback!
+            </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+        
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../reference/utils/" class="md-footer__link md-footer__link--prev" aria-label="Previous: ozzy.utils">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                ozzy.utils
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../about/" class="md-footer__link md-footer__link--next" aria-label="Next: About">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                About
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright © 2024 Mariana Moreira
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener noreferrer" class="plugin_open_external_links_in_new_tab">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "content.code.annotate", "content.tooltips", "navigation.indexes", "navigation.tabs", "navigation.path", "toc.follow", "navigation.top", "search.suggest", "search.highlight", "navigation.footer"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+        <script src="../javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+        <script src="../javascripts/feedback.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
