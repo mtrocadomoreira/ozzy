@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 2.0.5 
+
+Released 22-01-2026 
+
+### Bug Fixes
+
+* [`ba1e991`](https://github.com/mtrocadomoreira/ozzy/commit/ba1e991b1f2b2c60848c6ebca72054d1339e25f1): Fix some bugs related to the `bins` argument in the `hist` and `hist_proj` functions of `ozzy.plot` and add `binrange` and `binwidth` arguments
+
+
+
+
+
+
+
 ## Version 2.0.4 
 
 Released 11-11-2025 
