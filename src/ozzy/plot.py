@@ -973,12 +973,15 @@ def imovie(
         Name of the time coordinate in the DataArray.
     clim : str | tuple of float, optional
         Color limits specification. Can be:
+
         - `"first"`: Use min/max of first time step
         - `"global"`: Use global min/max across all time steps
         - `None`: Color scale changes at every time step
         - tuple of (min, max) values
+
     colormap : str, optional
         Name of colormap to use. If `None`, automatically selects:
+
         - `"cmc.lipari"` for single-signed data
         - `"cmc.vik"` for data crossing zero
     widget_location : str, optional
@@ -1106,6 +1109,8 @@ def hist(
     y: str | None = None,
     w_var: str | None = "q",
     bins: str | int | Iterable = "auto",
+    binwidth: float | Iterable[float] | None = None,
+    binrange: Iterable[float] | Iterable[Iterable[float]] | None = None,
     cmap: str | None = "cmc.bamako",
     cbar: bool = False,
     **kwargs,
@@ -1123,7 +1128,25 @@ def hist(
     w_var : str | None
         Variable name to use as weights
     bins : str | int | Iterable
-        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot] and then to [`numpy.histogram_bin_edges`][numpy.histogram_bin_edges]. It can be a string (e.g. `'auto'`), the number of bins, or an array containing the bin edges. For 2D histograms, this argument can be given as a tuple, where each element corresponds to each dimension.
+
+        Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+
+        !!! note
+
+            Automated bin size selection is not available for weighted data. If `w_var` is provided and `bins` is set to `'auto'` (or to any other method available via [`numpy.histogram_bin_edges`][numpy.histogram_bin_edges]), the number of bins will be forced to the default of 200.
+
+        Examples of valid `bins` arguments:
+
+        - `'auto'`
+        - `150`
+        - `(100, np.linspace(-1.0,1.0,50))`
+        - `('auto', 300)`
+        - `np.linspace(0,0.75,100)`
+    binwidth : float | Iterable | None
+        Width of each bin. Overrides `bins` but can be used with `binrange`. For 2D histograms, this argument can be given as a pair, where each element corresponds to each dimension. (See [`seaborn.histplot`][seaborn.histplot].)
+    binrange : Iterable | None
+        Lowest and highest value for bin edges; can be used either with `bins` or `binwidth`. For 2D histograms, this argument can be given as a pair, where each element corresponds to each dimension. Defaults to data extremes. (See [`seaborn.histplot`][seaborn.histplot].)
     cmap : str | None
         Colormap name. Uses `'cmc.bamako'` or the `ozzy.plot` sequential default
     cbar : bool
@@ -1161,8 +1184,29 @@ def hist(
     if (x is not None) and (y is not None):
         cmap_opts["cmap"] = cmap
 
-    if (w_var is not None) and (bins == "auto"):
-        bins = 200
+    if w_var is not None:
+        # Workaround for Seaborn issue when there are weights and bins is an ndarray
+        # See issue: https://github.com/mwaskom/seaborn/issues/3801
+        if isinstance(bins, np.ndarray):
+            bins = list(bins)
+        elif isinstance(bins, str):
+            bins = 200
+        elif isinstance(bins, tuple):
+            # Automated bin size selection doesn't work when there are weights.
+            # In this case, number of bins defaults to 200.
+            # See documentation of numpy.histogram_bin_edges:
+            # https://numpy.org/doc/stable/reference/generated/numpy.histogram_bin_edges.html
+            if any([isinstance(item, str) for item in bins]):
+                item1 = 200 if isinstance(bins[0], str) else bins[0]
+                item2 = 200 if isinstance(bins[1], str) else bins[1]
+                bins = (item1, item2)
+
+            # Workaround for Seaborn issue when there are weights and bins is an ndarray
+            # See issue: https://github.com/mwaskom/seaborn/issues/3801
+            if any([isinstance(item, np.ndarray) for item in bins]):
+                item1 = list(bins[0]) if isinstance(bins[0], np.ndarray) else bins[0]
+                item2 = list(bins[1]) if isinstance(bins[1], np.ndarray) else bins[1]
+                bins = (item1, item2)
 
     if w_var is None:
         weights_pass = None
@@ -1178,6 +1222,8 @@ def hist(
         y=y,
         weights=weights_pass,
         bins=bins,
+        binwidth=binwidth,
+        binrange=binrange,
         cbar=cbar,
         **cmap_opts,
         **kwargs,
@@ -1218,6 +1264,8 @@ def hist_proj(
     y: str,
     w_var: str | None = "q",
     bins: str | int | Iterable = "auto",
+    binwidth: float | Iterable[float] | None = None,
+    binrange: Iterable[float] | Iterable[Iterable[float]] | None = None,
     cmap: str | None = "cmc.bamako",
     space: float = 0,
     refline: bool = False,
@@ -1237,7 +1285,23 @@ def hist_proj(
     w_var : str | None
         Variable name to use as weights
     bins : str | int | Iterable
-        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot]. It can be `'auto'`, the number of bins, or the breaks of the bins. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+        Generic bin parameter passed to [`seaborn.histplot`][seaborn.histplot] and then to [`numpy.histogram_bin_edges`][numpy.histogram_bin_edges]. It can be a string (e.g. `'auto'`), the number of bins, or an array containing the bin edges. Can be given as a tuple, where each element corresponds to each dimension. Defaults to `200` for weighted data or to an automatically calculated number for unweighted data.
+
+        !!! note
+
+            Automated bin size selection is not available for weighted data. If `w_var` is provided and `bins` is set to `'auto'` (or to any other method available via [`numpy.histogram_bin_edges`][numpy.histogram_bin_edges]), the number of bins will be forced to the default of 200.
+
+        Examples of valid `bins` arguments:
+
+        - `'auto'`
+        - `150`
+        - `(100, np.linspace(-1.0,1.0,50))`
+        - `('auto', 300)`
+        - `np.linspace(0,0.75,100)`
+    binwidth : float | Iterable | None
+        Width of each bin. Overrides `bins` but can be used with `binrange`. Can be given as a pair, where each element corresponds to each dimension. (See [`seaborn.histplot`][seaborn.histplot].)
+    binrange : Iterable | None
+        Lowest and highest value for bin edges; can be used either with `bins` or `binwidth`. Can be given as a pair, where each element corresponds to each dimension. Defaults to data extremes. (See [`seaborn.histplot`][seaborn.histplot].)
     cmap : str | None
         Colormap name. Uses `'cmc.bamako'` or the `ozzy.plot` sequential default
     space : float
@@ -1277,12 +1341,25 @@ def hist_proj(
     if cmap is None:
         cmap = xr.get_options()["cmap_sequential"]
 
-    if (w_var is not None) and (bins == "auto"):
-        bins = 200
-        bins_marginal = bins
-    elif isinstance(bins, Iterable):
-        bins = bins
-        bins_marginal = max(bins)
+    if not isinstance(bins, tuple):
+        bins = (bins, bins)
+
+    if (w_var is not None) & (isinstance(bins, tuple)):
+        # Automated bin size selection doesn't work when there are weights.
+        # In this case, number of bins defaults to 200.
+        # See documentation of numpy.histogram_bin_edges:
+        # https://numpy.org/doc/stable/reference/generated/numpy.histogram_bin_edges.html
+        if any([isinstance(item, str) for item in bins]):
+            item1 = 200 if isinstance(bins[0], str) else bins[0]
+            item2 = 200 if isinstance(bins[1], str) else bins[1]
+            bins = (item1, item2)
+
+        # Workaround for Seaborn issue when there are weights and bins is an ndarray
+        # See issue: https://github.com/mwaskom/seaborn/issues/3801
+        if any([isinstance(item, np.ndarray) for item in bins]):
+            item1 = list(bins[0]) if isinstance(bins[0], np.ndarray) else bins[0]
+            item2 = list(bins[1]) if isinstance(bins[1], np.ndarray) else bins[1]
+            bins = (item1, item2)
 
     if w_var is None:
         weights_pass = None
@@ -1298,13 +1375,15 @@ def hist_proj(
         y=y,
         weights=weights_pass,
         bins=bins,
+        binwidth=binwidth,
+        binrange=binrange,
         space=space,
         cmap=cmap,
         kind="hist",
         color=mpl.colormaps[cmap](
             0.0
         ),  # choose the lower bound of the color scale as the color for the projected bins
-        marginal_kws={"weights": weights_pass, "bins": bins_marginal},
+        marginal_kws={"weights": weights_pass},
         **kwargs,
     )
 
