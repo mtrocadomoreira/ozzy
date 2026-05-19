@@ -1045,3 +1045,42 @@ def convert_interval_to_mid(da: xr.DataArray) -> np.ndarray:
         raise
 
     return new_arr
+
+
+def find_item_in_h5(filename: str, item: str) -> list:
+    """
+    Find all HDF5 object paths whose final path component matches an item name.
+
+    Parameters
+    ----------
+    filename : str
+        Path to the HDF5 file to search.
+    item : str
+        Name of the HDF5 group or dataset to find.
+
+    Returns
+    -------
+    list
+        A list of matching HDF5 paths relative to the file root. If no matching item is found, an empty list is returned.
+
+    Examples
+    --------
+    ???+ example
+        ```python
+        matches = find_item_in_h5("data.h5", "charge")
+        # Output: ['run1/charge', 'run2/charge']
+        ```
+    """
+
+    with h5py.File(filename, "r") as f:
+        # Build list of items found and respective paths
+        list_items = []
+        f.visit(list_items.append)
+    items_dict = {k: k.split("/")[-1] for k in list_items}
+
+    matches = []
+    for k, v in items_dict.items():
+        if v == item:
+            matches.append(k)
+
+    return matches
