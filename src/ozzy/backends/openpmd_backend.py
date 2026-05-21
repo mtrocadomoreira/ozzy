@@ -64,7 +64,7 @@ def read(files: list[str], records: str | list[str] = "all", **kwargs) -> xr.Dat
     """
     # TODO: update docstring
 
-    # HACK: maybe return two separate objects if no records are specified, or if fields+particles
+    # HACK: maybe return two separate objects if no records are specified, or if fields+particles (return different particle species separately too)
 
     # sort out what will be read and pass configuration to a open_mfdataset function call
 
@@ -72,6 +72,9 @@ def read(files: list[str], records: str | list[str] = "all", **kwargs) -> xr.Dat
         if len(files) > 0:
 
             # Parse records keyword
+
+            # map out all individual records inside files
+            # only do this is records = None or if it's a list -> and maybe here no need to map everything out first
 
             records = force_str_to_list(records)
 
@@ -85,20 +88,27 @@ def read(files: list[str], records: str | list[str] = "all", **kwargs) -> xr.Dat
                     case "particles" | "particle" | "part":
                         pass
                     case _:
-                        # any other mesh record, or also a specific particle species
-                        # need function to check whether record exists in file:
-                        #   go into data/[any folder at this level]/
-                        #       search in fields/
-                        #       search in particles/
-                        # return positive | negative | ambiguous (multiple matches)
-                        # if negative:
-                        #   throw ValueError
-                        # if ambiguous:
-                        #   throw ValueError
-                        # if positive:
-                        #   proceed
+
+                        # Try to find record in file
 
                         matches_rec = find_item_in_h5(files[-1], rec)
+
+                        if len(matches_rec) == 0:
+                            raise ValueError(
+                                f"Could not find '{rec}' in OpenPMD file. Please specify a valid argument for the 'records' keyword."
+                            )
+                        elif len(matches_rec) > 1:
+                            raise ValueError(
+                                f"Found more than one matches for '{rec}' in OpenPMD files:\n- "
+                                + "\n- ".join(matches_rec)
+                                + "\nPlease provide a non-ambiguous argument for the 'records' keyword."
+                            )
+                        elif len(matches_rec) == 1:
+                            pass
+
+                            # check whether field or particle?
+                            # and then pass quantity to config function
+
                         pass
 
                 # define configuration for variables to be read
