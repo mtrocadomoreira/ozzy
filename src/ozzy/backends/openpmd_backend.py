@@ -8,6 +8,7 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
+import h5py
 import xarray as xr
 
 from ..new_dataobj import new_dataset
@@ -50,6 +51,24 @@ If `None`, no variables are ignored.
 """
 
 
+def _find_all_records_openpmd(files):
+
+    all_recs_fields = []
+    all_specs = []
+    for file in files:
+        with h5py.File(file, "r") as f:
+            all_iters = list(f["data"].keys())
+            for it in all_iters:
+                fld_quants = list(f[f"data/{it}/fields"].keys())
+                all_recs_fields = all_recs_fields + fld_quants
+                specs = list(f[f"data/{it}/particles"].keys())
+                all_specs = all_specs + specs
+
+    fld_recs_unique = list(set(all_recs_fields))
+    specs_unique = list(set(all_specs))
+    return (fld_recs_unique, specs_unique)
+
+
 # function to preprocess files should go here
 def config_openpmd(ds):
 
@@ -57,7 +76,9 @@ def config_openpmd(ds):
 
 
 @stopwatch
-def read(files: list[str], records: str | list[str] = "all", **kwargs) -> xr.Dataset:
+def read(
+    files: list[str], records: str | list[str] | None = None, **kwargs
+) -> xr.Dataset:
     """
     Read a list of files and return a [Dataset][xarray.Dataset].
     If an `OSError` occurs during the reading process, a new empty Dataset should be created and returned.
@@ -73,10 +94,72 @@ def read(files: list[str], records: str | list[str] = "all", **kwargs) -> xr.Dat
 
             # Parse records keyword
 
-            # map out all individual records inside files
-            # only do this is records = None or if it's a list -> and maybe here no need to map everything out first
+            # - map out all available records
+
+            fld_records, part_species = _find_all_records_openpmd(files)
+            string_fld_records = ", ".join([f"'{item}'" for item in fld_records])
+            string_part_species = ", ".join([f"'{item}'" for item in part_species])
+
+            # - raise informative error if records is None
+
+            if records is None:
+
+                raise ValueError(
+                    f"""
+                    Please choose which variables to read from the OpenPMD file(s) using the 'records' keyword argument.
+
+                    Accepted options are:\n
+                    \t- 'fields' | 'grid' | 'mesh' | 'meshes': read all grid-based variables\n
+                    \t- [name of grid-based variable] | [list of several grid-based variable names]: read a subset of the grid-based variables
+                    \t  Available variables: {string_fld_records}\n
+                    \t- [name of particle species]: particle data for one species
+                    \t  Available species: {string_part_species}
+                    """
+                )
+
+            # - otherwise, parse records keyword
 
             records = force_str_to_list(records)
+
+            if len(records) == 1:
+
+                rec = records[0]
+                match rec:
+                    case "fields" | "mesh" | "meshes" | "grid":
+                        # proceed, instruct to read all fields quants
+                        pass
+                    case "particles" | "part":
+
+                        if len(part_species) > 1:
+                            raise ValueError(
+                                f"ozzy only reads particle data for one particle species at a time.\nPlease select one of the following species to read: {string_part_species}"
+                            )
+                        elif len(part_species) == 0:
+                            print(
+                                "WARNING: OpenPMD file does not seem to contain any particle data. Returning an empty dataset."
+                            )
+                            ds = new_dataset()
+                        elif len(part_species) == 1:
+                            # proceed, instruct to read particle data for the one species: part_species[0]
+                            pass
+                        # check how many particle species exist, raise error if more than 1
+                        # else choose single species that exists and pass it along
+                        pass
+                    case _:
+                        if rec in fld_records:
+                            # proceed
+                            pass
+                        elif rec in part_species:
+                            # proceed
+                            pass
+                        else:
+                            raise ValueError(
+                                f"Can't find record '{rec}' in OpenPMD file(s)."
+                            )
+
+            else:
+
+                pass
 
             for rec in records:
 
