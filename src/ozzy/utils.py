@@ -164,7 +164,6 @@ def unpack_attr(attr):
         # Output: 42
         ```
     """
-    assert isinstance(attr, np.ndarray)
 
     if attr.dtype.kind == "S":
         match len(attr.shape):
