@@ -11,11 +11,12 @@
 import os
 import re
 
+import dask.array as da
 import xarray as xr
 from openpmd_viewer import OpenPMDTimeSeries
 from tqdm import tqdm
 
-from ..new_dataobj import new_dataset
+from ..new_dataobj import new_dataarray, new_dataset
 from ..utils import force_str_to_list, stopwatch, tex_format
 
 general_regex_pattern: str = r"\w+?(\d{6,8}).h5"
@@ -30,10 +31,10 @@ openpmd_symbols = {"rho": r"\rho"}
 
 # - HiPACE++
 
-pattern_hipace = re.compile(r"([uwjEB])([xyz]{0,1})((?:\^2){0,1})_{0,1}([\w-]*)")
+hipace_vars = re.compile(r"([uwjEB])([xyz]{0,1})((?:\^2){0,1})_{0,1}([\w-]*)")
 
 
-def repl_hipace(matchobj):
+def hipace_vars_repl(matchobj):
     out = matchobj.group(1)
     comp = matchobj.group(2)
     spec = matchobj.group(4)
@@ -55,25 +56,13 @@ hipace_symbols = {
     "Psi": r"\Psi",
     "rhomjz": r"\rho - j_z / c ",
     "rho": r"\rho",
-    pattern_hipace: repl_hipace,
-    # rho_name
-    # chi
-    # laserChi
-    # |a^2|
-    # laserEnvelope
+    hipace_vars: hipace_vars_repl,
+    r"rho_(\w+)": lambda matchobj: r"\rho_\mathrm{" + matchobj.group(1) + "}",
+    "chi": r"\chi",
+    "laserChi": r"\chi_\mathrm{laser}",
+    "|a^2|": r"|a^2|",
+    "laserEnvelope": r"\text{laser envelope}",
 }
-
-# Ex, ExmBy, Ey, EypBx, Ez, Bx, By, Bz, Psi
-# Specific to the Predictor-Corrector solver: jx, jy, jz, and rhomjz, which correspond to the current and charge densities of the plasma and beam (rhomjz is defined as 𝜌 −𝑗𝑧/𝑐).
-
-# Specific to the Explicit solver: separate current and charge densities for the beam (jx_beam, jy_beam, jz_beam) and plasma (jx, jy, and rhomjz).
-# jx, jy, jz, rhomjz
-# jx_beam, jy_beam, jz_beam
-# jx, jy, and rhomjz
-
-# Plasma diagnostics: rho (total charge density) is always available. Per-species diagnostics are also available: rho_<plasma name> (charge density of the species); w_<plasma name> (particle weights of the species); and momentum components ux_<plasma name>, uy_<plasma name>, uz_<plasma name>, ux^2_<plasma name>, etc.
-
-# Laser diagnostics, when a laser pulse is used: laserEnvelope (the complex envelope of the laser in the laser base geometry) and chi (plasma proper density 𝑛/𝛾). laserChi can be used to access chi on the laser grid, with the imaginary component containing chi of the initial unperturbed plasma. |a^2| contains the absolute value squared of the laser envelope in the real component and zero in the imaginary component.
 
 
 # def _find_all_records_openpmd(files):
@@ -144,7 +133,7 @@ hipace_symbols = {
 # -> get units etc. from unitSI + unitDimension + HiPACE++_reference_unitSI for each var
 
 
-def get_tex_label(rec, comp, m=None):
+def get_tex_label(rec, comp, m, include_mode):
 
     # First make any replacements foreseen at top of this module
 
@@ -159,12 +148,12 @@ def get_tex_label(rec, comp, m=None):
     # Then add component and mode subscript if applicable
 
     if comp is not None:
-        if (m is not None) & (m != "all"):
+        if (include_mode) & (m != "all"):
             out = out + "_{" + comp + f",m={m}" + "}"
         else:
             out = out + f"_{comp}"
     else:
-        if (m is not None) & (m != "all"):
+        if (include_mode) & (m != "all"):
             out = out + "_{" + f"m = {m}" + "}"
 
     return tex_format(out)
@@ -187,6 +176,136 @@ def openpmd_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
     return ds
 
 
+def read_fields(op_obj, fields, separate_theta_modes):
+
+    if fields == "all":
+        fields = op_obj.avail_fields
+
+    field_metadata = op_obj.fields_metadata
+    iters_all = op_obj.iterations
+    time_all = op_obj.t
+
+    # create empty dataset to add to
+
+    ds_fields = new_dataset(pic_data_type="grid")
+
+    for rec in fields:
+
+        # Loop through components
+
+        if len(field_metadata[rec]["avail_components"]) == 0:
+            field_metadata[rec]["avail_components"] = [None]
+
+        for comp in field_metadata[rec]["avail_components"]:
+
+            # Deal with mode-decomposed cylindrical geomtry
+
+            if field_metadata[rec]["geometry"] == "thetaMode":
+
+                all_modes = set(field_metadata[rec]["avail_circ_modes"]) - {"all"}
+                all_modes = [int(item) for item in all_modes]
+
+                if separate_theta_modes:
+                    modes = all_modes
+                    rec_names = [rec + comp + f"_m{im}" for im in all_modes]
+                else:
+                    modes = ["all"]
+                    allmstring = "".join([str(item) for item in all_modes])
+                    rec_names = [rec + comp + f"_m{allmstring}"]
+
+                include_mode_in_label = True
+
+            else:
+
+                modes = ["all"]
+                rec_names = [rec + comp]
+                include_mode_in_label = False
+
+            print(f"Reading all '{rec + comp}' data:")
+
+            # Loop through all "modes"
+
+            for m, rec_name in zip(modes, rec_names):
+
+                # Iterate along time
+
+                da_rec_t = []
+                for it, tval in zip(tqdm(iters_all), time_all):
+
+                    data, metadata = op_obj.get_field(
+                        rec, coord=comp, iteration=it, m=m
+                    )
+                    if metadata.component_attrs["unitSI"] != 1.0:
+                        data = data * metadata.component_attrs["unitSI"]
+                    if metadata.field_attrs["timeOffset"] != 0.0:
+                        tval = tval + metadata.field_attrs["timeOffset"]
+
+                    ndims = len(metadata.axes)
+                    ax_vars = [metadata.axes[0], metadata.axes[1]]
+
+                    dda = da.from_array(data, chunks="auto")
+
+                    da_tmp = new_dataarray(
+                        name=rec_name, data=dda, dims=ax_vars, attrs={"ndims": ndims}
+                    ).expand_dims(
+                        dim={"t": [tval]},
+                        axis=ndims,
+                    )
+
+                    # Assign values for axes
+
+                    for idim, ax_var in enumerate(ax_vars):
+                        axis = metadata.__getattribute__(ax_var)
+
+                        if "gridUnitSI" in metadata.field_attrs:
+                            if metadata.field_attrs["gridUnitSI"] != 1.0:
+                                axis = axis * metadata.field_attrs["gridUnitSI"]
+                        elif "gridUnitSIPerDimension" in metadata.field_attrs:
+                            if (
+                                metadata.field_attrs["gridUnitSIPerDimension"][idim]
+                                != 1.0
+                            ):
+                                axis = (
+                                    axis
+                                    * metadata.field_attrs["gridUnitSIPerDimension"][
+                                        idim
+                                    ]
+                                )
+
+                        da_tmp = da_tmp.assign_coords({ax_var: (ax_var, axis)})
+
+                    # Append to list with all times for this record
+
+                    da_rec_t.append(da_tmp)
+
+                # Concatenate all datasets along time
+
+                da_rec = openpmd_concat_time(da_rec_t)
+
+                # Assign labels and metadata
+
+                rec_label = get_tex_label(rec, comp, m, include_mode_in_label)
+
+                # rec_units = get_units(metadata.field_attrs["unitDimension"])
+
+                da_rec.attrs["long_name"] = rec_label
+                da_rec.attrs["units"] = rec_units
+                # if |unit_exp^2| == 1, then it's one of the base units
+
+                # Add complete DataArray of quantity to overall Dataset
+
+                ds_fields[rec_name] = da_rec
+
+            # what about axis units and time units?
+
+            # Set metadata
+            # Process axes and general metadata (with last metadata obj)
+
+        pass
+
+    return
+
+
 def read_fields_t(op_obj, it, fields, separate_theta_modes):
 
     if fields == "all":
@@ -196,16 +315,12 @@ def read_fields_t(op_obj, it, fields, separate_theta_modes):
 
     for rec in fields:
 
-        # Process axes and general metadata
-
         # Loop through components
 
         if len(field_metadata[rec]["avail_components"]) == 0:
             field_metadata[rec]["avail_components"] = [None]
 
         for comp in field_metadata[rec]["avail_components"]:
-
-            # set variable name
 
             if field_metadata[rec]["geometry"] == "thetaMode":
 
@@ -219,9 +334,22 @@ def read_fields_t(op_obj, it, fields, separate_theta_modes):
 
                 for m in modes:
 
-                    data = op_obj.get_field(rec, coord=comp, iteration=it, m=m)
+                    data, metadata = op_obj.get_field(
+                        rec, coord=comp, iteration=it, m=m
+                    )
 
                     # make dask data array
+
+                    dda = da.from_array(data, chunks="auto")
+
+                    ndims = len(metadata.axes)
+
+                    ds = new_dataset(
+                        data_vars={rec: ([metadata.axes[0], metadata.axes[1]], dda)},
+                    ).expand_dims(dim={"t": 1}, axis=ndims)
+                    ds.attrs["ndims"] = ndims
+
+                    # process physical units
 
                     # set variable name
                     # add to dataset with metadata
@@ -230,7 +358,7 @@ def read_fields_t(op_obj, it, fields, separate_theta_modes):
 
             else:  # No theta modes
 
-                data = op_obj.get_field(rec, coord=comp, iteration=it)
+                data, metadata = op_obj.get_field(rec, coord=comp, iteration=it)
 
                 get_tex_label(rec, comp)
 
@@ -238,6 +366,7 @@ def read_fields_t(op_obj, it, fields, separate_theta_modes):
                 pass
 
             # Set metadata
+            # Process axes and general metadata (with last metadata obj)
 
         pass
 
