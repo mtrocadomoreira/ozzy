@@ -10,7 +10,7 @@
 
 import os
 import re
-from importlib.resources import files
+from importlib import resources
 from typing import Callable, NamedTuple
 
 import dask
@@ -45,15 +45,16 @@ quants_ignore = ["xi"]
 """
 
 
-lcode_data_file = files("ozzy").joinpath("backends/lcode_file_key.csv")
+lcode_data_file = resources.files("ozzy").joinpath("backends/lcode_file_key.csv")
 """The path to the `lcode_file_key.csv` file, which contains information about LCODE file types and their associated regular expressions.
 
 This file is used by the `get_file_type` function to identify the type of LCODE data file based on its file name.
 """
 
-lcode_regex = pd.read_csv(lcode_data_file, sep=";", header=0)
-"""A [DataFrame][pandas.DataFrame] containing information about LCODE file types and their associated regular expressions. This DataFrame is read from the `lcode_file_key.csv` file.
-"""
+with resources.as_file(lcode_data_file) as path:
+    lcode_regex = pd.read_csv(path, sep=";", header=0)
+    """A [DataFrame][pandas.DataFrame] containing information about LCODE file types and their associated regular expressions. This DataFrame is read from the `lcode_file_key.csv` file.
+    """
 
 # -------------------------------------------
 # - Define metadata of different file types -
