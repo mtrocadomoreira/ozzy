@@ -177,9 +177,13 @@ def unpack_attr(attr):
         out = content.decode("UTF-8")
 
     else:
-        if len(attr) == 1:
-            out = attr[0]
-        else:
+
+        try:
+            if len(attr) == 1:
+                out = attr[0]
+            else:
+                out = attr
+        except TypeError:
             out = attr
 
     return out
