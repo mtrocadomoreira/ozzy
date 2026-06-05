@@ -1,0 +1,5 @@
+[number_density] = 1 / [length]**3
+[emittance] = [length]
+alfven_current = 4 * pi * eps0 * m_e * c**3 / e = IA = I_A
+classical_electron_radius = 1/(4 * pi * eps0) * e**2 / (m_e * c**2) = r_e
+proton_mass = 1.67262192e-27 * kg = m_p
