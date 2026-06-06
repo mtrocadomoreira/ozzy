@@ -295,7 +295,7 @@ def open_series(file_type, files, nfiles=None, **kwargs):
     file_type : str
         The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
     files : str | list
-        The path(s) to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
+        The path(s) to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, and can contain wildcards or glob patterns.
     nfiles : int, optional
         The maximum number of files to open. If not provided, all files will be opened.
     **kwargs :
