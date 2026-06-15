@@ -9,8 +9,11 @@ All rights reserved.
 License:  Standard 3-clause BSD
 Reference:  https://personal.sron.nl/~pault
 """
+
 # Source of file:
 # https://personal.sron.nl/~pault/data/tol_colors.py
+
+# TODO: install tol-colors as a package dependency instead
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, to_rgba_array
