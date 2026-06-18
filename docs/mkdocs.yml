@@ -166,10 +166,7 @@ plugins:
       start: <!--start-->
       end: <!--end-->
       recursive: true
-  - mkdocs-plugin-open-external-links-in-new-tab:
-      # Optional config. Default values are these:
-      external_extensions:
-        - ".pdf"
+  - open-in-new-tab
 
 extra_javascript:
   - javascripts/mathjax.js
@@ -208,11 +205,13 @@ nav:
       - Backend-specific methods:
         - reference/data-objects/backend-methods/index.md
         - LCODE: reference/data-objects/backend-methods/lcode.md
+        - openPMD: reference/data-objects/backend-methods/openpmd.md
         - OSIRIS: reference/data-objects/backend-methods/osiris.md
         - ozzy: reference/data-objects/backend-methods/ozzy.md
     - Backends: 
       - reference/backends/index.md
       - LCODE: reference/backends/lcode.md
+      - openPMD: reference/backends/openpmd.md
       - OSIRIS: reference/backends/osiris.md
       - ozzy: reference/backends/ozzy.md
     - ozzy.plot: reference/plot.md

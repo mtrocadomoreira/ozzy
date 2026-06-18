@@ -8,12 +8,13 @@ Here is a list of simulation file formats that ozzy can read currently or which 
 
 - [x] [OSIRIS](https://osiris-code.github.io/) (1)
 - [x] [LCODE](https://lcode.info/2d/) (2)
-- [ ] [openPMD](https://github.com/openPMD)
+- [x] [openPMD](https://github.com/openPMD) (3)
 
 </div>
 
 1.  Please see the reference page for the [OSIRIS backend submodule](../reference/backends/osiris.md) for more details. Not all types of simulation output may be available yet.
 2.  Please see the reference page for the [LCODE backend submodule](../reference/backends/lcode.md). Not all types of simulation output may be available yet.
+3.  Please see the reference page for the [openPMD backend submodule](../reference/backends/openpmd.md). 
    
 
 There are three main functions to open simulation files:
@@ -24,6 +25,8 @@ There are three main functions to open simulation files:
 * [`open_compare`][ozzy.open_compare] - for any combination of quantities and folder structures; particularly useful for comparisons across different runs, either stemming from a single simulation code or several
 
 In general, these functions expect the file format(s) as their first argument.
+
+<!-- TODO: add examples with openpmd -->
 
 ## Reading a single file
 

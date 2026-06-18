@@ -86,7 +86,7 @@ The following values are accepted for these two attributes:
 |  Attribute    |  Accepted values                   | Default      |
 | :---------- | :----------------------------------- | :----------- |
 | `'pic_data_type'`       | `'grid'`, `'part'` | `None` |
-| `'data_origin'`       | `'ozzy'`, `'osiris'`, `'lcode'` | `None` |
+| `'data_origin'`       | `'ozzy'`, `'openpmd'`, `'osiris'`, `'lcode'` | `None` |
 
 
 ### Table of data objects

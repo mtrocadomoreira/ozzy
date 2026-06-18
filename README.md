@@ -16,7 +16,7 @@ Ozzy's philosophy is to make the analysis of simulation data originating from mu
 
 - **Any simulation code**
     
-    Read and plot simulation data written by any PIC simulation code. Write the backend to parse the data once and move on. *Currently available*: [OSIRIS](https://osiris-code.github.io/) and [LCODE](https://lcode.info/).
+    Read and plot simulation data written by any PIC simulation code. Write the backend to parse the data once and move on. *Currently available*: [openPMD](https://github.com/openPMD), [OSIRIS](https://osiris-code.github.io/), and [LCODE](https://lcode.info/).
 
 - **Labeled dimensions** (thanks to [xarray](https://xarray.dev/))
 
