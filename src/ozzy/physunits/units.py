@@ -8,8 +8,6 @@
 # mtrocadomoreira@gmail.com
 # *********************************************************
 
-# TODO: poetry add pint -> may need to increase python version req. to 3.11
-
 
 from importlib import resources
 
