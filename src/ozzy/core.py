@@ -27,7 +27,6 @@ import dask
 import pandas as pd
 import xarray as xr
 
-# from .accessors import *  # noqa: F403
 from . import accessors  # noqa
 from .backend_interface import Backend, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
@@ -61,7 +60,7 @@ def Dataset(
     pic_data_type : str | list[str] | None, optional
         Type of data contained in the Dataset. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis). If given, this overwrites the corresponding attribute in any data objects passed as positional arguments (*args).
     data_origin : str | list[str] | None, optional
-         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+         Type of simulation data. Current options: `'ozzy'`, `'openpmd'`, `'osiris'`, or `'lcode'`.
     **kwargs
         Keyword arguments passed to [xarray.Dataset][].
 
@@ -131,7 +130,7 @@ def DataArray(
     pic_data_type : str | None, optional
         Type of data in the DataArray. Current options: `'grid'` (data defined on an n-dimensional grid, as a function of some coordinate(s)), or `'part'` (data defined on a particle-by-particle basis). If given, this overwrites the corresponding attribute in any data objects passed as positional arguments (*args).
     data_origin : str | None, optional
-         Type of simulation data. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+         Type of simulation data. Current options: `'ozzy'`, `'openpmd'`, `'osiris'`, or `'lcode'`.
     **kwargs
         Keyword arguments passed to [xarray.DataArray][].
 
@@ -199,7 +198,7 @@ def available_backends():
         import ozzy as oz
         backends = oz.available_backends()
         print(backends)
-        # ['osiris', 'lcode', 'ozzy']
+        # ['osiris', 'lcode', 'ozzy', 'openpmd']
         ```
     """
     return _list_avail_backends()
@@ -218,7 +217,7 @@ def open(
     Parameters
     ----------
     file_type : str
-        The type of data file to open. Current options: `'ozzy'`, `'osiris'`, or `'lcode'`.
+        The type of data file to open. Current options: `'ozzy'`, `'openpmd'`, `'osiris'`, or `'lcode'`.
     path : str | list[str]
         The path to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, but cannot contain wildcards or glob patterns.
     **kwargs :
@@ -235,6 +234,7 @@ def open(
         See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
+        * [openPMD][ozzy.backends.openpmd_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
         * [ozzy][ozzy.backends.ozzy_backend.read]
 
@@ -312,6 +312,7 @@ def open_series(file_type, files, nfiles=None, **kwargs):
         See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
+        * [openPMD][ozzy.backends.openpmd_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
         * [ozzy][ozzy.backends.ozzy_backend.read]
 
@@ -490,6 +491,9 @@ def open_compare(
         # LCODE/my_sim_2                  []  [ez]
         ```
     """
+
+    # TODO: refactor search for quantities to deal with OpenPMD files
+    # (where quantities are all inside same file)
 
     # Make sure file_type is a list
     if isinstance(file_types, str):

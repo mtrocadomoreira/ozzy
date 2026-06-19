@@ -19,7 +19,7 @@ from .utils import recursive_search_for_file
 
 
 def _list_avail_backends():
-    return ["osiris", "lcode", "ozzy"]
+    return ["osiris", "lcode", "ozzy", "openpmd"]
 
 
 # -----------------------------------------------------------------------
@@ -41,7 +41,7 @@ class Backend:
     parse : function
         Function for parsing data from files.
     mixin : class
-        Mixin class that makes methods available to the data object depending on the file backend/data origin (`'osiris'`, `'ozzy'`, `'lcode'`).
+        Mixin class that makes methods available to the data object depending on the file backend/data origin (`'openpmd'`, `'osiris'`, `'ozzy'`, `'lcode'`).
 
     Methods
     -------
@@ -75,9 +75,11 @@ class Backend:
                 from .backends import lcode_backend as backend_mod
             case "ozzy":
                 from .backends import ozzy_backend as backend_mod
+            case "openpmd":
+                from .backends import openpmd_backend as backend_mod
             case _:
                 raise ValueError(
-                    'Invalid input for "file_type" keyword. Available options are "osiris", "lcode", or "ozzy".'
+                    'Invalid input for "file_type" keyword. Available options are "openpmd", "osiris", "lcode", or "ozzy".'
                 )
 
         self.parse = backend_mod.read
@@ -213,6 +215,7 @@ class Backend:
             See available keyword arguments for each backend:
 
             * [LCODE][ozzy.backends.lcode_backend.read]
+            * [openPMD][ozzy.backends.openpmd_backend.read]
             * [OSIRIS][ozzy.backends.osiris_backend.read]
             * [ozzy][ozzy.backends.ozzy_backend.read]
 

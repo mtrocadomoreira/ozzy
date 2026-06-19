@@ -38,7 +38,7 @@ def test_available_backends():
     backends = available_backends()
     assert isinstance(backends, list)
     assert all(isinstance(b, str) for b in backends)
-    assert set(backends).issubset({"osiris", "lcode", "ozzy"})
+    assert set(backends).issubset({"osiris", "lcode", "ozzy", "openpmd"})
 
 
 @given(st.sampled_from(["ozzy", "osiris", "lcode"]))
