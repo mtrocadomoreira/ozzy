@@ -836,7 +836,7 @@ def read(
     **kwargs,
 ) -> xr.Dataset:
     r"""
-    Read one or more LCODE data files and create a Dataset.
+    Read one or more LCODE data files and create a [Dataset][xarray.Dataset].
 
     Parameters
     ----------
