@@ -259,7 +259,7 @@ def config_osiris(ds):
 
 @stopwatch
 def read(files, **kwargs):
-    """Read OSIRIS HDF5 data files and return a Dataset.
+    """Read OSIRIS HDF5 data files and return a [Dataset][xarray.Dataset].
 
     Parameters
     ----------
