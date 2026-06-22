@@ -44,6 +44,15 @@ In order to open a single file, the path to the file must be specified. This pat
         ds = oz.open('osiris', '~/path/to/file/e1-000020.h5')
         ```
 
+    === "WarpX (openPMD)"
+
+        OpenPMD files usually contain all output quantities in the same file, so we need to specify which quantities ("records" in the openPMD nomenclature) we want to read.
+
+        ```python
+        import ozzy as oz
+        ds_fields = oz.open('openpmd', '/path/to/sim/diags/my_diag/openpmd_160000.h5', records = 'fields')
+        ```
+
     === "LCODE"
 
         LCODE simulation files do not contain any axis information, so we can supply the simulation window size in order to define the axis coordinates (optional).
@@ -102,6 +111,34 @@ The output from PIC simulations is often dumped into files at certain timesteps,
 
         1.  We use the optional `nfiles` argument to open only the first 10 files.
 
+    === "FBPIC (openPMD)"
+
+        Let's say we have the following diagnostics file structure after running an FBPIC simulation:
+
+        ```
+        .
+        └── my_fbpic_sim/
+            └── diags/
+                └── hdf5/
+                    ├── data00000000.h5
+                    ├── data00000050.h5
+                    ├── data00000100.h5
+                    ├── data00000150.h5
+                    ├── ...
+                    └── data00000500.h5
+        ```
+
+        We can read the electric field data for the entire simulation with:
+
+
+        ``` python
+        import ozzy as oz
+        ds = oz.open_series(
+            'openpmd', 
+            'my_fbpic_sim/**/data*.h5', 
+            records = "E",
+        )
+        ```
 
     === "LCODE"
 
@@ -138,7 +175,7 @@ The output from PIC simulations is often dumped into files at certain timesteps,
         )
         ```
 
-        1.  Appending information about the simulation window so that the Dataset contains axis information ([Coordinates][xarray.Coordinates]).
+        2.  Appending information about the simulation window so that the Dataset contains axis information ([Coordinates][xarray.Coordinates]).
 
         We could also read the lineouts of $E_z$ with:
 
