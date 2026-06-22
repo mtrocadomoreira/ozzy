@@ -711,7 +711,7 @@ def read(
         ```
     """
 
-    # TODO: throw error if user tries to read adios2 files
+    # TODO: accept vectorial components of field quantities as well (e.g. Er, Ez)
 
     try:
         if len(files) > 0:

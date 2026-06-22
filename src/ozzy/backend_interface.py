@@ -147,6 +147,13 @@ class Backend:
             ```
         """
 
+        # HACK: this function should probably be defined within each backend module, similarly to the "read" function
+
+        # Special case for openPMD
+        if self.name == "openpmd":
+            opmd_records = quants
+            quants = "*"
+
         if quants is None:
             quants = [""]
         if isinstance(quants, str):
@@ -187,6 +194,12 @@ class Backend:
             )
             if f not in quants_dict[label]:
                 quants_dict[label].append(f)
+
+        # For OpenPMD:
+        if self.name == "openpmd":
+            all_files = quants_dict[next(iter(quants_dict))]
+
+            quants_dict = {k: all_files for k in opmd_records}
 
         # Drop quantities that should be ignored
         if self._quants_ignore is not None:

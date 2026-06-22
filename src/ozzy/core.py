@@ -231,6 +231,13 @@ def open(
             | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
             | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
 
+        ??? info "openPMD-specific keyword arguments"
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`records`** | `str | list[str] | None`  | Records to read from the files. If `None`, an error is raised listing the available records. | `None` |
+            | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
+
         See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
@@ -308,6 +315,13 @@ def open_series(file_type, files, nfiles=None, **kwargs):
             | **`axes_lims`** | `dict[str, tuple[float, float]] | None` |  A dictionary specifying the limits for each axis in the data. Keys are axis names, and values are tuples of (min, max) values. | `None` |
             | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
             | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
+
+        ??? info "openPMD-specific keyword arguments"
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`records`** | `str | list[str] | None`  | Records to read from the files. If `None`, an error is raised listing the available records. | `None` |
+            | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
 
         See more details about the available keyword arguments for each backend:
 
@@ -403,9 +417,18 @@ def open_compare(
             | **`axisym`** | `bool` | Whether the data is in 2D axisymmetric/cylindrical geometry. | `True` |
             | **`abs_q`** | `float` | Absolute value of the charge of the bunch particles, in units of the elementary charge $e$. This argument is used to normalize the particle momenta to $m_\mathrm{sp} c$ instead of LCODE's default of $m_e c$.  | `1.0` |
 
+        ??? info "openPMD-specific keyword arguments"
+
+            The `records` argument is usually required to read openPMD files. When using this function, please provide the desired records as the `quants` argument instead.
+
+            | Name | Type | Description | Default |
+            |:--|:--|:--|:--|
+            | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
+
         See more details about the available keyword arguments for each backend:
 
         * [LCODE][ozzy.backends.lcode_backend.read]
+        * [openPMD][ozzy.backends.openpmd_backend.read]
         * [OSIRIS][ozzy.backends.osiris_backend.read]
         * [ozzy][ozzy.backends.ozzy_backend.read]
 
@@ -492,8 +515,9 @@ def open_compare(
         ```
     """
 
-    # TODO: refactor search for quantities to deal with OpenPMD files
+    # HACK: refactor search for quantities to deal with openPMD files more elegantly
     # (where quantities are all inside same file)
+    # (and also for variable-encoded openPMD)
 
     # Make sure file_type is a list
     if isinstance(file_types, str):
@@ -512,6 +536,7 @@ def open_compare(
 
     bknds = [Backend(ftype) for ftype in file_types]
     for bk in bknds:
+
         files_quants = bk._load_quant_files(path, dirs_runs, quants)
         print(f"Found {len(files_quants)} quantities with '{bk.name}' backend:")
         [print_file_item(item) for item in files_quants.keys()]
@@ -533,6 +558,10 @@ def open_compare(
                 ]
 
                 # Read found files
+
+                if bk.name == "openpmd":
+                    kwargs["records"] = quant
+
                 ods = bk.parse_data(filepaths, **kwargs)
                 ods.attrs["run"] = run
 
