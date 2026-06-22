@@ -7,7 +7,7 @@ Ozzy is a Python package. We recommend installing ozzy in its own virtual enviro
 
 ## Requirements
 
-- Python >= 3.10
+- Python >= 3.11, < 3.14
 
 ## with conda <small>(recommended)</small>
 
@@ -27,7 +27,7 @@ conda install --channel=conda-forge ozzy-pic
 After you have activated a new virtual environment, run:
 
 ```bash
-python3 -m pip install ozzy-pic
+python -m pip install ozzy-pic
 ```
 
 
