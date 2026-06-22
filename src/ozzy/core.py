@@ -275,6 +275,15 @@ def open(
         )
         ```
 
+    ???+ example "Read FBPIC field data (in openPMD format)"
+
+        ```python
+        import ozzy as oz
+        ds_e = oz.open(
+            'openpmd', 'path/to/file/data00000700.h5', records='E', separate_theta_modes=True
+        )
+        ```
+
     """
     filelist = prep_file_input(path)
 
@@ -360,6 +369,15 @@ def open_series(file_type, files, nfiles=None, **kwargs):
         ds = oz.open_series('ozzy', 'my_data/Ez_*.h5', nfiles=3)
         ```
         The three files have been put together in a single dataset with a new time dimension.
+
+    ???+ example "Read FBPIC particle data (in openPMD format)"
+
+        ```python
+        import ozzy as oz
+        ds_electrons = oz.open_series(
+            'openpmd', 'path/to/file/data*.h5', records='electrons'
+        )
+        ```
 
     """
     filelist = prep_file_input(files)
