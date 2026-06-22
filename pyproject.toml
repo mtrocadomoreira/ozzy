@@ -30,6 +30,7 @@ dependencies = [
   "pyarrow>=20.0.0,<21.0.0",
   "openpmd-viewer (>=1.11.0,<2.0.0)",
   "pint (>=0.25.3,<0.26.0)",
+  "tol-colors (>=2.2.0,<3.0.0)",
 
 ]
 

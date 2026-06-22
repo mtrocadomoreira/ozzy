@@ -19,11 +19,11 @@ import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns  # noqa
+import tol_colors as tc
 import xarray as xr
 from IPython.display import HTML, display
 from tqdm import tqdm
 
-from . import tol_colors as tc
 from .utils import print_file_item
 
 # HACK: function to plot quiver plot between two time steps (particle data)
@@ -112,7 +112,7 @@ tol_cmaps = {
         "rainbow_WhRd",
         "rainbow_WhBr",
     ],
-    "Qualitative": list(tc.tol_cset()),
+    "Qualitative": list(tc.colorsets.keys()),
 }
 cmc_cmaps = {
     "Sequential": [
@@ -172,21 +172,21 @@ for font_file in font_files:
 ozzy_fonts.sort()
 
 # Import all Paul Tol colormaps
-for col in list(tc.tol_cmap()):
+for col in list(tc.colormaps):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
-        mpl.colormaps.register(tc.tol_cmap(col), name=cm_name)
-        mpl.colormaps.register(tc.tol_cmap(col).reversed(), name=cm_name + "_r")
-for col in list(tc.tol_cset()):
+        mpl.colormaps.register(tc.colormaps[col], name=cm_name)
+        mpl.colormaps.register(tc.colormaps[col].reversed(), name=cm_name + "_r")
+for col in list(tc.colorsets.keys()):
     cm_name = "tol." + col
     if not _cmap_exists(cm_name):
         cmap = mpl.colors.LinearSegmentedColormap.from_list(
-            cm_name, tc.tol_cset(col), len(tc.tol_cset(col))
+            cm_name, tc.colorsets[col], len(tc.colorsets[col])
         )
         mpl.colormaps.register(cmap, name=cm_name)
 
 # Define the default color cycler for curves
-color_wheel = list(tc.tol_cset("muted"))
+color_wheel = list(tc.colorsets["muted"])
 
 # Define the default rc parameters
 ozparams = {
@@ -612,12 +612,12 @@ def set_cmap(
                 # Paul Tol color set
                 if qualitative.startswith("tol."):
                     cset_name = qualitative.replace("tol.", "")
-                    if cset_name not in list(tc.tol_cset()):
+                    if cset_name not in list(tc.colorsets.keys()):
                         raise ValueError(
-                            f'Could not find the Paul Tol colorset "{qualitative}". Available options are: {["tol." + cset for cset in list(tc.tol_cset())]}'
+                            f'Could not find the Paul Tol colorset "{qualitative}". Available options are: {["tol." + cset for cset in list(tc.colorsets.keys())]}'
                         )
                     else:
-                        collist = list(tc.tol_cset(cset_name))
+                        collist = list(tc.colorsets[cset_name])
                 # Scientific colour maps (categorical variant of a colormap)
                 elif qualitative.startswith("cmc."):
                     cset_name = (
