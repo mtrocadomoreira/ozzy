@@ -11,10 +11,6 @@ You may use, distribute and modify this code under the terms of the MIT License.
 
 ## Bundled software components
 
-### Paul Tol's colour schemes
-
-Ozzy bundles [Paul Tol's colour schemes definition](https://personal.sron.nl/~pault/), which is available under a ["3-clause BSD" license](https://opensource.org/license/BSD-3-Clause). The qualitative colour scheme "muted" is used by default in `ozzy.plot`.
-
 ### Fonts
 
 The plotting submodule of ozzy also bundles a few different fonts under the [SIL Open Font License (OFL)](https://openfontlicense.org/) Version 1.1., which is a free and open-source license. The full text of these licenses is included for each font in the fonts directory (`src/ozzy/fonts/`).
