@@ -66,6 +66,9 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.sha || github.ref_name }}
           fetch-depth: 0
 
+      - name: Setup | Force Release Branch to Workflow SHA
+        run: git reset --hard ${{ github.sha }}
+
       - name: Action | Semantic Version Release
         id: release
         # Adjust tag with desired version if applicable.
