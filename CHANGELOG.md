@@ -3,6 +3,145 @@
 <!--start-docs-->
 
 
+## Version 2.1.0 
+
+Released 23-06-2026 
+
+### Bug Fixes
+
+* [`6d88b1a`](https://github.com/mtrocadomoreira/ozzy/commit/6d88b1a4e21f7a67dc43d66f858dd5d9bca09831): Add `data_vars` argument explicitly to xarray `open_dataset` and `open_mfdataset` functions
+
+
+
+    Received `FutureWarning` from xarray regarding the `data_vars` argument.
+
+
+* [`896223b`](https://github.com/mtrocadomoreira/ozzy/commit/896223b2c4f5692db479749cdbc694bc35740f6e): Make `upack_attr` function accept more types of hdf5 attributes
+
+
+
+
+
+
+### Documentation
+
+* [`08a4315`](https://github.com/mtrocadomoreira/ozzy/commit/08a4315ea9908677b6fa0285327c8ca58e11e54d): Update acknowledgment and license information to reflect the fact that paul tol&#39;s color schemes are not bundled directly with ozzy anymore
+
+
+
+
+
+
+* [`dd47d78`](https://github.com/mtrocadomoreira/ozzy/commit/dd47d784969d8d9cdf0750ab01132f381e8a4785): Add openpmd examples to &#34;reading files&#34; section of user guide
+
+
+
+
+
+
+* [`61e5207`](https://github.com/mtrocadomoreira/ozzy/commit/61e5207d0d4b32a06f58918e1c873ea8ba7e4c87): Add openpmd examples to `open` and `open_series` docstrings
+
+
+
+
+
+
+* [`5391613`](https://github.com/mtrocadomoreira/ozzy/commit/5391613998376802270c93b943ca93db611621cb): Update some details in user guide
+
+
+
+
+
+
+* [`4b98ad1`](https://github.com/mtrocadomoreira/ozzy/commit/4b98ad17f620d768d8dcdbc5d672477237cb5048): Include link to xarray dataset documentation
+
+
+
+
+
+
+* [`2f199d3`](https://github.com/mtrocadomoreira/ozzy/commit/2f199d33bc533f280ee9332b8e071b116a259680): Include link to xarray dataset documentation
+
+
+
+
+
+
+* [`4df715a`](https://github.com/mtrocadomoreira/ozzy/commit/4df715a7c67b9347b506f783a05febd734cb031a): Update with information about openpmd backend
+
+
+
+
+
+
+* [`2224d8a`](https://github.com/mtrocadomoreira/ozzy/commit/2224d8a44fb4a7311a45db4f6884f853abe1a6bd): Correct docstring for `files` argument of `ozzy.open_series`
+
+
+
+
+
+
+### Features
+
+* [`b973357`](https://github.com/mtrocadomoreira/ozzy/commit/b973357f39e030372a954092b8a7af60aea7156a): Make `ozzy.open_compare` compatible with openpmd files
+
+
+
+    The `open_compare` function assumes that each output quantity from a simulation code is associated with a set of files. openPMD files usually contain multiple quantities ("records") in a single set of files. This implementation tries to get around this, although it's probably not the best solution.
+
+
+* [`ec070da`](https://github.com/mtrocadomoreira/ozzy/commit/ec070dadc86e7af3f76301b9af1d7ce4d81f1537): Implement openpmd backend
+
+
+
+    ozzy should now be able to read [openPMD](https://github.com/openPMD) files in HDF5 format.
+
+
+* [`db425d0`](https://github.com/mtrocadomoreira/ozzy/commit/db425d0c1935422618cf1a9b055d5c8f96715c57): Add quantity definitions for electric field and charge density
+
+
+
+
+
+
+* [`4b0d0fc`](https://github.com/mtrocadomoreira/ozzy/commit/4b0d0fc337b800ac8fe2564f76d6c50137cdd2c8): Add very basic support for physical unit conversion
+
+
+
+    Start a submodule to handle physical units with [pint](https://github.com/hgrecco/pint). At the moment, this feature is only used to parse the unit metadata in OpenPMD files. It might be interesting to extend unit support to other parts of ozzy.
+
+
+* [`4262909`](https://github.com/mtrocadomoreira/ozzy/commit/42629096bb3dd3b808cab28af9375ff7a9c6c479): Add helper function to find items in hdf5 files
+
+
+
+
+
+
+### Refactoring
+
+* [`8ac8bb7`](https://github.com/mtrocadomoreira/ozzy/commit/8ac8bb7f55a8f55180ab1861dc4857d20b38859c): Import `tol_colors` as a package instead of bundling the code directly
+
+
+
+    A [Python implementation of Paul Tol's color schemes](https://github.com/Descanonge/tol_colors) is now available as a package.
+
+
+* [`4e55913`](https://github.com/mtrocadomoreira/ozzy/commit/4e5591365a8e4fb7ea114eca5dfe8a133ed3e203): Use `importlib.resources.as_file` to read csv file with lcode file endings
+
+
+
+
+
+
+* [`96d198b`](https://github.com/mtrocadomoreira/ozzy/commit/96d198bc82f2e08de5cdee242d8780d30567d679): Stop requiring a `numpy.ndarray` in `unpack_attr` function
+
+
+
+
+
+
+
 ## Version 2.0.5 
 
 Released 22-01-2026 

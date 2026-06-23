@@ -40,9 +40,18 @@ repository = "https://github.com/mtrocadomoreira/ozzy.git"
 documentation = "https://mtrocadomoreira.github.io/ozzy/"
 
 
+[project.optional-dependencies]
+interactive = [
+  "ipython>=8.28.0,<9.0", 
+  "ipykernel>=6.29.5,<7.0",
+  "hvplot>=0.11.3,<1.0", 
+  "jupyter-bokeh>=4.0.5,<5.0"
+]
+
+
 [tool.poetry]
 requires-poetry = ">=2.0"
-version = "2.0.5"
+version = "2.1.0"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -62,40 +71,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Visualization",
 ]
 packages = [{include = "ozzy", from="src"}]
-
-[project.optional-dependencies]
-interactive = [
-  "ipython>=8.28.0,<9.0", 
-  "ipykernel>=6.29.5,<7.0",
-  "hvplot>=0.11.3,<1.0", 
-  "jupyter-bokeh>=4.0.5,<5.0"
-]
-
-[dependency-groups]
-docs = [
-  "mkdocs-material (>=9.6.14,<10.0)",
-  "mkdocstrings-python (>=1.16.12,<2.0)",
-  "mkdocs-git-revision-date-localized-plugin (>=1.4.7,<2.0)",
-  "mkdocs-glightbox (>=0.4.0,<1.0)",
-  "mkdocs-include-markdown-plugin (>=7.1.6,<8.0)",
-  "mkdocs-open-in-new-tab (>=1.0.8,<2.0.0)",
-]
-test = [
-    "pytest (>=8.4.1,<9.0.0)",
-    "hypothesis (>=6.135.12,<7.0)",
-    "pytest-mock (>=3.15.1,<4.0.0)",
-]
-lint = [
-    "ruff (>=0.12.0,<1.0)",
-    "black (>=25.11.0,<26.0.0)",
-]
-dev = [
-    { include-group = "test" },
-    { include-group = "lint" },
-    "python-semantic-release (>=10.1.0,<11.0)",
-    "setuptools (>=80.9.0,<81.0)",
-]
-
 
 [tool.semantic_release]
 version_variables = [
@@ -163,9 +138,38 @@ insecure = false
 dist_glob_patterns = ["dist/*"]
 upload_to_vcs_release = true
 
+
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
 ]
 
+
 [tool.ruff]
+
+[dependency-groups]
+docs = [
+  "mkdocs-material (>=9.6.14,<10.0)",
+  "mkdocstrings-python (>=1.16.12,<2.0)",
+  "mkdocs-git-revision-date-localized-plugin (>=1.4.7,<2.0)",
+  "mkdocs-glightbox (>=0.4.0,<1.0)",
+  "mkdocs-include-markdown-plugin (>=7.1.6,<8.0)",
+  "mkdocs-open-in-new-tab (>=1.0.8,<2.0.0)",
+]
+test = [
+    "pytest (>=8.4.1,<9.0.0)",
+    "hypothesis (>=6.135.12,<7.0)",
+    "pytest-mock (>=3.15.1,<4.0.0)",
+]
+lint = [
+    "ruff (>=0.12.0,<1.0)",
+    "black (>=25.11.0,<26.0.0)",
+]
+dev = [
+    { include-group = "test" },
+    { include-group = "lint" },
+    "python-semantic-release (>=10.1.0,<11.0)",
+    "setuptools (>=80.9.0,<81.0)",
+]
+
+
