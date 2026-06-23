@@ -7,7 +7,7 @@ Ozzy is a Python package. We recommend installing ozzy in its own virtual enviro
 
 ## Requirements
 
-- Python >= 3.11, < 3.14
+- Python >= 3.11
 
 ## with conda <small>(recommended)</small>
 
