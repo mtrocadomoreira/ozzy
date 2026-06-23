@@ -77,6 +77,7 @@ oplt.show_fonts(samples=True)
 
 * The [seaborn](https://seaborn.pydata.org/index.html) library (used by ozzy to [set the figure context](https://seaborn.pydata.org/generated/seaborn.set_context.html))
 * [matplotlib][matplotlib]
+* [Paul Tol's colour schemes and templates](https://sronpersonalpages.nl/~pault/)
 
 
 

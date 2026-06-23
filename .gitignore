@@ -175,5 +175,7 @@ poetry.lock
 # Custom
 testing/
 debug.py
+debug_*.py
 **/debug.py
+**/debug_*.py
 docs/site/

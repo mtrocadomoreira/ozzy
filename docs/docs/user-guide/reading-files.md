@@ -8,12 +8,13 @@ Here is a list of simulation file formats that ozzy can read currently or which 
 
 - [x] [OSIRIS](https://osiris-code.github.io/) (1)
 - [x] [LCODE](https://lcode.info/2d/) (2)
-- [ ] [openPMD](https://github.com/openPMD)
+- [x] [openPMD](https://github.com/openPMD) (3)
 
 </div>
 
 1.  Please see the reference page for the [OSIRIS backend submodule](../reference/backends/osiris.md) for more details. Not all types of simulation output may be available yet.
 2.  Please see the reference page for the [LCODE backend submodule](../reference/backends/lcode.md). Not all types of simulation output may be available yet.
+3.  Please see the reference page for the [openPMD backend submodule](../reference/backends/openpmd.md). 
    
 
 There are three main functions to open simulation files:
@@ -24,6 +25,8 @@ There are three main functions to open simulation files:
 * [`open_compare`][ozzy.open_compare] - for any combination of quantities and folder structures; particularly useful for comparisons across different runs, either stemming from a single simulation code or several
 
 In general, these functions expect the file format(s) as their first argument.
+
+<!-- TODO: add examples with openpmd -->
 
 ## Reading a single file
 
@@ -39,6 +42,15 @@ In order to open a single file, the path to the file must be specified. This pat
         ```python
         import ozzy as oz
         ds = oz.open('osiris', '~/path/to/file/e1-000020.h5')
+        ```
+
+    === "WarpX (openPMD)"
+
+        OpenPMD files usually contain all output quantities in the same file, so we need to specify which quantities ("records" in the openPMD nomenclature) we want to read.
+
+        ```python
+        import ozzy as oz
+        ds_fields = oz.open('openpmd', '/path/to/sim/diags/my_diag/openpmd_160000.h5', records = 'fields')
         ```
 
     === "LCODE"
@@ -99,6 +111,34 @@ The output from PIC simulations is often dumped into files at certain timesteps,
 
         1.  We use the optional `nfiles` argument to open only the first 10 files.
 
+    === "FBPIC (openPMD)"
+
+        Let's say we have the following diagnostics file structure after running an FBPIC simulation:
+
+        ```
+        .
+        └── my_fbpic_sim/
+            └── diags/
+                └── hdf5/
+                    ├── data00000000.h5
+                    ├── data00000050.h5
+                    ├── data00000100.h5
+                    ├── data00000150.h5
+                    ├── ...
+                    └── data00000500.h5
+        ```
+
+        We can read the electric field data for the entire simulation with:
+
+
+        ``` python
+        import ozzy as oz
+        ds = oz.open_series(
+            'openpmd', 
+            'my_fbpic_sim/**/data*.h5', 
+            records = "E",
+        )
+        ```
 
     === "LCODE"
 
@@ -135,7 +175,7 @@ The output from PIC simulations is often dumped into files at certain timesteps,
         )
         ```
 
-        1.  Appending information about the simulation window so that the Dataset contains axis information ([Coordinates][xarray.Coordinates]).
+        2.  Appending information about the simulation window so that the Dataset contains axis information ([Coordinates][xarray.Coordinates]).
 
         We could also read the lineouts of $E_z$ with:
 

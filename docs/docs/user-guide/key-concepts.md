@@ -86,7 +86,7 @@ The following values are accepted for these two attributes:
 |  Attribute    |  Accepted values                   | Default      |
 | :---------- | :----------------------------------- | :----------- |
 | `'pic_data_type'`       | `'grid'`, `'part'` | `None` |
-| `'data_origin'`       | `'ozzy'`, `'osiris'`, `'lcode'` | `None` |
+| `'data_origin'`       | `'ozzy'`, `'openpmd'`, `'osiris'`, `'lcode'` | `None` |
 
 
 ### Table of data objects
@@ -96,8 +96,7 @@ The [`open_compare`][ozzy.core.open_compare] function allows the user to open se
 
 ## Indexing
 
-!!! info
-    Please see the [section on "Indexing and selecting data" in xarray's User Guide](https://docs.xarray.dev/en/latest/user-guide/indexing.html) for a complete explanation of available indexing methods.
+
 
 Besides standard array indexing (such as `a[i,j]`), the main ways to select slices of data in DataArrays or Datasets are `.sel()` and `.isel()`. A simple example is shown below.
 
@@ -197,7 +196,7 @@ Besides standard array indexing (such as `a[i,j]`), the main ways to select slic
         4. See [`xarray.Dataset.sel`][xarray.Dataset.sel].
         5. Notice how each data variable inside the Dataset was sliced.
 
-When data objects are organized in a table ([`pandas.DataFrame`](pandas.DataFrame)), items can be accessed either via the row and column labels or with a numerical index, with [`.loc`][pandas.DataFrame.loc] or [`.at`][pandas.DataFrame.at] and [`.iloc`][pandas.DataFrame.iloc] or [`.iat`][pandas.DataFrame.iat], respectively.
+When data objects are organized in a table ([`pandas.DataFrame`][pandas.DataFrame]), items can be accessed either via the row and column labels or with a numerical index, with [`.loc`][pandas.DataFrame.loc] or [`.at`][pandas.DataFrame.at] and [`.iloc`][pandas.DataFrame.iloc] or [`.iat`][pandas.DataFrame.iat], respectively.
 
 ???+ example "Indexing elements in a DataFrame (table)"
 
@@ -256,6 +255,9 @@ When data objects are organized in a table ([`pandas.DataFrame`](pandas.DataFram
     # Name: Simulation 2, dtype: object
     ```
 
+!!! info "Further reading"
+    Please see the [section on "Indexing and selecting data" in xarray's User Guide](https://docs.xarray.dev/en/latest/user-guide/indexing.html) for a complete explanation of available indexing methods.
+
 ## Data chunking and lazy loading
 
 A common issue with simulation files is their sheer size, which often implies long loading, processing and plotting times. One strategy to deal with extremely large files is to load them into the machine's working memory in smaller "chunks", which is called data chunking. Another strategy is called lazy loading, where data is not actually processed until absolutely necessary.
@@ -267,9 +269,7 @@ Files read by ozzy will generally be [Dask arrays](https://docs.dask.org/en/stab
 1.  See [`xarray.DataArray.compute`][xarray.DataArray.compute] or [`xarray.Dataset.compute`][xarray.Dataset.compute].
 2.  See [`xarray.DataArray.load`][xarray.DataArray.compute] or [`xarray.Dataset.load`][xarray.Dataset.compute].
 
-!!! info
 
-    Please see ["Using Dask with xarray" from the xarray User Guide](https://docs.xarray.dev/en/stable/user-guide/dask.html#using-dask-with-xarray) for more detail.
 
 ???+ example "Understanding lazy loading"
 
@@ -322,3 +322,7 @@ Files read by ozzy will generally be [Dask arrays](https://docs.dask.org/en/stab
         0.49262436])
     Dimensions without coordinates: x
     ```
+
+!!! info "Further reading"
+
+    Please see ["Using Dask with xarray" from the xarray User Guide](https://docs.xarray.dev/en/stable/user-guide/dask.html#using-dask-with-xarray) for more detail.

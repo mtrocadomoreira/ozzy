@@ -80,13 +80,17 @@ def read(files, **kwargs):
     try:
         with dask.config.set({"array.slicing.split_large_chunks": True}):
             try:
-                ds = xr.open_mfdataset(files, chunks="auto", engine="h5netcdf")
+                ds = xr.open_mfdataset(
+                    files, chunks="auto", engine="h5netcdf", data_vars="all"
+                )
                 [print_file_item(file) for file in files]
             except ValueError:
                 ds_t = []
                 [print_file_item(file) for file in files]
                 for file in tqdm(files):
-                    ds_tmp = xr.open_dataset(file, engine="h5netcdf", chunks="auto")
+                    ds_tmp = xr.open_dataset(
+                        file, engine="h5netcdf", chunks="auto", data_vars="all"
+                    )
                     ds_t.append(config_ozzy(ds_tmp))
                 print("\nConcatenating along time... (this may take a while)")
                 ds = xr.concat(ds_t, "t", fill_value={"q": 0.0}, join="outer")

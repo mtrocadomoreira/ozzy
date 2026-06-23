@@ -41,7 +41,7 @@ conda activate ozzy-env
 
 #### Step 1 - Install Python
 
-Make sure you have [Python](https://www.python.org/downloads/) installed on your system. Ozzy requires the version of Python to be 3.10 or higher.
+Make sure you have [Python](https://www.python.org/downloads/) installed on your system. Ozzy requires the version of Python to be 3.11 or higher.
 
 #### Step 2 - Follow online guide
 
