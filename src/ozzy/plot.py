@@ -12,6 +12,7 @@ import os
 from collections.abc import Callable, Iterable
 
 import cmcrameri  # noqa
+import hvplot.xarray
 import matplotlib as mpl
 import matplotlib.animation as manim
 import matplotlib.font_manager as fm
@@ -41,23 +42,6 @@ except ModuleNotFoundError:
     )
 else:
     with_tol_colors = True
-
-try:
-    import hvplot.xarray
-except ModuleNotFoundError:
-    with_hvplot = False
-    print(
-        """
-        ----------------------------------------------------------------------------
-        Warning [ozzy.plot]: 
-            The 'hvplot' module was not found. The function ozzy.plot.imovie() will be unavailable.
-
-            You can install hvplot with:
-            >> [conda|mamba|pip] install hvplot
-        ----------------------------------------------------------------------------"""
-    )
-else:
-    with_hvplot = True
 
 try:
     from IPython.display import HTML, display
@@ -1097,9 +1081,6 @@ def imovie(
         oplt.imovie(da, t_var='time', clim=(-1, 1), colormap='cmc.lisbon')
         ```
     """
-
-    if not with_hvplot:
-        raise ModuleNotFoundError("ozzy.plot.imovie() requires the hvplot module")
 
     hvplot.extension("matplotlib")
 

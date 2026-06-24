@@ -31,7 +31,7 @@ dependencies = [
   "openpmd-viewer (>=1.11.0,<2.0.0)",
   "pint (>=0.25.3,<0.26.0)",
   "tol-colors (>=2.2.0,<3.0.0)",
-
+  "hvplot>=0.11.3,<1.0", 
 ]
 
 [project.urls]
@@ -44,7 +44,6 @@ documentation = "https://mtrocadomoreira.github.io/ozzy/"
 interactive = [
   "ipython>=8.28.0,<9.0", 
   "ipykernel>=6.29.5,<7.0",
-  "hvplot>=0.11.3,<1.0", 
   "jupyter-bokeh>=4.0.5,<5.0"
 ]
 
