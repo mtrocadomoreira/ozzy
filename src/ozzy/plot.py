@@ -12,19 +12,70 @@ import os
 from collections.abc import Callable, Iterable
 
 import cmcrameri  # noqa
-import hvplot.xarray
 import matplotlib as mpl
 import matplotlib.animation as manim
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns  # noqa
-import tol_colors as tc
 import xarray as xr
-from IPython.display import HTML, display
 from tqdm import tqdm
 
 from .utils import print_file_item
+
+# Error handling for when some packages are missing
+
+try:
+    import tol_colors as tc
+except ModuleNotFoundError:
+    with_tol_colors = False
+    print(
+        """
+        ---------------------------------------------------------------------------- 
+        Warning [ozzy.plot]: 
+            The 'tol-colors' module was not found. Paul Tol's colormaps and colorsets ('tol.[name]') will be unavailable.
+
+            You can include Paul Tol's colormaps by installing tol-colors via pip:
+            >> pip install tol-colors
+        ----------------------------------------------------------------------------"""
+    )
+else:
+    with_tol_colors = True
+
+try:
+    import hvplot.xarray
+except ModuleNotFoundError:
+    with_hvplot = False
+    print(
+        """
+        ----------------------------------------------------------------------------
+        Warning [ozzy.plot]: 
+            The 'hvplot' module was not found. The function ozzy.plot.imovie() will be unavailable.
+
+            You can install hvplot with:
+            >> [conda|mamba|pip] install hvplot
+        ----------------------------------------------------------------------------"""
+    )
+else:
+    with_hvplot = True
+
+try:
+    from IPython.display import HTML, display
+except ModuleNotFoundError:
+    with_ipython = False
+    print(
+        """
+        ----------------------------------------------------------------------------
+        Warning [ozzy.plot]: 
+            The 'IPython' module was not found. The function ozzy.plot.show_fonts() will be unavailable.
+
+            You can install IPython with:
+            >> [conda|mamba|pip] install ipython
+        ----------------------------------------------------------------------------"""
+    )
+else:
+    with_ipython = True
+
 
 # HACK: function to plot quiver plot between two time steps (particle data)
 # HACK: function to plot lineout on top of imshow/pcolormesh; give position of line-out, give max and min axis range in the units of the imshow axis; have option to keep ticks or not; return new secondary axis and line object
@@ -102,18 +153,7 @@ mpl_cmaps = {
     ],
     "Cyclic": ["twilight", "twilight_shifted", "hsv"],
 }
-tol_cmaps = {
-    "Diverging": ["sunset", "nightfall", "BuRd", "PRGn"],
-    "Sequential": [
-        "YlOrBr",
-        "iridescent",
-        "rainbow_PuRd",
-        "rainbow_PuBr",
-        "rainbow_WhRd",
-        "rainbow_WhBr",
-    ],
-    "Qualitative": list(tc.colorsets.keys()),
-}
+
 cmc_cmaps = {
     "Sequential": [
         "batlow",
@@ -152,11 +192,50 @@ cmc_cmaps = {
     ],
     "Multi-sequential": ["oleron", "bukavu", "fes"],
 }
+
+# Import Fabio Crameri's colormaps
 cmc_cmaps["Qualitative"] = [cmap + "S" for cmap in cmc_cmaps["Sequential"]]
 cmc_cmaps["Cyclical"] = []
 for cmap in cmc_cmaps["Sequential"] + cmc_cmaps["Diverging"]:
     if _cmap_exists("cmc." + cmap + "O"):
         cmc_cmaps["Cyclical"].append(cmap + "O")
+
+if with_tol_colors:
+
+    tol_cmaps = {
+        "Diverging": ["sunset", "nightfall", "BuRd", "PRGn"],
+        "Sequential": [
+            "YlOrBr",
+            "iridescent",
+            "rainbow_PuRd",
+            "rainbow_PuBr",
+            "rainbow_WhRd",
+            "rainbow_WhBr",
+        ],
+        "Qualitative": list(tc.colorsets.keys()),
+    }
+
+    # Import all Paul Tol colormaps
+    for col in list(tc.colormaps):
+        cm_name = "tol." + col
+        if not _cmap_exists(cm_name):
+            mpl.colormaps.register(tc.colormaps[col], name=cm_name)
+            mpl.colormaps.register(tc.colormaps[col].reversed(), name=cm_name + "_r")
+    for col in list(tc.colorsets.keys()):
+        cm_name = "tol." + col
+        if not _cmap_exists(cm_name):
+            cmap = mpl.colors.LinearSegmentedColormap.from_list(
+                cm_name, tc.colorsets[col], len(tc.colorsets[col])
+            )
+            mpl.colormaps.register(cmap, name=cm_name)
+
+    # Define the default color cycler for curves - Paul Tol's muted
+    color_wheel = list(tc.colorsets["muted"])
+else:
+    tol_cmaps = {}
+
+    # Define the default color cycler for curves - ColorBrewer's Dark2
+    color_wheel = sns.color_palette("Dark2")
 
 
 # Import fonts
@@ -171,22 +250,6 @@ for font_file in font_files:
         ozzy_fonts.append(font_name)
 ozzy_fonts.sort()
 
-# Import all Paul Tol colormaps
-for col in list(tc.colormaps):
-    cm_name = "tol." + col
-    if not _cmap_exists(cm_name):
-        mpl.colormaps.register(tc.colormaps[col], name=cm_name)
-        mpl.colormaps.register(tc.colormaps[col].reversed(), name=cm_name + "_r")
-for col in list(tc.colorsets.keys()):
-    cm_name = "tol." + col
-    if not _cmap_exists(cm_name):
-        cmap = mpl.colors.LinearSegmentedColormap.from_list(
-            cm_name, tc.colorsets[col], len(tc.colorsets[col])
-        )
-        mpl.colormaps.register(cmap, name=cm_name)
-
-# Define the default color cycler for curves
-color_wheel = list(tc.colorsets["muted"])
 
 # Define the default rc parameters
 ozparams = {
@@ -352,6 +415,12 @@ def show_fonts(samples: bool = False, fontsize: float = 18) -> None:
         oplt.show_fonts(samples=True)
         ```
     """
+
+    if not with_ipython:
+        raise ModuleNotFoundError(
+            "ozzy.plot.show_fonts() requires the IPython module to display the available fonts"
+        )
+
     all_font_paths = fm.get_font_names()
     other_fonts = sorted(list(set(all_font_paths) - set(ozzy_fonts)))
 
@@ -1028,6 +1097,9 @@ def imovie(
         oplt.imovie(da, t_var='time', clim=(-1, 1), colormap='cmc.lisbon')
         ```
     """
+
+    if not with_hvplot:
+        raise ModuleNotFoundError("ozzy.plot.imovie() requires the hvplot module")
 
     hvplot.extension("matplotlib")
 
