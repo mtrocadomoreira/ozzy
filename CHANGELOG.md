@@ -3,6 +3,23 @@
 <!--start-docs-->
 
 
+## Version 2.1.1 
+
+Released 24-06-2026 
+
+### Bug Fixes
+
+* [`3783f30`](https://github.com/mtrocadomoreira/ozzy/commit/3783f30a6f74793bfbe75bfe6edd812d83918aca): Add error handling when some packages are missing
+
+
+
+    A warning is now printed when one of `tol_colors`, `hvplot` or `IPython` packages are not installed. Since (`tol_colors` is not yet available on conda-forge)[https://github.com/conda-forge/staged-recipes/pull/29265], it is not installed by default in ozzy's conda-forge distribution (i.e. when ozzy is installed via `conda` or `mamba`). The dependencies `hvplot` and `IPython` are not installed by default in ozzy's PyPI distribution (i.e. via `pip`).
+
+    _Note for developers:_ When installing ozzy via `poetry`, `hvplot` and `IPython` are also not installed by default. These dependencies are part of the optional group `"interactive"`. To include them, run `poetry install -E interactive`
+    instead of the basic `poetry install`.
+
+
+
 ## Version 2.1.0 
 
 Released 23-06-2026 

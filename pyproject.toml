@@ -48,9 +48,10 @@ interactive = [
 ]
 
 
+
 [tool.poetry]
 requires-poetry = ">=2.0"
-version = "2.1.0"
+version = "2.1.1"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -145,6 +146,7 @@ addopts = [
 
 
 [tool.ruff]
+
 
 [dependency-groups]
 docs = [
