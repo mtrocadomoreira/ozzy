@@ -474,8 +474,9 @@ def read_species(
     ds = openpmd_concat_time(ds_t)
 
     # If shape of mass or charge is different than one of the other variables, drop them
+    # (and do not use "id" as the other variable to compare)
 
-    other_vars = list({*all_quants} - {"charge", "mass"})
+    other_vars = list({*all_quants} - {"charge", "mass", "id"})
     for var in ["charge", "mass"]:
         if ds[var].shape != ds[other_vars[0]].shape:
             ds = ds.drop_vars(var)
