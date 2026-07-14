@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 2.1.2 
+
+Released 14-07-2026 
+
+### Bug Fixes
+
+* [`7487756`](https://github.com/mtrocadomoreira/ozzy/commit/748775613d57c8ce8465784a49077e24b135b3a6): Fix bug in part of backend that handles species data
+
+
+
+
+
+
+### Refactoring
+
+* [`0e2447a`](https://github.com/mtrocadomoreira/ozzy/commit/0e2447a401da40f5bb2333b46c3f089e6b6d1c4a): Update `new_dataset` function such that it&#39;s compatible with latest changes to `xarray.dataset()`
+
+
+
+    In version [v2026.04.0](https://docs.xarray.dev/en/stable/whats-new.html#v2026-04-0-apr-13-2026), the `Dataset` constructor stopped accepting a `Dataset` as the `data_vars` argument.
+
+
+
 ## Version 2.1.1 
 
 Released 24-06-2026 
