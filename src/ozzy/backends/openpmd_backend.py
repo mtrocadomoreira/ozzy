@@ -424,7 +424,7 @@ def read_species(
     for it, tval in zip(tqdm(iters_all), time_all):
         pass
 
-        all_data = op_obj.get_particle(all_quants, iteration=it)
+        all_data = op_obj.get_particle(all_quants, iteration=it, species=species)
         all_data_dict = {k: v for k, v in zip(all_quants, all_data)}
 
         if "w" in all_data_dict:
