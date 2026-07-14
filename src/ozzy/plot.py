@@ -19,29 +19,13 @@ import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns  # noqa
+import tol_colors as tc
 import xarray as xr
 from tqdm import tqdm
 
 from .utils import print_file_item
 
 # Error handling for when some packages are missing
-
-try:
-    import tol_colors as tc
-except ModuleNotFoundError:
-    with_tol_colors = False
-    print(
-        """
-        ---------------------------------------------------------------------------- 
-        Warning [ozzy.plot]: 
-            The 'tol-colors' module was not found. Paul Tol's colormaps and colorsets ('tol.[name]') will be unavailable.
-
-            You can include Paul Tol's colormaps by installing tol-colors via pip:
-            >> pip install tol-colors
-        ----------------------------------------------------------------------------"""
-    )
-else:
-    with_tol_colors = True
 
 try:
     from IPython.display import HTML, display
@@ -184,42 +168,36 @@ for cmap in cmc_cmaps["Sequential"] + cmc_cmaps["Diverging"]:
     if _cmap_exists("cmc." + cmap + "O"):
         cmc_cmaps["Cyclical"].append(cmap + "O")
 
-if with_tol_colors:
+tol_cmaps = {
+    "Diverging": ["sunset", "nightfall", "BuRd", "PRGn"],
+    "Sequential": [
+        "YlOrBr",
+        "iridescent",
+        "rainbow_PuRd",
+        "rainbow_PuBr",
+        "rainbow_WhRd",
+        "rainbow_WhBr",
+    ],
+    "Qualitative": list(tc.colorsets.keys()),
+}
 
-    tol_cmaps = {
-        "Diverging": ["sunset", "nightfall", "BuRd", "PRGn"],
-        "Sequential": [
-            "YlOrBr",
-            "iridescent",
-            "rainbow_PuRd",
-            "rainbow_PuBr",
-            "rainbow_WhRd",
-            "rainbow_WhBr",
-        ],
-        "Qualitative": list(tc.colorsets.keys()),
-    }
+# Import all Paul Tol colormaps
+for col in list(tc.colormaps):
+    cm_name = "tol." + col
+    if not _cmap_exists(cm_name):
+        mpl.colormaps.register(tc.colormaps[col], name=cm_name)
+        mpl.colormaps.register(tc.colormaps[col].reversed(), name=cm_name + "_r")
+for col in list(tc.colorsets.keys()):
+    cm_name = "tol." + col
+    if not _cmap_exists(cm_name):
+        cmap = mpl.colors.LinearSegmentedColormap.from_list(
+            cm_name, tc.colorsets[col], len(tc.colorsets[col])
+        )
+        mpl.colormaps.register(cmap, name=cm_name)
 
-    # Import all Paul Tol colormaps
-    for col in list(tc.colormaps):
-        cm_name = "tol." + col
-        if not _cmap_exists(cm_name):
-            mpl.colormaps.register(tc.colormaps[col], name=cm_name)
-            mpl.colormaps.register(tc.colormaps[col].reversed(), name=cm_name + "_r")
-    for col in list(tc.colorsets.keys()):
-        cm_name = "tol." + col
-        if not _cmap_exists(cm_name):
-            cmap = mpl.colors.LinearSegmentedColormap.from_list(
-                cm_name, tc.colorsets[col], len(tc.colorsets[col])
-            )
-            mpl.colormaps.register(cmap, name=cm_name)
-
-    # Define the default color cycler for curves - Paul Tol's muted
-    color_wheel = list(tc.colorsets["muted"])
-else:
-    tol_cmaps = {}
-
-    # Define the default color cycler for curves - ColorBrewer's Dark2
-    color_wheel = sns.color_palette("Dark2")
+# Define the default color cycler for curves - Paul Tol's muted
+color_wheel = list(tc.colorsets["muted"])
+# This would also be a good option: sns.color_palette("Dark2")
 
 
 # Import fonts
