@@ -18,10 +18,12 @@ def new_dataset(
     **kwargs,
 ) -> xr.Dataset:
     if len(args) >= 1:
-        if isinstance(args[0], xr.Dataset) | isinstance(args[0], xr.DataArray):
-            kwargs["attrs"] = args[0].attrs
-
-    ds = xr.Dataset(*args, **kwargs)
+        if isinstance(args[0], xr.Dataset):
+            ds = args[0].copy()
+        else:
+            ds = xr.Dataset(*args, **kwargs)
+    else:
+        ds = xr.Dataset(*args, **kwargs)
 
     if "pic_data_type" not in ds.attrs:
         ds.attrs["pic_data_type"] = pic_data_type
