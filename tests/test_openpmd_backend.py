@@ -152,7 +152,7 @@ class FakeParticleOpenPMDTimeSeries:
         "electrons": ["x", "ux", "w", "charge", "mass"],
     }
 
-    def get_particle(self, quantities, iteration):
+    def get_particle(self, quantities, iteration, species):
         assert quantities == self.avail_record_components["electrons"]
         return [
             np.array([1.0, 2.0, 3.0]),
