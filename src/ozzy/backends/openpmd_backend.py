@@ -419,10 +419,20 @@ def read_species(
     # Get available quantities
     all_quants = op_obj.avail_record_components[species]
 
+    # Workaround for openpmd-viewer issue
+    # (see https://github.com/openPMD/openPMD-viewer/issues/443)
+    # TODO: wait for new warpx data to test and ship
+
+    if (
+        ("x" not in all_quants)  # if x is not in available quantities and
+        & ("z" not in all_quants)  # if z is not in available quantities and
+        & ("2d" in list(op_obj.avail_geom)[0].lower())  # if geometry is 2D
+    ):
+        all_quants = list(set(all_quants) - {"y"})
+
     ds_t = []
 
     for it, tval in zip(tqdm(iters_all), time_all):
-        pass
 
         all_data = op_obj.get_particle(all_quants, iteration=it, species=species)
         all_data_dict = {k: v for k, v in zip(all_quants, all_data)}
