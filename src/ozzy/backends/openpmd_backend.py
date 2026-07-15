@@ -441,10 +441,13 @@ def read_species(
             if quant in sp_var_attrs:
                 quant_attrs = sp_var_attrs[quant]
                 if quant[0] != "u":
-                    if (quant_attrs["macroWeighted"] == 0) & (
-                        quant_attrs["weightingPower"] != 0
+                    if ("macroWeighted" in quant_attrs) & (
+                        "weightingPower" in quant_attrs
                     ):
-                        data = data * weighting ** quant_attrs["weightingPower"]
+                        if (quant_attrs["macroWeighted"] == 0) & (
+                            quant_attrs["weightingPower"] != 0
+                        ):
+                            data = data * weighting ** quant_attrs["weightingPower"]
                 if "unitSI" in quant_attrs:
                     if quant_attrs["unitSI"] != 1:
                         data = data * quant_attrs["unitSI"]
@@ -587,10 +590,12 @@ def read_sort(
             sp_var_attrs[species]["species_name"] = species
 
             for var in ["charge", "mass"]:
-                if sp_var_attrs[var]["macroWeighted"] == 1:
-                    prefix = "macroparticle"
-                else:
-                    prefix = "species"
+
+                prefix = "species"
+                if "macroWeighted" in sp_var_attrs[var]:
+                    if sp_var_attrs[var]["macroWeighted"] == 1:
+                        prefix = "macroparticle"
+
                 value = sp_var_attrs[var]["value"]
 
                 if sp_var_attrs[var]["unitSI"] != 1:
