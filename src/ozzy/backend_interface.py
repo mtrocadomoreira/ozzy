@@ -190,7 +190,9 @@ class Backend:
         quants_dict = collections.defaultdict(list)
         for m, f in matches:
             label = (
-                m.group(1).strip("_-") if m.group(1) != "" else m.group(3).strip("_-")
+                m.group("name").strip("_-")
+                if m.group("name") != ""
+                else m.group("file_ending").strip("_-")
             )
             if f not in quants_dict[label]:
                 quants_dict[label].append(f)

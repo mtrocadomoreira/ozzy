@@ -16,7 +16,7 @@ import xarray as xr
 from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch, tex_format, unpack_attr
 
-general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+general_regex_pattern = r"(?P<name>[\w-]+)-(?P<number>\d{6})\.(?P<file_ending>h5|hdf)"
 general_file_endings = ["h5"]
 quants_ignore = None
 

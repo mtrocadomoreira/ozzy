@@ -28,7 +28,7 @@ from ..utils import axis_from_extent, get_regex_snippet, print_file_item, stopwa
 
 # HACK: do this in a more pythonic way (blueprint for new backend)
 
-general_regex_pattern = r"([\w-]*?)(\d{5,6}|\d{5,6}\.\d{3})*?[m|w]?\.([a-z]{3})"
+general_regex_pattern = r"(?P<name>[\w-]*?)(?P<number>\d{5,6}|\d{5,6}\.\d{3})*?[m|w]?\.(?P<file_ending>[a-z]{3})"
 """A regular expression pattern used to match file names in the LCODE data format.
 
 The pattern matches file names that start with an optional word character sequence (letters, digits, or underscores),
@@ -258,7 +258,7 @@ def get_quant_name_from_regex(file_info: NamedTuple, file: str) -> str:
         The quantity name extracted from the file name using the regular expression pattern.
     """
     match = re.fullmatch(file_info.regex, os.path.basename(file))
-    return match.group(1)
+    return match.group("name")
 
 
 def dd_read_table(file: str, sep=r"\s+", header=None) -> dask.array.Array:
@@ -759,13 +759,13 @@ def read_extrema(files: list[str] | str, file_info: NamedTuple) -> xr.Dataset:
         ddf = dd_read_table(files)
 
     match = re.fullmatch(file_info.regex, os.path.basename(files[0]))
-    quant = match.group(1)
+    quant = match.group("name")
 
     prefix = ""
     quant1 = quant + "_max"
     quant2 = quant1.replace("max", "min")
 
-    if match.group(2) == "loc":
+    if "loc" in quant:
         quant1 = quant1 + "_loc"
         prefix = "local "
 

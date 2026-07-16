@@ -17,7 +17,9 @@ from tqdm import tqdm
 from ..new_dataobj import new_dataset
 from ..utils import print_file_item, stopwatch
 
-general_regex_pattern = r"([\w-]*?)[-_]?(\d*)[-_]?([\w]*?)\.(h5|hdf)"
+general_regex_pattern = (
+    r"(?P<name>[\w-]*?)[-_]?(?P<number>\d*)[-_]?([\w]*?)\.(?P<file_ending>h5|hdf)"
+)
 general_file_endings = ["h5"]
 quants_ignore = None
 

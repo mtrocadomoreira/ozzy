@@ -15,7 +15,7 @@ from ..utils import stopwatch
 
 general_regex_pattern: str = r""
 """
-A regular expression pattern used for matching file names or contents.
+A regular expression pattern used for matching file names or contents. There should be three named groups: "name", "number" and "file_ending" (see [Python regex documentation](https://docs.python.org/3/howto/regex.html#non-capturing-and-named-groups)).
 The pattern is an empty string by default.
 
 !!! tip
@@ -24,7 +24,7 @@ The pattern is an empty string by default.
 ???+ example
     For OSIRIS files:
     ```python
-    general_regex_pattern = r"([\w-]+)-(\d{6})\.(h5|hdf)"
+    general_regex_pattern = r"(?P<name>[\w-]+)-(?P<number>\d{6})\.(?P<file_ending>h5|hdf)"
     ```
 """
 general_file_endings: str | list[str] = []

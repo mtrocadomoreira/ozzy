@@ -31,7 +31,7 @@ from ..utils import force_str_to_list, stopwatch, tex_format, unpack_attr
 
 # ------------------ Required constants for any ozzy backend ----------------- #
 
-general_regex_pattern: str = r"(\w+?)(\d{6,8}).(h5|bp)"
+general_regex_pattern: str = r"(?P<name>\w+?)(?P<number>\d{6,8}).(?P<file_ending>h5|bp)"
 general_file_endings: str | list[str] = ["h5", "bp"]
 quants_ignore: None | list[str] | str = None
 
