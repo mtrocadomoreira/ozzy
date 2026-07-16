@@ -3,6 +3,57 @@
 <!--start-docs-->
 
 
+## Version 2.1.3 
+
+Released 16-07-2026 
+
+### Bug Fixes
+
+* [`79edd1b`](https://github.com/mtrocadomoreira/ozzy/commit/79edd1b11b408d8f694dce267479d16521532bec): Several changes to make sure that `ozzy.open_series` and `ozzy.open_compare` work with the `openpmd` backend
+
+
+
+
+
+
+* [`8df975a`](https://github.com/mtrocadomoreira/ozzy/commit/8df975afa799767d99ae43e463785e89d4e59651): Workaround for [openpmd-viewer issue #443](https://github.com/openpmd/openpmd-viewer/issues/443)
+
+
+
+
+
+
+* [`490f2d9`](https://github.com/mtrocadomoreira/ozzy/commit/490f2d94b169b13782a8da44ec14c634191aa735): Foresee particle quantities that may not have the `macroweighted` attribute
+
+
+
+
+
+
+* [`f003e3c`](https://github.com/mtrocadomoreira/ozzy/commit/f003e3cc7d5b50594903788f574175e971397034): Bug for species with id information
+
+
+
+
+
+
+### Refactoring
+
+* [`7d1d6af`](https://github.com/mtrocadomoreira/ozzy/commit/7d1d6afdd94378d0e53fb1f44fe286674d151dc9): Make look-up of simulation files more readable
+
+
+
+    The `find_quants` function in `backend_interface` uses a regex pattern that should be defined at the top of each backend module to find groups of files belonging to a certain PIC code. The regex patterns for each backend have been modified such that each capturing group in the pattern is now named: "name", "number", "file_ending". This makes the code in `find_quants` more readable and less prone to bugs.
+
+
+* [`0496273`](https://github.com/mtrocadomoreira/ozzy/commit/0496273b64fadcfbefaa530784cc527fcfdaffb2): Remove error handling for a missing `tol-colors` package, since it is now available on conda-forge
+
+
+
+    The package `tol-colors` is a dependency of ozzy, but it used to be available only on PyPI. This means that it couldn't be specified as a requirement for the ozzy distribution on conda-forge. This is now resolved.
+
+
+
 ## Version 2.1.2 
 
 Released 14-07-2026 
