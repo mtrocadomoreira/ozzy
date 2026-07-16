@@ -215,7 +215,10 @@ def set_sensible_units(
 
     if (isq_exp is not None) | (unit_init is not None):
 
-        data_max_value = abs(da).max(skipna=True).compute().data
+        if da.size == 0:
+            data_max_value = 1
+        else:
+            data_max_value = abs(da).max(skipna=True).compute().data
 
         if isq_exp is not None:
             comp_factor, units_label = get_tex_units(isq_exp, data_max_value)
