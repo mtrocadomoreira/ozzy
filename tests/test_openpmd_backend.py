@@ -151,6 +151,7 @@ class FakeParticleOpenPMDTimeSeries:
     avail_record_components = {
         "electrons": ["x", "ux", "w", "charge", "mass"],
     }
+    avail_geom = "2dcartesian"
 
     def get_particle(self, quantities, iteration, species):
         assert quantities == self.avail_record_components["electrons"]
