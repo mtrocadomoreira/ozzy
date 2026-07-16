@@ -95,6 +95,8 @@ class Backend:
         path: str,
         dirs_runs: dict[str, str],
         quants: str | list[str] | None = None,
+        records: str | list[str] | None = None,
+        **kwargs,
     ) -> dict[str, list[str]]:
         """
         Searches `path` for files matching `quants` in the run directories specified by `dirs_runs`. All arguments may contain [glob](https://en.wikipedia.org/wiki/Glob_(programming)) patterns.
@@ -114,11 +116,11 @@ class Backend:
                 import ozzy as oz
                 dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
                 ```
-        quants : str, or list[str], optional
+        quants : str, list[str], or None, optional
             A quantity name or list of quantity names to search for. The search term may contain the full filename (`'e1-000001.h5'`), only the quantity name (`'e1'`) or any combination with a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern (`'e1-*'`, `'e1-*.h5'`).
             If not provided, any files with the file endings associated with this `Backend` are searched for.
-
-
+        records : str, list[str], or None, optional
+            Only used for the openPMD backend. Records (quantities) to read from the openPMD files.
 
 
         Returns
@@ -149,11 +151,6 @@ class Backend:
 
         # HACK: this function should probably be defined within each backend module, similarly to the "read" function
 
-        # Special case for openPMD
-        if self.name == "openpmd":
-            opmd_records = quants
-            quants = "*"
-
         if quants is None:
             quants = [""]
         if isinstance(quants, str):
@@ -163,6 +160,10 @@ class Backend:
         searchterms = []
         for q in quants:
             if "." not in q:
+
+                if self.name == "openpmd":
+                    q = q + "/"
+
                 term = []
                 for fend in self._file_endings:
                     term.append(q + "*." + fend)
@@ -176,32 +177,63 @@ class Backend:
             searchdir = run_dir
             for term in searchterms:
                 query = recursive_search_for_file(term, searchdir)
-                filenames = filenames + [os.path.basename(f) for f in query]
+                if self.name == "openpmd":
+                    filenames = filenames + query
+                else:
+                    filenames = filenames + [os.path.basename(f) for f in query]
 
-        # Look for clusters of files matching pattern
-        pattern = re.compile(self._regex_pattern)
-        matches = (
-            (pattern.fullmatch(f), f)
-            for f in filenames
-            if pattern.fullmatch(f) is not None
-        )
+        # Cluster files and build output dictionary - different procedure for openPMD
 
-        # Build output dictionary
-        quants_dict = collections.defaultdict(list)
-        for m, f in matches:
-            label = (
-                m.group("name").strip("_-")
-                if m.group("name") != ""
-                else m.group("file_ending").strip("_-")
+        if self.name != "openpmd":
+
+            # Look for clusters of files matching pattern
+            pattern = re.compile(self._regex_pattern)
+            matches = (
+                (pattern.fullmatch(f), f)
+                for f in filenames
+                if pattern.fullmatch(f) is not None
             )
-            if f not in quants_dict[label]:
-                quants_dict[label].append(f)
 
-        # For OpenPMD:
-        if self.name == "openpmd":
-            all_files = quants_dict[next(iter(quants_dict))]
+            # Build output dictionary
+            quants_dict = collections.defaultdict(list)
+            for m, f in matches:
+                label = (
+                    m.group("name").strip("_-")
+                    if m.group("name") != ""
+                    else m.group("file_ending").strip("_-")
+                )
+                if f not in quants_dict[label]:
+                    quants_dict[label].append(f)
 
-            quants_dict = {k: all_files for k in opmd_records}
+        else:
+
+            # Prepare records names
+            if records is None:
+                records = [None]
+            if isinstance(records, str):
+                records = [records]
+            pass
+
+            # Look for clusters of files matching pattern
+            diags = list(set([os.path.dirname(f) for f in filenames]))
+
+            diags_dict = {k: list() for k in diags}
+            for k, v in diags_dict.items():
+                for f in filenames:
+                    if k == os.path.dirname(f):
+                        v.append(f)
+
+            # Prepare records names
+            if records is None:
+                records = [None]
+            if isinstance(records, str):
+                records = [records]
+
+            # Build output dictionary
+            quants_dict = collections.defaultdict(list)
+            for rec in records:
+                for k, v in diags_dict.items():
+                    quants_dict[k + "|" + rec] = v
 
         # Drop quantities that should be ignored
         if self._quants_ignore is not None:

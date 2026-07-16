@@ -385,7 +385,7 @@ def open_series(file_type, files, nfiles=None, **kwargs):
     common_dir, dirs_runs, quants = path_list_to_pars(filelist)
 
     quant_files = bknd._load_quant_files(
-        path=common_dir, dirs_runs=dirs_runs, quants=quants
+        path=common_dir, dirs_runs=dirs_runs, quants=quants, **kwargs
     )
 
     ds = []
@@ -531,6 +531,48 @@ def open_compare(
         # OSIRIS/my_sim_1           [charge]    []
         # LCODE/my_sim_2                  []  [ez]
         ```
+
+    ???+ example "Comparing two records from two openPMD diagnostics"
+
+        Simulation files built with the openPMD standard often contain several quantities (or "records" in the openPMD nomenclature), and may be organized in different "diagnostics" folders.
+
+        As an example, consider the following directory structure:
+
+        ```text
+        /path/to/simulations/
+        └── my_sim/
+            ├── diags/
+            │   └── plasma_diag_mf/
+            │       ├── openpmd_000000.h5
+            │       ├── openpmd_001000.h5
+            │       └── ...
+            └── lab_diags/
+                └── plasma_diag_lab/
+                    ├── openpmd_000000.h5
+                    ├── openpmd_001000.h5
+                    └── ...
+        ````
+
+        To read the records `"E"` and `"rho"` from both diagnostics folders (`plasma_diag_mf`, `plasma_diag_lab`), we would use:
+
+        ```python
+        import ozzy as oz
+
+        df = oz.open_compare(
+            "openpmd",
+            path="/path/to/simulations",
+            runs="my_sim",
+            quants=["plasma_diag_mf", "plasma_diag_lab"],
+            records=["E", "rho"],
+        )
+        ```
+        The output will be a [pandas.DataFrame][] with a single row with index `"."` (since there is only one run) and the following columns:
+
+        * `diags/plasma_diag_mf|E`
+        * `diags/plasma_diag_mf|rho`
+        * `lab_diags/plasma_diag_lab|E`
+        * `lab_diags/plasma_diag_lab|rho`
+
     """
 
     # HACK: refactor search for quantities to deal with openPMD files more elegantly
@@ -555,7 +597,7 @@ def open_compare(
     bknds = [Backend(ftype) for ftype in file_types]
     for bk in bknds:
 
-        files_quants = bk._load_quant_files(path, dirs_runs, quants)
+        files_quants = bk._load_quant_files(path, dirs_runs, quants, **kwargs)
         print(f"Found {len(files_quants)} quantities with '{bk.name}' backend:")
         [print_file_item(item) for item in files_quants.keys()]
 
@@ -578,7 +620,8 @@ def open_compare(
                 # Read found files
 
                 if bk.name == "openpmd":
-                    kwargs["records"] = quant
+                    # get record from "quant"
+                    kwargs["records"] = quant.split("|")[-1]
 
                 ods = bk.parse_data(filepaths, **kwargs)
                 ods.attrs["run"] = run
