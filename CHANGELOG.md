@@ -3,6 +3,29 @@
 <!--start-docs-->
 
 
+## Version 2.1.4 
+
+Released 16-07-2026 
+
+### Bug Fixes
+
+* [`47b5c34`](https://github.com/mtrocadomoreira/ozzy/commit/47b5c3434c35c5e53ecf0ac043e12b337f4a57f5): Fix bug that raised an exception when a record was empty
+
+
+
+
+
+
+### Refactoring
+
+* [`ff743e9`](https://github.com/mtrocadomoreira/ozzy/commit/ff743e9be8b2cc96142d5a6fad7c53de32fb714e): Add argument `compat = &#39;no_conflicts&#39;` explicitly to `xarray.merge` calls due to `futurewarning`
+
+
+
+    According to an xarray `FutureWarning`, a future version of xarray will use `compat = 'override'` as the default for `xarray.merge`.
+
+
+
 ## Version 2.1.3 
 
 Released 16-07-2026 
