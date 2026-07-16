@@ -734,7 +734,7 @@ def read_beamfile(
         ds = lcode_append_time(ds, thistime)
         datasets.append(ds)
 
-    ds_out = xr.merge(datasets, join="outer")
+    ds_out = xr.merge(datasets, join="outer", compat="no_conflicts")
     ds_out = set_quant_metadata(ds_out, file_info.type)
     return ds_out
 

@@ -395,7 +395,7 @@ def open_series(file_type, files, nfiles=None, **kwargs):
             ds.append(bknd.parse_data(filepaths[:nfiles], **kwargs))
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
-        ods = xr.merge(ds, join="outer")
+        ods = xr.merge(ds, join="outer", compat="no_conflicts")
 
     return ods
 
