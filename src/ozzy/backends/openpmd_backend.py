@@ -24,6 +24,8 @@ from ..physunits.units import ureg as u  # noqa
 from ..utils import force_str_to_list, stopwatch, tex_format, unpack_attr
 
 # TODO: include HiPACE++_reference_unitSI (under species var attributes)
+# TODO: test with other codes that use openPMD (e.g. Wake-T)
+# TODO: add warning to documentation somewhere about fact that openPMD does not predict mentioning the units of the spatial axes or the time, and so units of [m] and [s] are assumed
 
 # ---------------------------------------------------------------------------- #
 #                    Define constants and utility functions                    #
@@ -333,6 +335,11 @@ def read_fields(
                     )
 
                     # Assign values for axes
+                    # TODO: implement moving window axes
+                    # - get metadata.field_attrs["gridGlobalOffset"]
+                    # - make sure dims are the same as axes
+                    # - include special case for quasistatic codes (hipace, wake-t)? -> may need workaround keyword argument because hipace currenly does not announce that it's hipace
+                    # - if quasistatic, ignore gridGlobalOffset
 
                     for idim, ax_var in enumerate(ax_vars):
                         axis = metadata.__getattribute__(ax_var)
@@ -399,6 +406,7 @@ def read_fields(
     ds_fields["t"] = set_sensible_units(ds_fields["t"], unit_init="s")
 
     # CAUTION: assumption here: that all spatial axes have units of m
+    # HACK: this is e.g. not true for HiPACE when using normalized units (but impossible to know this)
     space_vars = set(all_ax_vars)
     for ax_var in space_vars:
         ds_fields[ax_var].attrs["long_name"] = tex_format(ax_var)
@@ -544,6 +552,23 @@ def read_sort(
 
         gen_attrs = {k: unpack_attr(v) for k, v in dict(f.attrs).items()}
 
+        # HACK: unclear whether it would be useful to have specific
+        # methods for different simulation codes. But it's probably
+        # a bad idea to put this information in the "data_origin"
+        # attribute along with the value "openpmd"
+
+        # # - Add simulation code information (without version number)
+
+        # if "software" in gen_attrs:
+        #     software_string = gen_attrs["software"]
+        #     if len(software_string) > 0:
+        #         sw_regex = r"(\w+)( [\d.]+)*"
+        #         matchobj = re.match(sw_regex, software_string)
+        #         sw_name = matchobj.group[1]
+
+        # TODO: determine somewhere whether this is a quasistatic code
+        # (necessary for moving window evaluation - and maybe labeling - later)
+
         # Time factor
 
         time_paths = list(f["/data"].keys())
@@ -643,20 +668,6 @@ def read_sort(
 
     ds = ds.assign_attrs(**gen_attrs)
 
-    # HACK: unclear whether it would be useful to have specific
-    # methods for different simulation codes. But it's probably
-    # a bad idea to put this information in the "data_origin"
-    # attribute along with the value "openpmd"
-
-    # # - Add simulation code information (without version number)
-
-    # if "software" in gen_attrs:
-    #     software_string = gen_attrs["software"]
-    #     if len(software_string) > 0:
-    #         sw_regex = r"(\w+)( [\d.]+)*"
-    #         matchobj = re.match(sw_regex, software_string)
-    #         sw_name = matchobj.group[1]
-
     # Multiply by time factor if necessary
 
     if time_factor != 1.0:
@@ -665,6 +676,7 @@ def read_sort(
     # Set time metadata
 
     ds["t"].attrs["long_name"] = tex_format("t")
+    # CAUTION: assumption here: that time always has units of s
     ds["t"] = set_sensible_units(ds["t"], unit_init="s")
 
     return ds
