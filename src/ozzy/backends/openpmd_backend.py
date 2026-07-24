@@ -37,6 +37,11 @@ general_regex_pattern: str = r"(?P<name>\w+?)(?P<number>\d{6,8}).(?P<file_ending
 general_file_endings: str | list[str] = ["h5", "bp"]
 quants_ignore: None | list[str] | str = None
 
+# --------------- Define which codes are considered quasistatic -------------- #
+# (important for longitudinal axis)
+
+quasistatic_codes = ["hipace", "wake-t"]
+
 # ------------- Symbol replacement for labels of OpenPMD records ------------- #
 
 # - general OpenPMD
@@ -238,7 +243,7 @@ def set_sensible_units(
 
     else:
         print(
-            "Warning: Did not receive any unit information for sensible unit conversion. Returning DataArray as is."
+            "WARNING: Did not receive any unit information for sensible unit conversion. Returning DataArray as is."
         )
         return da
 
@@ -254,7 +259,10 @@ def openpmd_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
 
 
 def read_fields(
-    op_obj: OpenPMDTimeSeries, fields: list[str], separate_theta_modes: bool
+    op_obj: OpenPMDTimeSeries,
+    fields: list[str],
+    separate_theta_modes: bool,
+    is_quasistatic: bool,
 ) -> xr.Dataset:
 
     if "all" in fields:
@@ -335,14 +343,31 @@ def read_fields(
                     )
 
                     # Assign values for axes
-                    # TODO: implement moving window axes
-                    # - get metadata.field_attrs["gridGlobalOffset"]
-                    # - make sure dims are the same as axes
-                    # - include special case for quasistatic codes (hipace, wake-t)? -> may need workaround keyword argument because hipace currenly does not announce that it's hipace
-                    # - if quasistatic, ignore gridGlobalOffset
+                    # TODO: avoid issues when axes do not align perfectly along time due to floating point precision (this is harder in SI units)
+
+                    # - Get global offsets
+
+                    if (not is_quasistatic) & (
+                        "gridGlobalOffset" in metadata.field_attrs
+                    ):
+                        ax_offsets = metadata.field_attrs["gridGlobalOffset"]
+                        if len(ax_offsets) != len(ax_vars):
+                            print(
+                                "WARNING: 'gridGlobalOffset' attribute does not have the same length as the number of axes. Proceeding without applying the offsets (e.g. important for moving windows)."
+                            )
+                            ax_offsets = None
+                    else:
+                        ax_offsets = None
 
                     for idim, ax_var in enumerate(ax_vars):
                         axis = metadata.__getattribute__(ax_var)
+
+                        # Convert into co-moving coordinates if necessary
+
+                        if ax_offsets is not None:
+                            axis = axis - ax_offsets[idim]
+
+                        # Multiply by any unit factors
 
                         if "gridUnitSI" in metadata.field_attrs:
                             if metadata.field_attrs["gridUnitSI"] != 1.0:
@@ -432,8 +457,6 @@ def read_species(
 
     # Workaround for openpmd-viewer issue
     # (see https://github.com/openPMD/openPMD-viewer/issues/443)
-    # TODO: wait for new warpx data to test and ship
-
     if (
         ("x" not in all_quants)  # if x is not in available quantities and
         & ("z" not in all_quants)  # if z is not in available quantities and
@@ -568,6 +591,10 @@ def read_sort(
 
         # TODO: determine somewhere whether this is a quasistatic code
         # (necessary for moving window evaluation - and maybe labeling - later)
+        if any([code in gen_attrs["software"].lower() for code in quasistatic_codes]):
+            is_quasistatic = True
+        else:
+            is_quasistatic = False
 
         # Time factor
 
@@ -656,7 +683,7 @@ def read_sort(
     op_obj = OpenPMDTimeSeries(os.path.commonpath(files), check_all_files=True)
 
     if fields is not None:
-        ds = read_fields(op_obj, fields, separate_theta_modes)
+        ds = read_fields(op_obj, fields, separate_theta_modes, is_quasistatic)
         ds = ds.assign_attrs(**fld_attrs)
 
     elif species is not None:
