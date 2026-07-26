@@ -42,6 +42,11 @@ quants_ignore: None | list[str] | str = None
 
 quasistatic_codes = ["hipace", "wake-t"]
 
+# Order of magnitude of absolute tolerance to compare axis values
+# e.g. for an axis with the order of magnitude -13 and for abs_tol_order = 10,
+# the absolute tolerance will be set to 1e(-13 - abs_tol_order) = 1e-23
+abs_tol_order = 10
+
 # ------------- Symbol replacement for labels of OpenPMD records ------------- #
 
 # - general OpenPMD
@@ -248,6 +253,10 @@ def set_sensible_units(
         return da
 
 
+def get_order_of_magnitude(arr: np.ndarray):
+    return np.round(np.log10(np.min(abs(arr))))
+
+
 def openpmd_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
 
     ds = xr.concat(
@@ -343,7 +352,6 @@ def read_fields(
                     )
 
                     # Assign values for axes
-                    # TODO: avoid issues when axes do not align perfectly along time due to floating point precision (this is harder in SI units)
 
                     # - Get global offsets
 
@@ -359,15 +367,18 @@ def read_fields(
                     else:
                         ax_offsets = None
 
+                    if it == iters_all[0]:
+                        prev_axis = [np.nan] * len(ax_vars)
+
                     for idim, ax_var in enumerate(ax_vars):
                         axis = metadata.__getattribute__(ax_var)
 
-                        # Convert into co-moving coordinates if necessary
+                        # - Convert into co-moving coordinates if necessary
 
                         if ax_offsets is not None:
                             axis = axis - ax_offsets[idim]
 
-                        # Multiply by any unit factors
+                        # - Multiply by any unit factors
 
                         if "gridUnitSI" in metadata.field_attrs:
                             if metadata.field_attrs["gridUnitSI"] != 1.0:
@@ -383,6 +394,29 @@ def read_fields(
                                         idim
                                     ]
                                 )
+
+                        # - Check whether axis differs by last axis by some floating
+                        #   point precision
+                        # NOTE: This is *not* a robust solution. Ideally the openPMD
+                        # files would include exact information to recreate the axes
+                        # and also information about whether the axis moves or not.
+
+                        if is_quasistatic | (ax_offsets is not None):
+
+                            min_order = min(
+                                [
+                                    get_order_of_magnitude(arr)
+                                    for arr in [prev_axis[idim], axis]
+                                ]
+                            )
+                            abs_tol = 1 * 10 ** (min_order - abs_tol_order)
+
+                            if np.allclose(axis, prev_axis[idim], rtol=0, atol=abs_tol):
+                                axis = prev_axis[idim]
+                            else:
+                                prev_axis[idim] = axis
+
+                        # - Assign result to DataArray object
 
                         da_tmp = da_tmp.assign_coords({ax_var: (ax_var, axis)})
 
@@ -460,7 +494,7 @@ def read_species(
     if (
         ("x" not in all_quants)  # if x is not in available quantities and
         & ("z" not in all_quants)  # if z is not in available quantities and
-        & ("2d" in list(op_obj.avail_geom)[0].lower())  # if geometry is 2D
+        & ("2d" in next(iter(op_obj.avail_geom)).lower())  # if geometry is 2D
     ):
         all_quants = list(set(all_quants) - {"y"})
 
@@ -471,10 +505,7 @@ def read_species(
         all_data = op_obj.get_particle(all_quants, iteration=it, species=species)
         all_data_dict = {k: v for k, v in zip(all_quants, all_data)}
 
-        if "w" in all_data_dict:
-            weighting = all_data_dict["w"]
-        else:
-            weighting = None
+        weighting = all_data_dict.get("w", None)
 
         ds_tmp = new_dataset(pic_data_type="part", data_origin="openpmd")
 
@@ -591,7 +622,7 @@ def read_sort(
 
         # TODO: determine somewhere whether this is a quasistatic code
         # (necessary for moving window evaluation - and maybe labeling - later)
-        if any([code in gen_attrs["software"].lower() for code in quasistatic_codes]):
+        if any(code in gen_attrs["software"].lower() for code in quasistatic_codes):
             is_quasistatic = True
         else:
             is_quasistatic = False
@@ -644,7 +675,6 @@ def read_sort(
                     sp_var_attrs["w"] = dict(obj.attrs)
                 else:
                     sp_var_attrs[item] = dict(obj.attrs)
-                return None
 
             sp_obj.visititems(visit_part_quants)
 
