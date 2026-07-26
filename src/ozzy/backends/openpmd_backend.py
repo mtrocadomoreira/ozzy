@@ -20,7 +20,7 @@ from pint.errors import DimensionalityError
 from tqdm import tqdm
 
 from ..new_dataobj import new_dataarray, new_dataset
-from ..physunits.units import ureg as u  # noqa
+from ..physunits import ureg as u
 from ..utils import force_str_to_list, stopwatch, tex_format, unpack_attr
 
 # TODO: include HiPACE++_reference_unitSI (under species var attributes)
