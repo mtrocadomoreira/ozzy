@@ -124,7 +124,9 @@ class FakeFieldOpenPMDTimeSeries:
 def test_read_fields_preserves_modes_axes_scaling_and_ozzy_metadata():
     op_obj = FakeFieldOpenPMDTimeSeries()
 
-    result = opb.read_fields(op_obj, ["E"], separate_theta_modes=True)
+    result = opb.read_fields(
+        op_obj, ["E"], separate_theta_modes=True, is_quasistatic=False
+    )
 
     assert result.attrs["pic_data_type"] == "grid"
     assert result.attrs["data_origin"] == "openpmd"
@@ -321,6 +323,7 @@ def test_read_sort_reads_hdf5_metadata_and_applies_time_units(tmp_path, monkeypa
         h5f.attrs["meshesPath"] = np.array([b"meshes"])
         h5f.attrs["particlesPath"] = np.array([b"particles/"])
         h5f.attrs["openPMD"] = np.array([b"2.0.0"])
+        h5f.attrs["software"] = np.array([b"some-pic"])
         step = h5f.create_group("/data/000001")
         step.attrs["timeUnitSI"] = 2.0
         meshes = step.create_group("meshes")
@@ -334,8 +337,13 @@ def test_read_sort_reads_hdf5_metadata_and_applies_time_units(tmp_path, monkeypa
         seen["openpmd_args"] = (path_arg, check_all_files)
         return fake_op_obj
 
-    def fake_read_fields(op_obj, fields, separate_theta_modes):
-        seen["read_fields_args"] = (op_obj, fields, separate_theta_modes)
+    def fake_read_fields(op_obj, fields, separate_theta_modes, is_quasistatic):
+        seen["read_fields_args"] = (
+            op_obj,
+            fields,
+            separate_theta_modes,
+            is_quasistatic,
+        )
         return xr.Dataset(
             {"E": ("t", [1.0])},
             coords={"t": [3.0]},
@@ -348,7 +356,7 @@ def test_read_sort_reads_hdf5_metadata_and_applies_time_units(tmp_path, monkeypa
     result = opb.read_sort([str(path)], separate_theta_modes=True, fields=["E"])
 
     assert seen["openpmd_args"] == (str(path), True)
-    assert seen["read_fields_args"] == (fake_op_obj, ["E"], True)
+    assert seen["read_fields_args"] == (fake_op_obj, ["E"], True, False)
     assert result.attrs["pic_data_type"] == "grid"
     assert result.attrs["data_origin"] == "openpmd"
     assert result.attrs["openPMD"] == "2.0.0"
