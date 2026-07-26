@@ -18,7 +18,7 @@ import matplotlib.animation as manim
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns  # noqa
+import seaborn as sns
 import tol_colors as tc
 import xarray as xr
 from tqdm import tqdm
@@ -272,7 +272,6 @@ class MutablePlotObj:
         self.ylim = ylim
         self.clim = clim
         self.pfunc = plot_func
-        return
 
     def redraw(self, t_val: float) -> None:
         # Clear the axes
@@ -301,8 +300,6 @@ class MutablePlotObj:
 
         # Update plot object
         self.imo = new_imo
-
-        return
 
 
 # Define module functions
@@ -426,8 +423,6 @@ def show_fonts(samples: bool = False, fontsize: float = 18) -> None:
 
         display(HTML(structure))
 
-    return
-
 
 def set_font(font: str) -> None:
     """
@@ -477,7 +472,6 @@ def set_font(font: str) -> None:
         mpl.rc("font", family=font)
     else:
         raise ValueError("Couldn't find font")
-    return
 
 
 def show_cmaps(
@@ -561,8 +555,6 @@ def show_cmaps(
                     )
     plt.show()
 
-    pass
-
 
 def set_cmap(
     general: None | str = None,
@@ -611,7 +603,6 @@ def set_cmap(
             set_command()
         else:
             raise ValueError(f'Colormap "{general}" not found')
-        return
 
     all_args = {**locals()}
 
@@ -619,7 +610,6 @@ def set_cmap(
         print(
             "Not sure which colormap to choose?\nRun 'ozzy.plot.show_cmaps()' to see available colormaps."
         )
-        pass
         # if no arguments are given, show all available palettes
     else:
         # Set a general colormap
@@ -671,9 +661,6 @@ def set_cmap(
                 )
 
             mpl.rc("axes", prop_cycle=plt.cycler("color", collist))
-
-            pass
-    pass
 
 
 @mpl.rc_context({"savefig.transparent": False, "figure.facecolor": "white"})
@@ -808,9 +795,7 @@ def movie(
     """
     # Define default time variables
     for k, v in plot_objs.items():
-        if not isinstance(v, tuple):
-            plot_objs[k] = (v, "t")
-        elif isinstance(v, tuple) & (len(v) < 2):
+        if not isinstance(v, tuple) or isinstance(v, tuple) & (len(v) < 2):
             plot_objs[k] = (v, "t")
         if plot_objs[k][1] not in plot_objs[k][0].coords:
             raise ValueError(
@@ -828,15 +813,13 @@ def movie(
     if t_range[0] is None:
         tmin = list(plot_objs.values())[0][0][list(plot_objs.values())[0][1]][0]
         for da, tvar in plot_objs.values():
-            if da[tvar][0] < tmin:
-                tmin = da[tvar][0]
+            tmin = min(tmin, da[tvar][0])
     else:
         tmin = t_range[0]
     if t_range[1] is None:
         tmax = list(plot_objs.values())[0][0][list(plot_objs.values())[0][1]][-1]
         for da, tvar in plot_objs.values():
-            if da[tvar][-1] > tmax:
-                tmax = da[tvar][-1]
+            tmax = max(tmax, da[tvar][-1])
     else:
         tmax = t_range[1]
 
@@ -975,15 +958,17 @@ def movie(
                 f"{mwriter.__name__} is not available. " + error_msg[writer]
             )
 
-        with mwriter.saving(fig, filename, dpi=dpi):
+        with mwriter.saving(
+            fig,
+            filename,
+            dpi=dpi,
+        ):
             for tval in tqdm(t_arr):
                 for obj in mpos:
                     obj.redraw(tval)
                 mwriter.grab_frame()
 
         print(f"\nMovie saved to file {filename}")
-
-    return
 
 
 def imovie(

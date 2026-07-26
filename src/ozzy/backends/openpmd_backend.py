@@ -919,5 +919,3 @@ class Methods:
     """_There are currently no openPMD-specific methods._"""
 
     # HACK: add method to convert units to normalized, given a reference plasma density -> but maybe make this a general method for all ozzy data objects
-
-    ...
