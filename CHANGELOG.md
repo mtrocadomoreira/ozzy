@@ -3,6 +3,50 @@
 <!--start-docs-->
 
 
+## Version 2.1.5 
+
+Released 26-07-2026 
+
+### Bug Fixes
+
+* [`5206ba2`](https://github.com/mtrocadomoreira/ozzy/commit/5206ba2d193e4f0cc5f177e29ba81597075d6319): Use same axis values for all times when axis values do not match exactly due to floating point precision
+
+
+
+    The axes for the openPMD field/mesh/grid records are retrieved and manipulated for each timestep, which can introduce small floating point errors and therefore make it seem like the axis values are different for each timestep. This was causing a lot of `NaN` padding when all the data is concatenated in time, which is the expected behaviour if the dataset's coordinates do not align.
+
+    Using `numpy.allclose()`, this has been fixed by comparing the axes at each new timestep with the previous ones and validating whether they match within a certain tolerance.
+
+    Note that this is not a perfectly robust solution. Ideally, the openPMD file standard would include precise details to recreate the axes of the simulation window, as well as information about whether each axis is moving or not.
+
+
+* [`3d60eb7`](https://github.com/mtrocadomoreira/ozzy/commit/3d60eb7b575ef13795b4ae5496fb2771b19accda): Infer whether simulation window is moving and correct axes accordingly
+
+
+
+
+
+
+### Refactoring
+
+* [`6dcb319`](https://github.com/mtrocadomoreira/ozzy/commit/6dcb3191890c0910511594ae5bf4f84a2fe32afc): Change structure of `ozzy.physunits` submodule
+
+
+
+    _Note:_ The `UnitRegistry` (see [`pint` tutorial](https://pint.readthedocs.io/en/stable/getting/tutorial.html) for more details) defined in ozzy can now be accessed using e.g
+    `from ozzy.physunits import ureg as u`
+    or
+    `import ozzy as oz; u = oz.physunits.ureg`
+
+
+* [`dcb7bf6`](https://github.com/mtrocadomoreira/ozzy/commit/dcb7bf60d0abe5b568f8e0cd7d496166663219a9): Some automatic linting
+
+
+
+
+
+
+
 ## Version 2.1.4 
 
 Released 16-07-2026 
