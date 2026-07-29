@@ -12,7 +12,7 @@ import collections
 import os
 import re
 
-import xarray as xr  # noqa
+import xarray as xr
 
 from .new_dataobj import new_dataset
 from .utils import recursive_search_for_file
@@ -173,7 +173,7 @@ class Backend:
 
         # Search files matching mattern
         filenames = []
-        for run, run_dir in dirs_runs.items():
+        for run_dir in dirs_runs.values():
             searchdir = run_dir
             for term in searchterms:
                 query = recursive_search_for_file(term, searchdir)
@@ -212,12 +212,11 @@ class Backend:
                 records = [None]
             if isinstance(records, str):
                 records = [records]
-            pass
 
             # Look for clusters of files matching pattern
-            diags = list(set([os.path.dirname(f) for f in filenames]))
+            diags = list({os.path.dirname(f) for f in filenames})
 
-            diags_dict = {k: list() for k in diags}
+            diags_dict = {k: [] for k in diags}
             for k, v in diags_dict.items():
                 for f in filenames:
                     if k == os.path.dirname(f):
@@ -233,7 +232,7 @@ class Backend:
             quants_dict = collections.defaultdict(list)
             for rec in records:
                 for k, v in diags_dict.items():
-                    quants_dict[k + "|" + rec] = v
+                    quants_dict[k + "|" + str(rec)] = v
 
         # Drop quantities that should be ignored
         if self._quants_ignore is not None:
