@@ -25,7 +25,9 @@ from ..utils import force_str_to_list, stopwatch, tex_format, unpack_attr
 
 # TODO: include HiPACE++_reference_unitSI (under species var attributes)
 # TODO: test with other codes that use openPMD (e.g. Wake-T)
-# TODO: add warning to documentation somewhere about fact that openPMD does not predict mentioning the units of the spatial axes or the time, and so units of [m] and [s] are assumed
+# TODO: add warning to documentation somewhere about fact that openPMD does not
+# mention the units of the spatial axes or the time, and so units of [m] and [s]
+# are assumed
 
 # ---------------------------------------------------------------------------- #
 #                    Define constants and utility functions                    #
@@ -43,9 +45,9 @@ quants_ignore: None | list[str] | str = None
 quasistatic_codes = ["hipace", "wake-t"]
 
 # Order of magnitude of absolute tolerance to compare axis values
-# e.g. for an axis with the order of magnitude -13 and for abs_tol_order = 10,
-# the absolute tolerance will be set to 1e(-13 - abs_tol_order) = 1e-23
-abs_tol_order = 10
+# e.g. for an axis with the order of magnitude -7 and for abs_tol_order = 9,
+# the absolute tolerance will be set to 1e(-7 - abs_tol_order) = 1e-16
+abs_tol_order = 9
 
 # ------------- Symbol replacement for labels of OpenPMD records ------------- #
 
@@ -254,7 +256,7 @@ def set_sensible_units(
 
 
 def get_order_of_magnitude(arr: np.ndarray):
-    return np.round(np.log10(np.min(abs(arr))))
+    return np.round(np.log10(np.mean(abs(arr))))
 
 
 def openpmd_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
@@ -368,7 +370,7 @@ def read_fields(
                         ax_offsets = None
 
                     if it == iters_all[0]:
-                        prev_axis = [np.nan] * len(ax_vars)
+                        prev_axis = [np.inf] * len(ax_vars)
 
                     for idim, ax_var in enumerate(ax_vars):
                         axis = metadata.__getattribute__(ax_var)
