@@ -3,6 +3,36 @@
 <!--start-docs-->
 
 
+## Version 2.1.6 
+
+Released 30-07-2026 
+
+### Bug Fixes
+
+* [`f61393c`](https://github.com/mtrocadomoreira/ozzy/commit/f61393c346dcfdd43ab1943eb9fba12fe19a8ed6): Get correct error message when `records` keyword is not passed to ozzy&#39;s file opening functions
+
+
+
+
+
+
+* [`45b741a`](https://github.com/mtrocadomoreira/ozzy/commit/45b741a0a1168fc0160fd7c2a281e21797191b4a): Fix function to calculate order of magnitude of axis values to merge almost identical axes (see commit 5206ba2d193e4f0cc5f177e29ba81597075d6319)
+
+
+
+
+
+
+### Documentation
+
+* [`ad16309`](https://github.com/mtrocadomoreira/ozzy/commit/ad163092dfb7251aa3fbc5bf4e9d9ef2facc2c5c): Include warning in docstring of `read` function in `openpmd_backend`
+
+
+
+
+
+
+
 ## Version 2.1.5 
 
 Released 26-07-2026 
