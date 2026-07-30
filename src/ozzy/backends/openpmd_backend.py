@@ -783,6 +783,15 @@ def read(
     Examples
     --------
 
+    !!! warning
+
+        Note that you would not usually call this function directly, except in advanced use cases such as debugging. The examples below are included for completeness.
+
+        In general, please use [ozzy's file-reading functions][reading-files] along with the backend specification instead, for example:
+        ```python
+        data = oz.open('openpmd', 'path/to/file.h5', records='fields')
+        ```
+
     ???+ example "Read all grid-based variables"
 
         ```python
