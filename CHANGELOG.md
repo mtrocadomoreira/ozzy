@@ -3,6 +3,20 @@
 <!--start-docs-->
 
 
+## Version 2.1.7 
+
+Released 17-08-2026 
+
+### Bug Fixes
+
+* [`925d46e`](https://github.com/mtrocadomoreira/ozzy/commit/925d46ea482c4423778bf3936e189db9c525a2ca): Error handling for when and openpmd file is missing either of the `meshespath` and `particlespath` attributes
+
+
+
+
+
+
+
 ## Version 2.1.6 
 
 Released 30-07-2026 
