@@ -641,15 +641,26 @@ def read_sort(
 
         # Data-type-specific metadata
 
-        fld_path = gen_attrs["meshesPath"]
-        sp_path = gen_attrs["particlesPath"]
+        fld_path = gen_attrs.get("meshesPath", None)
+        sp_path = gen_attrs.get("particlesPath", None)
 
         if fields is not None:
+
+            # HACK: create custom Exception class(es) for missing attributes in openPMD files
+            if fld_path is None:
+                raise Exception(
+                    "The attribute 'meshesPath' is missing from the openPMD file. Cannot locate mesh datasets in HDF5 file."
+                )
 
             fld_attrs_obj = f[f"/data/{time_paths[0]}/{fld_path}"].attrs
             fld_attrs = {k: unpack_attr(v) for k, v in dict(fld_attrs_obj).items()}
 
         elif species is not None:
+
+            if sp_path is None:
+                raise Exception(
+                    "The attribute 'particlesPath' is missing from the openPMD file. Cannot locate particle datasets in HDF5 file."
+                )
 
             sp_obj = f[f"/data/{time_paths[0]}/{sp_path}{species}"]
             sp_attrs_obj = sp_obj.attrs
@@ -831,8 +842,15 @@ def read(
             fld_records = op_obj.avail_fields
             part_species = op_obj.avail_species
 
-            string_fld_records = ", ".join([f"'{item}'" for item in fld_records])
-            string_part_species = ", ".join([f"'{item}'" for item in part_species])
+            if fld_records is not None:
+                string_fld_records = ", ".join([f"'{item}'" for item in fld_records])
+            else:
+                string_fld_records = ""
+
+            if part_species is not None:
+                string_part_species = ", ".join([f"'{item}'" for item in part_species])
+            else:
+                string_part_species = ""
 
             # - raise informative error if records is None
 
