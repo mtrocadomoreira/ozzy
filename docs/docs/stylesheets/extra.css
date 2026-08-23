@@ -1,3 +1,16 @@
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: "../assets/fonts/AtkinsonHyperlegible-Regular.ttf";
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  src: "../assets/fonts/AtkinsonHyperlegibleMono-VariableFont_wght.ttf";
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: "../assets/fonts/GeistMono-VariableFont_wght.ttf";
+}
+
 .md-typeset a {
   color: var(--md-typeset-color);
   accent-color: var(--md-typeset-a-color);
@@ -7,6 +20,10 @@
 
 /* Defaults, text colors etc. */
 :root {
+
+    /* Fonts */
+    --md-text-font: "Atkinson Hyperlegible";
+    --md-code-font: "Geist Mono";
 
     /* Primary color shades */
     --md-primary-fg-color:               hsl(245, 66%, 22%); /* Primary color (header bg, links in text */ /* hsl(172, 60%, 47%); */

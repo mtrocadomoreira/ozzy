@@ -25,10 +25,10 @@ theme:
         name: Switch to dark mode
       primary: custom
       accent: custom
-
-  font:
-    text: Atkinson Hyperlegible
-    code: Roboto Mono
+  font: false
+  # font:
+  #   text: Atkinson Hyperlegible
+    # code: Geist Mono
 
   features:
     - content.code.copy
@@ -54,6 +54,7 @@ markdown_extensions:
   - toc:
       permalink: §
       permalink_title: Link to this section
+  - pymdownx.highlight
   - pymdownx.snippets
   - pymdownx.caret
   - pymdownx.mark
