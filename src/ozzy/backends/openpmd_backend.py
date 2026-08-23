@@ -493,12 +493,9 @@ def read_species(
 
     # Workaround for openpmd-viewer issue
     # (see https://github.com/openPMD/openPMD-viewer/issues/443)
-    if (
-        ("x" not in all_quants)  # if x is not in available quantities and
-        & ("z" not in all_quants)  # if z is not in available quantities and
-        & ("2d" in next(iter(op_obj.avail_geom)).lower())  # if geometry is 2D
-    ):
-        all_quants = list(set(all_quants) - {"y"})
+    if ("x" not in all_quants) & ("z" not in all_quants):
+        if "2d" in next(iter(op_obj.avail_geom)).lower():
+            all_quants = list(set(all_quants) - {"y"})
 
     ds_t = []
 
