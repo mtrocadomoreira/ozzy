@@ -9,12 +9,56 @@ from hypothesis import strategies as st
 import ozzy.core as oz
 
 
+def dataset_from_trace_space(x, xp, *, slice_pos=None, beta_gamma=None):
+    """Build a particle dataset where p2 / p1 equals the requested trace xp."""
+    x = np.asarray(x, dtype=float)
+    xp = np.asarray(xp, dtype=float)
+    if beta_gamma is None:
+        p1 = np.ones_like(x)
+    else:
+        p1 = beta_gamma / np.sqrt(1.0 + xp**2)
+    p2 = p1 * xp
+
+    data_vars = {
+        "x2": (
+            "pid",
+            x,
+            {"long_name": "$x_2$", "units": r"$k_p^{-1}$"},
+        ),
+        "p1": ("pid", p1),
+        "p2": ("pid", p2),
+        "p3": ("pid", np.zeros_like(x)),
+        "q": ("pid", np.ones_like(x)),
+    }
+    if slice_pos is not None:
+        data_vars["x1"] = (
+            "pid",
+            np.asarray(slice_pos, dtype=float),
+            {"long_name": "$x_1$", "units": r"$k_p^{-1}$"},
+        )
+
+    return oz.Dataset(
+        data_vars,
+        coords={"pid": np.arange(x.size)},
+        pic_data_type="part",
+        data_origin="ozzy",
+    )
+
+
 @pytest.fixture
 def sample_dataset():
     return oz.Dataset(
         {
-            "x1": ("pid", np.random.rand(1000), {"long_name": "$x_1$"}),
-            "x2": ("pid", np.random.rand(1000), {"long_name": "$x_2$"}),
+            "x1": (
+                "pid",
+                np.random.rand(1000),
+                {"long_name": "$x_1$", "units": r"$k_p^{-1}$"},
+            ),
+            "x2": (
+                "pid",
+                np.random.rand(1000),
+                {"long_name": "$x_2$", "units": r"$k_p^{-1}$"},
+            ),
             "p1": ("pid", np.random.rand(1000)),
             "p2": ("pid", np.random.rand(1000)),
             "p3": ("pid", np.random.rand(1000)),
@@ -110,6 +154,65 @@ def test_get_emittance_geometric(sample_dataset):
     assert "emit_norm" not in result.data_vars
 
 
+def test_get_emittance_rms_diamond_geometric():
+    x = np.array([1.0, -1.0, 0.0, 0.0])
+    xp = np.array([0.0, 0.0, 1.0, -1.0])
+    ds = dataset_from_trace_space(x, xp)
+
+    result = ds.ozzy.get_emittance(norm_emit=False)
+
+    assert np.isclose(result["emit"].item(), 0.5)
+
+
+def test_get_emittance_uncorrelated_gaussian_geometric():
+    rng = np.random.default_rng(42)
+    sigma_x, sigma_xp = 2.0, 0.5
+    x = rng.normal(0.0, sigma_x, 500_000)
+    xp = rng.normal(0.0, sigma_xp, 500_000)
+    ds = dataset_from_trace_space(x, xp)
+
+    result = ds.ozzy.get_emittance(norm_emit=False)
+
+    assert np.isclose(result["emit"].item(), sigma_x * sigma_xp, rtol=1e-2)
+
+
+def test_get_emittance_zero_on_filament():
+    x = np.linspace(-5.0, 5.0, 1000)
+    xp = 3.0 * x
+    ds = dataset_from_trace_space(x, xp)
+
+    result = ds.ozzy.get_emittance(norm_emit=False)["emit"].item()
+
+    assert not np.isnan(result), "sqrt of negative argument produced nan"
+    assert np.isclose(result, 0.0, atol=1e-8)
+
+
+def test_get_emittance_normalized_diamond():
+    x = np.array([1.0, -1.0, 0.0, 0.0])
+    xp = np.array([0.0, 0.0, 1.0, -1.0])
+    gamma = 100.0
+    beta = np.sqrt(1.0 - 1.0 / gamma**2)
+    ds = dataset_from_trace_space(x, xp, beta_gamma=beta * gamma)
+
+    result = ds.ozzy.get_emittance(norm_emit=True)
+
+    assert np.isclose(result["emit_norm"].item(), beta * gamma * 0.5, rtol=1e-6)
+
+
+def test_get_emittance_normalized_matches_geometric_times_betagamma():
+    rng = np.random.default_rng(3)
+    x = rng.normal(0.0, 2.0, 500_000)
+    xp = rng.normal(0.0, 0.5, 500_000)
+    gamma = 50.0
+    beta = np.sqrt(1.0 - 1.0 / gamma**2)
+    ds = dataset_from_trace_space(x, xp, beta_gamma=beta * gamma)
+
+    eps_geom = ds.ozzy.get_emittance(norm_emit=False)["emit"].item()
+    eps_norm = ds.ozzy.get_emittance(norm_emit=True)["emit_norm"].item()
+
+    assert np.isclose(eps_norm / eps_geom, beta * gamma, rtol=1e-3)
+
+
 def test_get_emittance_invalid_var(sample_dataset):
     ds = sample_dataset
     with pytest.raises(KeyError, match="Cannot find 'invalid_var' variable in Dataset"):
@@ -159,6 +262,64 @@ def test_get_slice_emittance_geometric(sample_dataset):
     result = ds.ozzy.get_slice_emittance(nbins=10, norm_emit=False, slice_var="x1")
     assert "slice_emit" in result.data_vars
     assert "slice_emit_norm" not in result.data_vars
+
+
+def test_get_slice_emittance_rms_diamond_geometric_per_slice():
+    x = np.tile([1.0, -1.0, 0.0, 0.0], 2)
+    xp = np.tile([0.0, 0.0, 1.0, -1.0], 2)
+    slice_pos = np.repeat([0.25, 0.75], 4)
+    ds = dataset_from_trace_space(x, xp, slice_pos=slice_pos)
+    axis_ds = oz.Dataset(
+        coords={"x1": np.array([0.25, 0.75])},
+        pic_data_type="grid",
+        data_origin="ozzy",
+    )
+
+    result = ds.ozzy.get_slice_emittance(
+        axis_ds=axis_ds, norm_emit=False, slice_var="x1"
+    )
+
+    np.testing.assert_allclose(result["slice_emit"].values, [0.5, 0.5])
+
+
+def test_get_slice_emittance_zero_on_filament():
+    x = np.linspace(-5.0, 5.0, 1000)
+    xp = 3.0 * x
+    x = np.tile(x, 2)
+    xp = np.tile(xp, 2)
+    slice_pos = np.repeat([0.25, 0.75], 1000)
+    ds = dataset_from_trace_space(x, xp, slice_pos=slice_pos)
+    axis_ds = oz.Dataset(
+        coords={"x1": np.array([0.25, 0.75])},
+        pic_data_type="grid",
+        data_origin="ozzy",
+    )
+
+    result = ds.ozzy.get_slice_emittance(
+        axis_ds=axis_ds, norm_emit=False, slice_var="x1"
+    )["slice_emit"].values
+
+    assert not np.any(np.isnan(result)), "sqrt of negative argument produced nan"
+    np.testing.assert_allclose(result, 0.0, atol=1e-8)
+
+
+def test_get_slice_emittance_normalized_matches_geometric_times_betagamma():
+    rng = np.random.default_rng(4)
+    x = rng.normal(0.0, 2.0, 500_000)
+    xp = rng.normal(0.0, 0.5, 500_000)
+    slice_pos = rng.uniform(0.0, 1.0, 500_000)
+    gamma = 50.0
+    beta = np.sqrt(1.0 - 1.0 / gamma**2)
+    ds = dataset_from_trace_space(x, xp, slice_pos=slice_pos, beta_gamma=beta * gamma)
+
+    eps_geom = ds.ozzy.get_slice_emittance(
+        nbins=5, norm_emit=False, slice_var="x1"
+    )["slice_emit"]
+    eps_norm = ds.ozzy.get_slice_emittance(
+        nbins=5, norm_emit=True, slice_var="x1"
+    )["slice_emit_norm"]
+
+    np.testing.assert_allclose(eps_norm / eps_geom, beta * gamma, rtol=1e-3)
 
 
 class TestGetEnergySpectrum:
