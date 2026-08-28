@@ -3,6 +3,52 @@
 <!--start-docs-->
 
 
+## Version 2.1.8 
+
+Released 28-08-2026 
+
+### Bug Fixes
+
+* [`2e8434b`](https://github.com/mtrocadomoreira/ozzy/commit/2e8434bbcc596b702762739bbc19d57f59d7c3dd): Correct emittance calculation in cartesian geometries (`get_emittance` and `get_slice_emittance`)
+
+
+
+    The formulas for the emittance (both projected and per slice) were missing the subtraction of the mean values, which is not important for axisymmetric cylindrical data, but is important for Cartesian data, of course. This involved some tinkering with the algorithm for the slice emittance (`get_slice_emittance`), to keep the calculation lazy. The documentation for both functions was also updated.
+
+
+### Documentation
+
+* [`5f2dfce`](https://github.com/mtrocadomoreira/ozzy/commit/5f2dfce414dd1583584946af5d5de279e878211f): Switch to local font files instead of loading from google fonts
+
+
+
+
+
+
+* [`224a8de`](https://github.com/mtrocadomoreira/ozzy/commit/224a8de0b6af3b4e92fa70e6883c0fdba9350584): Try to fix [umami](https://umami.is/) analytics
+
+
+
+
+
+
+* [`50db969`](https://github.com/mtrocadomoreira/ozzy/commit/50db96945b1618f86838ed700627734be71eee45): Remove polyfill javascript
+
+
+
+
+
+
+### Refactoring
+
+* [`f850035`](https://github.com/mtrocadomoreira/ozzy/commit/f850035f2082b3e60a07be3f2cdbfcbf7d9833ae): Avoid exception when `openpmdtimeseries` object returns an empty `avail_geom`
+
+
+
+
+
+
+
 ## Version 2.1.7 
 
 Released 17-08-2026 
