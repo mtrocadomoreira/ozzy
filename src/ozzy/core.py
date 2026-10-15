@@ -28,14 +28,13 @@ import pandas as pd
 import xarray as xr
 
 from . import accessors  # noqa
-from .backend_interface import Backend, _list_avail_backends
+from .backend_interface import Backend, ReadMode, _list_avail_backends
 from .new_dataobj import new_dataarray, new_dataset
 from .utils import (
     find_runs,
     path_list_to_pars,
     prep_file_input,
     print_file_item,
-    recursive_search_for_file,
     stopwatch,
 )
 
@@ -309,11 +308,16 @@ def open_series(file_type, files, nfiles=None, **kwargs):
     Parameters
     ----------
     file_type : str
-        The type of data files to open (currently: `'ozzy'`, `'osiris'`, or `'lcode'`).
+        The type of data files to open (currently: `'ozzy'`, `'openpmd'`, `'osiris'`, or `'lcode'`).
     files : str | list
         The path(s) to the data file(s) to open. Can be a single path or a list of paths. Paths can be absolute or relative, and can contain wildcards or glob patterns.
     nfiles : int, optional
         The maximum number of files to open. If not provided, all files will be opened.
+
+        ??? warning
+
+            Due to a limitation of [`openpmd_viewer.OpenPMDTimeSeries`](https://openpmd-viewer.readthedocs.io/en/latest/api_reference/generic_interface.html), this argument does not work for the openPMD backend.
+
     **kwargs :
         Additional keyword arguments to be passed to the backend-specific reader function.
 
@@ -384,15 +388,18 @@ def open_series(file_type, files, nfiles=None, **kwargs):
     bknd = Backend(file_type, as_series=True)
     common_dir, dirs_runs, quants = path_list_to_pars(filelist)
 
-    quant_files = bknd._load_quant_files(
-        path=common_dir, dirs_runs=dirs_runs, quants=quants, **kwargs
+    jobs = bknd.plan_reads(
+        path=common_dir,
+        dirs_runs=dirs_runs,
+        quants=quants,
+        mode=ReadMode.SERIES,
+        **kwargs,
     )
 
     ds = []
-    for run, run_dir in dirs_runs.items():
-        for quant, quant_files in bknd._quant_files.items():
-            filepaths = [os.path.join(run_dir, qfile) for qfile in quant_files]
-            ds.append(bknd.parse_data(filepaths[:nfiles], **kwargs))
+    for job in jobs:
+        read_kwargs = kwargs | dict(job.reader_kwargs)
+        ds.append(bknd.parse_data(list(job.files[:nfiles]), **read_kwargs))
 
     with dask.config.set({"array.slicing.split_large_chunks": True}):
         ods = xr.merge(ds, join="outer", compat="no_conflicts")
@@ -417,7 +424,7 @@ def open_compare(
     Parameters
     ----------
     file_types : str | list[str]
-        The type(s) of data files to open. Current options are: `'ozzy'`, `'osiris'`, or `'lcode'`.
+        The type(s) of data files to open. Current options are: `'ozzy'`, `'openpmd'`, `'osiris'`, or `'lcode'`.
     path : str, optional
         The path to the directory containing the run folders. Default is the current working directory.
     runs : str | list[str], optional
@@ -575,9 +582,7 @@ def open_compare(
 
     """
 
-    # HACK: refactor search for quantities to deal with openPMD files more elegantly
-    # (where quantities are all inside same file)
-    # (and also for variable-encoded openPMD)
+    # HACK: refactor search for quantities to deal with variable-encoded openPMD files
 
     # Make sure file_type is a list
     if isinstance(file_types, str):
@@ -590,47 +595,40 @@ def open_compare(
     print(f"\nScanning directory:\n {path}")
     dirs_runs = find_runs(path, runs)
     print(f"\nFound {len(dirs_runs)} run(s):")
-    [print_file_item(item) for item in dirs_runs.keys()]
+    [print_file_item(item) for item in dirs_runs]
 
     # Search for quantities and read data
 
-    bknds = [Backend(ftype) for ftype in file_types]
-    for bk in bknds:
+    backend_jobs = []
+    for bk in [Backend(ftype) for ftype in file_types]:
+        jobs = bk.plan_reads(
+            path=path,
+            dirs_runs=dirs_runs,
+            quants=quants,
+            mode=ReadMode.COMPARE,
+            **kwargs,
+        )
+        backend_jobs.append((bk, jobs))
 
-        files_quants = bk._load_quant_files(path, dirs_runs, quants, **kwargs)
-        print(f"Found {len(files_quants)} quantities with '{bk.name}' backend:")
-        [print_file_item(item) for item in files_quants.keys()]
+        labels = list(dict.fromkeys(job.label for job in jobs))
+        print(f"Found {len(labels)} quantities with '{bk.name}' backend:")
+        [print_file_item(label) for label in labels]
 
     # Read all data
 
     df = pd.DataFrame()
 
-    for run, run_dir in dirs_runs.items():
-        for bk in bknds:
-            for quant, quant_files in bk._quant_files.items():
-                # Get absolute paths to files that should be read
-                rel_filepaths = []
-                for qfile in quant_files:
-                    query = recursive_search_for_file(qfile, run_dir)
-                    rel_filepaths = rel_filepaths + query
-                filepaths = [
-                    os.path.join(run_dir, relfile) for relfile in rel_filepaths
-                ]
+    for bk, jobs in backend_jobs:
+        for job in jobs:
+            read_kwargs = kwargs | dict(job.reader_kwargs)
+            ods = bk.parse_data(list(job.files), **read_kwargs)
+            ods.attrs["run"] = job.run
 
-                # Read found files
-
-                if bk.name == "openpmd":
-                    # get record from "quant"
-                    kwargs["records"] = quant.split("|")[-1]
-
-                ods = bk.parse_data(filepaths, **kwargs)
-                ods.attrs["run"] = run
-
-                if quant not in df.columns:
-                    df[quant] = pd.Series(dtype=object)
-                if run not in df.index:
-                    df.loc[run] = pd.Series(dtype=object)
-                df.at[run, quant] = ods
+            if job.label not in df.columns:
+                df[job.label] = pd.Series(dtype=object)
+            if job.run not in df.index:
+                df.loc[job.run] = pd.Series(dtype=object)
+            df.at[job.run, job.label] = ods
 
     print("\nDone!")
 

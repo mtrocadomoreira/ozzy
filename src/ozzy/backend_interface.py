@@ -11,6 +11,10 @@
 import collections
 import os
 import re
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 import xarray as xr
 
@@ -20,6 +24,66 @@ from .utils import recursive_search_for_file
 
 def _list_avail_backends():
     return ["osiris", "lcode", "ozzy", "openpmd"]
+
+
+# -----------------------------------------------------------------------
+# ReadJob class
+# -----------------------------------------------------------------------
+
+
+class ReadMode(str, Enum):
+    """
+    Specify how discovered files are grouped into read jobs.
+
+    Attributes
+    ----------
+    SERIES : str
+        Group an openPMD diagnostic and all requested records into one job.
+        Its value is `"series"`.
+    COMPARE : str
+        Create a separate openPMD job for every diagnostic-record pair.
+        Its value is `"compare"`.
+
+    """
+
+    SERIES = "series"
+    COMPARE = "compare"
+
+
+@dataclass(frozen=True)
+class ReadJob:
+    """
+    Describe a group of files to be passed to a backend reader.
+
+    Parameters
+    ----------
+    run : str
+        Name of the run containing the files.
+    label : str
+        Label assigned to the discovered quantity, diagnostic, or
+        diagnostic-record pair.
+    files : tuple[str, ...]
+        File paths belonging to the job.
+    reader_kwargs : collections.abc.Mapping[str, typing.Any], optional
+        Additional keyword arguments for the backend reader. The default is an
+        empty mapping.
+
+    Attributes
+    ----------
+    run : str
+        Name of the run containing the files.
+    label : str
+        Label assigned to the job.
+    files : tuple[str, ...]
+        File paths belonging to the job.
+    reader_kwargs : collections.abc.Mapping[str, typing.Any]
+        Additional keyword arguments for the backend reader.
+    """
+
+    run: str
+    label: str
+    files: tuple[str, ...]
+    reader_kwargs: Mapping[str, Any] = field(default_factory=dict)
 
 
 # -----------------------------------------------------------------------
@@ -42,27 +106,6 @@ class Backend:
         Function for parsing data from files.
     mixin : class
         Mixin class that makes methods available to the data object depending on the file backend/data origin (`'openpmd'`, `'osiris'`, `'ozzy'`, `'lcode'`).
-
-    Methods
-    -------
-    find_quants(path, dirs_runs, quants=None)
-        Find matching files for quantities.
-    _load_quant_files(*args, **kwargs)
-        Load quantity files (calls `find_quants()`).
-    parse_data(files, *args, **kwargs)
-        Read data from files and attach metadata.
-
-    Examples
-    --------
-
-    ??? example "Create a new Backend instance and read files"
-
-        ```python
-        backend = Backend('osiris')
-        files = backend.find_quants(path='sim_dir', dirs_runs={'run1': 'run1_dir'}, quants=['e2', 'b3'])
-        data = backend.parse_data(files)
-        ```
-
     """
 
     def __init__(self, file_type, *args, **kwargs):
@@ -90,161 +133,177 @@ class Backend:
         self._file_endings = backend_mod.general_file_endings
         self._quants_ignore = backend_mod.quants_ignore
 
-    def find_quants(
+    def plan_reads(
         self,
         path: str,
         dirs_runs: dict[str, str],
         quants: str | list[str] | None = None,
         records: str | list[str] | None = None,
+        mode: ReadMode = ReadMode.SERIES,
         **kwargs,
-    ) -> dict[str, list[str]]:
+    ) -> list[ReadJob]:
         """
-        Searches `path` for files matching `quants` in the run directories specified by `dirs_runs`. All arguments may contain [glob](https://en.wikipedia.org/wiki/Glob_(programming)) patterns.
+        Plan backend reads for the supplied run directories.
+
+        For openPMD data, jobs are grouped by diagnostic and, in `"compare"` mode, by record. For the other backends, one job is produced for every discovered run-quantity combination.
 
         Parameters
         ----------
         path : str
-            The base path to search for files.
+            Base path associated with the run directories. The directories in
+            `dirs_runs` have already been resolved by the caller.
         dirs_runs : dict[str, str]
-            A dictionary mapping run names to directory paths relative to `path`.
-
-            !!! tip
-
-                The `dirs_runs` parameter can be obtained by running [`ozzy.find_runs(path, runs_pattern)`][ozzy.utils.find_runs]. For example:
-
-                ```python
-                import ozzy as oz
-                dirs_runs = oz.find_runs(path='sim_dir', runs_pattern='param_scan_*')
-                ```
+            Mapping from run names to resolved run-directory paths.
         quants : str, list[str], or None, optional
-            A quantity name or list of quantity names to search for. The search term may contain the full filename (`'e1-000001.h5'`), only the quantity name (`'e1'`) or any combination with a [glob](https://en.wikipedia.org/wiki/Glob_(programming)) pattern (`'e1-*'`, `'e1-*.h5'`).
-            If not provided, any files with the file endings associated with this `Backend` are searched for.
+            Quantity or diagnostic search pattern, or a list of patterns. `None`
+            searches for all endings supported by the selected backend.
         records : str, list[str], or None, optional
-            Only used for the openPMD backend. Records (quantities) to read from the openPMD files.
-
+            openPMD records to associate with each diagnostic. This parameter is used
+            only by the `"openpmd"` backend.
+        mode : ReadMode, optional
+            Read-grouping mode. Available values are `ReadMode.SERIES` and
+            `ReadMode.COMPARE`. The default is `ReadMode.SERIES`.
+        **kwargs
+            Additional keyword arguments accepted by the planning interface.
 
         Returns
         -------
-        dict[str, list[str]]
-            A dictionary mapping quantity names to lists of matching file names.
-
-        Examples
-        --------
-        ???+ example "Search for files with a specific quantity"
-            ```python
-            import ozzy.backend_interface as obi
-            backend = obi.Backend('lcode')
-            dirs_runs = {'run1': 'path/to/run1', 'run2': 'path/to/run2'}
-            quants_dict = backend.find_quants('/base/path', dirs_runs, 'xi_Ez')
-            # quants_dict = {'xi_Ez': ['xi_Ez_0001.swp', 'xi_Ez_0002.swp', ...]}
-            ```
-
-        ???+ example "Search for files with any quantity"
-            ```python
-            import ozzy.backend_interface as obi
-            backend = obi.Backend('lcode')
-            dirs_runs = {'run1': 'path/to/run1', 'run2': 'path/to/run2'}
-            quants_dict = backend.find_quants('/base/path', dirs_runs)
-            # quants_dict = {'xi_Ez': [...], 'xi_Er': [...], ...}
-            ```
+        list[ReadJob]
+            Planned read jobs.
         """
+        del path  # Run directories are already resolved by the caller.
 
-        # HACK: this function should probably be defined within each backend module, similarly to the "read" function
-
-        if quants is None:
-            quants = [""]
-        if isinstance(quants, str):
-            quants = [quants]
-
-        # Define search strings for glob
-        searchterms = []
-        for q in quants:
-            if "." not in q:
-
-                if self.name == "openpmd":
-                    q = q + "/"
-
-                term = []
-                for fend in self._file_endings:
-                    term.append(q + "*." + fend)
-            else:
-                term = [q]
-            searchterms = searchterms + term
-
-        # Search files matching mattern
-        filenames = []
-        for run_dir in dirs_runs.values():
-            searchdir = run_dir
-            for term in searchterms:
-                query = recursive_search_for_file(term, searchdir)
-                if self.name == "openpmd":
-                    filenames = filenames + query
-                else:
-                    filenames = filenames + [os.path.basename(f) for f in query]
-
-        # Cluster files and build output dictionary - different procedure for openPMD
-
-        if self.name != "openpmd":
-
-            # Look for clusters of files matching pattern
-            pattern = re.compile(self._regex_pattern)
-            matches = (
-                (pattern.fullmatch(f), f)
-                for f in filenames
-                if pattern.fullmatch(f) is not None
+        if self.name == "openpmd":
+            return self._plan_openpmd_reads(
+                dirs_runs=dirs_runs,
+                quants=quants,
+                records=records,
+                mode=mode,
             )
 
-            # Build output dictionary
-            quants_dict = collections.defaultdict(list)
-            for m, f in matches:
-                label = (
-                    m.group("name").strip("_-")
-                    if m.group("name") != ""
-                    else m.group("file_ending").strip("_-")
+        return self._plan_filename_reads(
+            dirs_runs=dirs_runs,
+            quants=quants,
+        )
+
+    def _plan_filename_reads(
+        self,
+        dirs_runs: dict[str, str],
+        quants: str | list[str] | None,
+    ) -> list[ReadJob]:
+        pattern = re.compile(self._regex_pattern)
+        search_terms = self._make_search_terms(quants)
+        files_by_run: dict[str, dict[str, list[str]]] = {}
+        labels = []
+
+        for run, run_dir in dirs_runs.items():
+            files_by_label: dict[str, list[str]] = collections.defaultdict(list)
+
+            for term in search_terms:
+                for relative_path in recursive_search_for_file(term, run_dir):
+                    filename = os.path.basename(relative_path)
+                    match = pattern.fullmatch(filename)
+                    if match is None:
+                        continue
+
+                    label = (
+                        match.group("name").strip("_-")
+                        if match.group("name") != ""
+                        else match.group("file_ending").strip("_-")
+                    )
+                    if self._quants_ignore is not None and label in self._quants_ignore:
+                        continue
+
+                    filepath = os.path.join(run_dir, relative_path)
+                    if filepath not in files_by_label[label]:
+                        files_by_label[label].append(filepath)
+                    if label not in labels:
+                        labels.append(label)
+
+            files_by_run[run] = files_by_label
+
+        return [
+            ReadJob(
+                run=run,
+                label=label,
+                files=tuple(files_by_run[run].get(label, [])),
+            )
+            for run in dirs_runs
+            for label in labels
+        ]
+
+    def _plan_openpmd_reads(
+        self,
+        dirs_runs: dict[str, str],
+        quants: str | list[str] | None,
+        records: str | list[str] | None,
+        mode: ReadMode,
+    ) -> list[ReadJob]:
+        search_terms = self._make_search_terms(quants, diagnostic_dirs=True)
+        diagnostics_by_run: dict[str, dict[str, list[str]]] = {}
+
+        for run, run_dir in dirs_runs.items():
+            files_by_diagnostic: dict[str, list[str]] = collections.defaultdict(list)
+
+            for term in search_terms:
+                for relative_path in recursive_search_for_file(term, run_dir):
+                    diagnostic = os.path.dirname(relative_path)
+                    filepath = os.path.join(run_dir, relative_path)
+                    if filepath not in files_by_diagnostic[diagnostic]:
+                        files_by_diagnostic[diagnostic].append(filepath)
+
+            diagnostics_by_run[run] = files_by_diagnostic
+
+        if mode is ReadMode.SERIES:
+            return [
+                ReadJob(
+                    run=run,
+                    label=diagnostic,
+                    files=tuple(files),
+                    reader_kwargs={"records": records},
                 )
-                if f not in quants_dict[label]:
-                    quants_dict[label].append(f)
+                for run, diagnostics in diagnostics_by_run.items()
+                for diagnostic, files in diagnostics.items()
+            ]
 
-        else:
+        record_list = [records] if isinstance(records, str) else records
+        if record_list is None:
+            record_list = [None]
 
-            # Prepare records names
-            if records is None:
-                records = [None]
-            if isinstance(records, str):
-                records = [records]
+        return [
+            ReadJob(
+                run=run,
+                label=f"{diagnostic}|{record}",
+                files=tuple(files),
+                reader_kwargs={"records": record},
+            )
+            for run, diagnostics in diagnostics_by_run.items()
+            for diagnostic, files in diagnostics.items()
+            for record in record_list
+        ]
 
-            # Look for clusters of files matching pattern
-            diags = list({os.path.dirname(f) for f in filenames})
+    def _make_search_terms(
+        self,
+        quants: str | list[str] | None,
+        diagnostic_dirs: bool = False,
+    ) -> list[str]:
+        if quants is None:
+            quants = [""]
+        elif isinstance(quants, str):
+            quants = [quants]
 
-            diags_dict = {k: [] for k in diags}
-            for k, v in diags_dict.items():
-                for f in filenames:
-                    if k == os.path.dirname(f):
-                        v.append(f)
+        search_terms = []
+        for quant in quants:
+            if "." in quant:
+                search_terms.append(quant)
+                continue
 
-            # Prepare records names
-            if records is None:
-                records = [None]
-            if isinstance(records, str):
-                records = [records]
+            prefix = f"{quant}/" if diagnostic_dirs else quant
+            search_terms.extend(
+                f"{prefix}*.{file_ending}" for file_ending in self._file_endings
+            )
 
-            # Build output dictionary
-            quants_dict = collections.defaultdict(list)
-            for rec in records:
-                for k, v in diags_dict.items():
-                    quants_dict[k + "|" + str(rec)] = v
-
-        # Drop quantities that should be ignored
-        if self._quants_ignore is not None:
-            for q in self._quants_ignore:
-                if q in quants_dict:
-                    del quants_dict[q]
-
-        return quants_dict
-
-    def _load_quant_files(self, *args, **kwargs):
-        self._quant_files = self.find_quants(*args, **kwargs)
-        return self._quant_files
+        return search_terms
 
     def parse_data(self, files: list[str], *args, **kwargs) -> xr.Dataset:
         """Read data from files and attach metadata according to the selected [`Backend`][ozzy.backend_interface.Backend].

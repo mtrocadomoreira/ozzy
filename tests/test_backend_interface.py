@@ -1,7 +1,5 @@
 import pytest
 import xarray as xr
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
 
 from ozzy.backend_interface import Backend
 
@@ -34,51 +32,6 @@ def test_backend_initialization_valid(file_type):
     assert backend.name == file_type
     assert callable(backend.parse)
     assert hasattr(backend, "mixin")
-
-
-def test_find_quants(mock_backend_osiris, tmp_path):
-    run1 = tmp_path / "run1"
-    run1.mkdir(exist_ok=True)
-    (run1 / "e1-000001.h5").touch()
-    (run1 / "e2-000001.h5").touch()
-
-    dirs_runs = {"run1": str(run1)}
-    result = mock_backend_osiris.find_quants(
-        str(tmp_path), dirs_runs, quants=["e1", "e2"]
-    )
-
-    assert "e1" in result
-    assert "e2" in result
-    assert len(result["e1"]) == 1
-    assert len(result["e2"]) == 1
-
-
-def test_find_quants_no_quants(mock_backend_osiris, tmp_path):
-    run1 = tmp_path / "run1"
-    run1.mkdir(exist_ok=True)
-    (run1 / "e1-000001.h5").touch()
-    (run1 / "e2-000001.h5").touch()
-
-    dirs_runs = {"run1": str(run1)}
-    result = mock_backend_osiris.find_quants(str(tmp_path), dirs_runs)
-
-    assert "e1" in result
-    assert "e2" in result
-
-
-@settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
-@given(st.lists(st.sampled_from(["e1", "e2", "b1", "b2"]), min_size=1, max_size=4))
-def test_find_quants_hypothesis(mock_backend_osiris, tmp_path, quants):
-    run1 = tmp_path / "run1"
-    run1.mkdir(exist_ok=True)
-    for q in quants:
-        (run1 / f"{q}-000001.h5").touch()
-
-    dirs_runs = {"run1": str(run1)}
-    result = mock_backend_osiris.find_quants(str(tmp_path), dirs_runs, quants=quants)
-
-    assert set(result.keys()) == set(quants)
-    assert all(len(result[q]) == 1 for q in quants)
 
 
 def test_parse_data(mock_backend, tmp_path):
