@@ -903,9 +903,9 @@ def read(
 
             else:
 
-                if all([rec in fld_records for rec in records]):
+                if all(rec in fld_records for rec in records):
                     ds = read_sort(files, separate_theta_modes, fields=records)
-                elif all([rec in part_species for rec in records]):
+                elif all(rec in part_species for rec in records):
                     raise ValueError(
                         f"""Please choose one particle species to read at a time. For example:
 
