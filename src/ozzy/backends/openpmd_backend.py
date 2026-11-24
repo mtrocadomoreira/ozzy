@@ -461,10 +461,7 @@ def read_fields(
 
         all_ax_vars = all_ax_vars + ax_vars
 
-    # Set axis and time metadata
-
-    ds_fields["t"].attrs["long_name"] = tex_format("t")
-    ds_fields["t"] = set_sensible_units(ds_fields["t"], unit_init="s")
+    # Set axis metadata
 
     # CAUTION: assumption here: that all spatial axes have units of m
     # HACK: this is e.g. not true for HiPACE when using normalized units (but impossible to know this)
