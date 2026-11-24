@@ -840,31 +840,33 @@ def read(
             part_species = op_obj.avail_species
 
             if fld_records is not None:
-                string_fld_records = ", ".join([f"'{item}'" for item in fld_records])
+                fld_options_str = f"""
+                \t- 'fields' | 'grid' | 'mesh' | 'meshes': read all grid-based variables
+                \t- {" | ".join([f"'{item}'" for item in fld_records])} | [combination of quantities]: read a subset of the grid-based variables"""
             else:
-                string_fld_records = ""
+                fld_options_str = ""
 
             if part_species is not None:
                 string_part_species = ", ".join([f"'{item}'" for item in part_species])
+                part_options_str = f"""
+                \t- {" | ".join([f"'{item}'" for item in part_species])}: read particle data for one species"""
             else:
                 string_part_species = ""
+                part_options_str = ""
 
             # - raise informative error if records is None
 
+            avail_options = (
+                f"""Available options are:{fld_options_str}{part_options_str}"""
+            )
+
             if records is None:
 
-                raise ValueError(
-                    f"""
+                raise ValueError(f"""
                     Please choose which variables to read from the OpenPMD file(s) using the 'records' keyword argument.
 
-                    Accepted options are:\n
-                    \t- 'fields' | 'grid' | 'mesh' | 'meshes': read all grid-based variables\n
-                    \t- [name of grid-based variable] | [list of several grid-based variable names]: read a subset of the grid-based variables
-                    \t  Available variables: {string_fld_records}\n
-                    \t- [name of particle species]: particle data for one species
-                    \t  Available species: {string_part_species}
-                    """
-                )
+                    {avail_options}
+                    """)
 
             # - otherwise, parse records keyword
 
@@ -914,18 +916,11 @@ def read(
                         """
                     )
                 else:
-                    raise ValueError(
-                        f"""
+                    raise ValueError(f"""
                         Provided 'records' list is invalid. The reason might be because records are a mix of field and particle records, they are non-existent, or they have ambiguous names (such as the component 'r').
 
-                        Accepted options are:\n
-                        \t- 'fields' | 'grid' | 'mesh' | 'meshes': read all grid-based variables\n
-                        \t- [name of grid-based variable] | [list of several grid-based variable names]: read a subset of the grid-based variables
-                        \t  Available variables: {string_fld_records}\n
-                        \t- [name of particle species]: particle data for one species
-                        \t  Available species: {string_part_species}
-                        """
-                    )
+                        {avail_options}
+                        """)
 
         else:
             raise OSError
