@@ -197,8 +197,8 @@ def compactualize_units(quant, extremum: float) -> tuple[float, str]:
     comp_factor = (1 * quant_comp.units / quant.units).to_base_units().magnitude
     units_latex_string = f"{quant_comp.units:~L}".replace(" ", "")
 
-    # Workaround for pint printing µ
-    units_latex_string = units_latex_string.replace("\xb5", "\\mu ")
+    # # Workaround for pint printing µ
+    # units_latex_string = units_latex_string.replace("\xb5", "\\mu ")
 
     return (comp_factor, units_latex_string)
 
@@ -215,7 +215,7 @@ def get_tex_units(isq_exp: list[float], extremum: float) -> tuple[float, str]:
             quant = quant.to(quant_str)
         except DimensionalityError:
             raise DimensionalityError(
-                "Failed to convert OpenPMD unit dimensions to SI-derived units"
+                "Failed to convert openPMD unit dimensions to SI-derived units"
             )
 
     comp_factor, units_latex = compactualize_units(quant, extremum)
@@ -860,7 +860,7 @@ def read(
             if records is None:
 
                 raise ValueError(f"""
-                    Please choose which variables to read from the OpenPMD file(s) using the 'records' keyword argument.
+                    Please choose which variables to read from the openPMD file(s) using the 'records' keyword argument.
 
                     {avail_options}
                     """)
@@ -883,7 +883,7 @@ def read(
                             )
                         elif len(part_species) == 0:
                             print(
-                                "WARNING: OpenPMD file does not seem to contain any particle data. Returning an empty dataset."
+                                "WARNING: openPMD file does not seem to contain any particle data. Returning an empty dataset."
                             )
                             ds = new_dataset()
                         elif len(part_species) == 1:
@@ -897,7 +897,7 @@ def read(
                             ds = read_sort(files, separate_theta_modes, species=rec)
                         else:
                             raise ValueError(
-                                f"Can't find record '{rec}' in OpenPMD file(s)."
+                                f"Can't find record '{rec}' in openPMD file(s)."
                             )
 
             else:
