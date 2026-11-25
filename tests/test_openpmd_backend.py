@@ -225,6 +225,94 @@ def test_read_species_applies_weighting_units_and_particle_metadata():
     assert result["x"].attrs["long_name"] == r"$x$"
 
 
+def _make_particle_ds(t_val, pids, x_vals, ux_vals):
+    """Helper: build a single-timestep particle Dataset as read_species would."""
+    import dask.array as da
+
+    ds = xr.Dataset(
+        {
+            "x":  xr.DataArray(da.from_array(np.array(x_vals,  dtype=float), chunks=-1), dims="pid"),
+            "ux": xr.DataArray(da.from_array(np.array(ux_vals, dtype=float), chunks=-1), dims="pid"),
+        },
+        coords={"pid": np.array(pids)},
+    )
+    ds = ds.expand_dims(dim={"t": [float(t_val)]}, axis=1)
+    return ds
+
+
+def test_openpmd_concat_time_particles_same_count_across_time():
+    """Concatenating same-size particle snapshots along t preserves values."""
+    ds0 = _make_particle_ds(0.0, [0, 1, 2], [1.0, 2.0, 3.0], [10.0, 20.0, 30.0])
+    ds1 = _make_particle_ds(1.0, [0, 1, 2], [4.0, 5.0, 6.0], [40.0, 50.0, 60.0])
+
+    result = opb.openpmd_concat_time([ds0, ds1])
+
+    assert set(result.dims) >= {"t", "pid"}
+    np.testing.assert_array_equal(result["t"].values, [0.0, 1.0])
+    np.testing.assert_array_equal(result["pid"].values, [0, 1, 2])
+    np.testing.assert_allclose(result["x"].sel(t=0.0).compute().values,  [1.0, 2.0, 3.0])
+    np.testing.assert_allclose(result["x"].sel(t=1.0).compute().values,  [4.0, 5.0, 6.0])
+    np.testing.assert_allclose(result["ux"].sel(t=0.0).compute().values, [10.0, 20.0, 30.0])
+    np.testing.assert_allclose(result["ux"].sel(t=1.0).compute().values, [40.0, 50.0, 60.0])
+
+
+def test_openpmd_concat_time_particles_sorts_by_time():
+    """Input in reverse time order should produce output sorted by ascending t."""
+    ds_later  = _make_particle_ds(2.0, [0, 1], [9.0, 8.0], [90.0, 80.0])
+    ds_earlier = _make_particle_ds(1.0, [0, 1], [1.0, 2.0], [10.0, 20.0])
+
+    result = opb.openpmd_concat_time([ds_later, ds_earlier])
+
+    np.testing.assert_array_equal(result["t"].values, [1.0, 2.0])
+    np.testing.assert_allclose(result["x"].sel(t=1.0).compute().values, [1.0, 2.0])
+    np.testing.assert_allclose(result["x"].sel(t=2.0).compute().values, [9.0, 8.0])
+
+
+def test_openpmd_concat_time_particles_different_counts_fills_missing():
+    """When snapshots have different numbers of particles, missing entries are NaN."""
+    ds0 = _make_particle_ds(0.0, [0, 1, 2], [1.0, 2.0, 3.0], [10.0, 20.0, 30.0])
+    ds1 = _make_particle_ds(1.0, [0, 1],    [4.0, 5.0],       [40.0, 50.0])
+
+    result = opb.openpmd_concat_time([ds0, ds1])
+
+    # t=0 has 3 particles; t=1 has 2 — slot for pid=2 at t=1 must be NaN
+    np.testing.assert_allclose(result["x"].sel(t=0.0).compute().values, [1.0, 2.0, 3.0])
+    x_t1 = result["x"].sel(t=1.0).compute().values
+    np.testing.assert_allclose(x_t1[:2], [4.0, 5.0])
+    assert np.isnan(x_t1[2])
+
+
+def test_openpmd_concat_time_particles_preserves_matching_attrs():
+    """Attributes that agree across all input datasets are present in the result."""
+    ds0 = _make_particle_ds(0.0, [0], [1.0], [10.0])
+    ds1 = _make_particle_ds(1.0, [0], [2.0], [20.0])
+    ds0.attrs = {"shared": "yes", "conflict": "A"}
+    ds1.attrs = {"shared": "yes", "conflict": "B"}
+
+    result = opb.openpmd_concat_time([ds0, ds1])
+
+    # Attrs that are identical across all inputs must survive.
+    assert result.attrs.get("shared") == "yes"
+
+
+def test_openpmd_concat_time_particles_handles_conflicting_attrs():
+    """Disagreeing attributes across particle datasets do not fail concatenation;
+    matching attrs are kept and conflicting attrs are either dropped or taken
+    from the earliest-time dataset."""
+    ds_early = _make_particle_ds(1.0, [0], [1.0], [10.0])
+    ds_late = _make_particle_ds(2.0, [0], [2.0], [20.0])
+    ds_early.attrs = {"shared": "yes", "conflict": "early"}
+    ds_late.attrs = {"shared": "yes", "conflict": "late"}
+
+    result = opb.openpmd_concat_time([ds_late, ds_early])
+
+    np.testing.assert_array_equal(result["t"].values, [1.0, 2.0])
+    np.testing.assert_allclose(result["x"].sel(t=1.0).compute().values, [1.0])
+    np.testing.assert_allclose(result["x"].sel(t=2.0).compute().values, [2.0])
+    assert result.attrs.get("shared") == "yes"
+    assert result.attrs.get("conflict") in (None, "early")
+
+
 class FakeReadOpenPMDTimeSeries:
     avail_fields = ["E", "rho"]
     avail_species = ["electrons", "ions"]
