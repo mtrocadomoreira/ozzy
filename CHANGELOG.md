@@ -3,6 +3,47 @@
 <!--start-docs-->
 
 
+## Version 2.2.0 
+
+Released 26-11-2026 
+
+### Bug Fixes
+
+* [`18b126a`](https://github.com/mtrocadomoreira/ozzy/commit/18b126a4f58cd8c8da156ef1cc01aac3ce4375d6): Correct time units of openpmd files when reading field/grid records
+
+
+
+
+
+
+### Features
+
+* [`64dc226`](https://github.com/mtrocadomoreira/ozzy/commit/64dc2263ff4effffdaee11c8fc918d222b498428): Make unit scaling with metric prefixes optional
+
+
+
+    Use option `use_metric_prefixes` when opening openPMD files to control whether physical quantity units are scaled with a prefix like kilo, mega, giga, etc. As an example, for an electric field $E_z$ with values of the order of 10<sup>6</sup> V/m, the units will be converted from V/m to MV/m when `use_metric_prefixes = True` (the default).
+
+
+### Refactoring
+
+* [`a1f60fa`](https://github.com/mtrocadomoreira/ozzy/commit/a1f60fa22bdca1cf704e6b8126a057a957103ba1): Reformat error message for invalid `records` argument
+
+
+
+
+
+
+* [`90a111d`](https://github.com/mtrocadomoreira/ozzy/commit/90a111df993e3260e09d8859c4fe155cea724f69): Major rewrite of the way ozzy finds simulation files and organises the different quantities (important for `ozzy.open_compare`)
+
+
+
+    This change defines two separate methods to deal with filename-based quantity groupings (e.g. `ez-000000.h5`) versus the openPMD default (one file containing several quantities).
+
+    _Note:_ This refactoring was done with the help of an LLM model, specifically OpenAI's GPT 5.6 Sol (medium effort).
+
+
+
 ## Version 2.1.8 
 
 Released 28-08-2026 
