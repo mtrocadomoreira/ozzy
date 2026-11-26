@@ -259,13 +259,62 @@ def get_order_of_magnitude(arr: np.ndarray):
     return np.round(np.log10(np.mean(abs(arr))))
 
 
+def _scatter(a, idx, n_tot, fill_value):
+    # Write n_i particle values into a length-n_tot output array at positions
+    # given by idx, leaving the remaining slots as fill_value. Runs lazily
+    # via dask map_blocks so the actual computation is deferred.
+    def _s(block, idx=idx):
+        res = np.full(n_tot, fill_value, dtype=block.dtype)
+        res[idx] = block
+        return res
+    return da.map_blocks(_s, a.rechunk(-1), chunks=((n_tot,),), dtype=a.dtype)
+
+
+def fast_concat(objs, dim, fill_value=np.nan):
+    # Sort snapshots by their coordinate value along dim (e.g. ascending time).
+    order = np.argsort([float(d[dim][0]) for d in objs])
+    ds_list = [objs[i] for i in order]
+
+    # The output pid axis spans the largest particle count seen across all
+    # snapshots; snapshots with fewer particles leave unfilled slots as NaN.
+    n_tot = max(d.sizes["pid"] for d in ds_list)
+
+    # For now each snapshot uses a simple 0-based index (no unique particle IDs),
+    # so particle i in snapshot k maps to output row i.
+    idx_maps = [np.arange(d.sizes["pid"]) for d in ds_list]
+
+    # Build one (n_tot, n_times) dask array per variable by scattering each
+    # snapshot's values into the shared pid axis, then stacking along time.
+    out = {}
+    for v in ds_list[0].data_vars:
+        if v == "pid":
+            continue
+        cols = []
+        for d, idx in zip(ds_list, idx_maps):
+            a = d[v].isel(t=0).data               # dask array, shape (n_i,)
+            cols.append(_scatter(a, idx, n_tot, fill_value))
+        out[v] = (("pid", dim), da.stack(cols, axis=1))
+
+    dim_val = np.array([float(d[dim][0]) for d in ds_list])
+    coords = {dim: dim_val, "pid": np.arange(n_tot)}
+    return xr.Dataset(out, coords=coords, attrs=ds_list[0].attrs)
+
+
 def openpmd_concat_time(ds: xr.Dataset | list[xr.Dataset]) -> xr.Dataset:
-
-    ds = xr.concat(
-        ds, "t", fill_value=np.nan, join="outer", combine_attrs="drop_conflicts"
-    )
-    ds = ds.sortby("t")
-
+    # fast_concat is designed specifically for particle data: it handles
+    # varying particle counts across timesteps without xarray's coordinate
+    # alignment overhead. Fall back to xr.concat for field data (DataArrays
+    # or Datasets that have no pid dimension).
+    first = ds[0] if isinstance(ds, list) else ds
+    if isinstance(first, xr.Dataset) and "pid" in first.dims:
+        ds = fast_concat(
+            ds, "t", fill_value=np.nan,
+        )
+    else:
+        ds = xr.concat(
+            ds, "t", fill_value=np.nan, join="outer", combine_attrs="drop_conflicts"
+        )
+        ds = ds.sortby("t")
     return ds
 
 
