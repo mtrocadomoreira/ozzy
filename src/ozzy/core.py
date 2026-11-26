@@ -236,6 +236,8 @@ def open(
             |:--|:--|:--|:--|
             | **`records`** | `str | list[str] | None`  | Records to read from the files. If `None`, an error is raised listing the available records. | `None` |
             | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
+            | **`use_metric_prefixes`** | `bool` |  Whether to scale physical quantities by a metric prefix like kilo, mega, giga, etc. Unit labels for each quantity are updated accordingly. As an example, for an electric field $E_z$ with values of the order of 10<sup>6</sup> V/m, the units will be converted from V/m to MV/m when `use_metric_prefixes = True`. | `True` |
+
 
         See more details about the available keyword arguments for each backend:
 
@@ -335,6 +337,7 @@ def open_series(file_type, files, nfiles=None, **kwargs):
             |:--|:--|:--|:--|
             | **`records`** | `str | list[str] | None`  | Records to read from the files. If `None`, an error is raised listing the available records. | `None` |
             | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
+            | **`use_metric_prefixes`** | `bool` |  Whether to scale physical quantities by a metric prefix like kilo, mega, giga, etc. Unit labels for each quantity are updated accordingly. As an example, for an electric field $E_z$ with values of the order of 10<sup>6</sup> V/m, the units will be converted from V/m to MV/m when `use_metric_prefixes = True`. | `True` |
 
         See more details about the available keyword arguments for each backend:
 
@@ -449,6 +452,7 @@ def open_compare(
             | Name | Type | Description | Default |
             |:--|:--|:--|:--|
             | **`separate_theta_modes`** | `bool` |  Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes. | `False` |
+            | **`use_metric_prefixes`** | `bool` |  Whether to scale physical quantities by a metric prefix like kilo, mega, giga, etc. Unit labels for each quantity are updated accordingly. As an example, for an electric field $E_z$ with values of the order of 10<sup>6</sup> V/m, the units will be converted from V/m to MV/m when `use_metric_prefixes = True`. | `True` |
 
         See more details about the available keyword arguments for each backend:
 

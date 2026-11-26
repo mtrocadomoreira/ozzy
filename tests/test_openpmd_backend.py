@@ -38,10 +38,9 @@ def test_exponents_to_unit_rejects_wrong_number_of_dimensions():
 
 
 def test_get_tex_units_uses_si_derived_units():
-    factor, units = opb.get_tex_units([0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0], 1.0)
+    quant = opb._isq_exp_to_pint([0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0])
 
-    assert factor == 1
-    assert units == r"$\mathrm{C}$"
+    assert opb._pint_to_tex(quant) == r"$\mathrm{C}$"
 
 
 def test_set_sensible_units_compacts_data_and_sets_tex_unit_label():
@@ -125,7 +124,11 @@ def test_read_fields_preserves_modes_axes_scaling_and_ozzy_metadata():
     op_obj = FakeFieldOpenPMDTimeSeries()
 
     result = opb.read_fields(
-        op_obj, ["E"], separate_theta_modes=True, is_quasistatic=False
+        op_obj,
+        ["E"],
+        separate_theta_modes=True,
+        is_quasistatic=False,
+        use_metric_prefixes=False,
     )
 
     assert result.attrs["pic_data_type"] == "grid"
@@ -206,7 +209,10 @@ def _particle_attrs():
 
 def test_read_species_applies_weighting_units_and_particle_metadata():
     result = opb.read_species(
-        FakeParticleOpenPMDTimeSeries(), "electrons", _particle_attrs()
+        FakeParticleOpenPMDTimeSeries(),
+        "electrons",
+        _particle_attrs(),
+        use_metric_prefixes=False,
     )
 
     assert result.attrs["pic_data_type"] == "part"
@@ -250,12 +256,19 @@ def test_read_routes_valid_records_to_read_sort(
     calls = []
 
     def fake_read_sort(
-        files, separate_theta_modes, fields=None, species=None, *args, **kwargs
+        files,
+        separate_theta_modes,
+        use_metric_prefixes,
+        fields=None,
+        species=None,
+        *args,
+        **kwargs,
     ):
         calls.append(
             {
                 "files": files,
                 "separate_theta_modes": separate_theta_modes,
+                "use_metric_prefixes": use_metric_prefixes,
                 "fields": fields,
                 "species": species,
             }
@@ -266,13 +279,16 @@ def test_read_routes_valid_records_to_read_sort(
     monkeypatch.setattr(opb, "read_sort", fake_read_sort)
 
     files = ["/tmp/openpmd/fields000001.h5"]
-    result = opb.read(files, records=records, separate_theta_modes=True)
+    result = opb.read(
+        files, records=records, separate_theta_modes=True, use_metric_prefixes=False
+    )
 
     assert result.attrs["from_read_sort"] is True
     assert calls == [
         {
             "files": files,
             "separate_theta_modes": True,
+            "use_metric_prefixes": False,
             "fields": expected_fields,
             "species": expected_species,
         }
@@ -337,12 +353,15 @@ def test_read_sort_reads_hdf5_metadata_and_applies_time_units(tmp_path, monkeypa
         seen["openpmd_args"] = (path_arg, check_all_files)
         return fake_op_obj
 
-    def fake_read_fields(op_obj, fields, separate_theta_modes, is_quasistatic):
+    def fake_read_fields(
+        op_obj, fields, separate_theta_modes, is_quasistatic, use_metric_prefixes
+    ):
         seen["read_fields_args"] = (
             op_obj,
             fields,
             separate_theta_modes,
             is_quasistatic,
+            use_metric_prefixes,
         )
         return xr.Dataset(
             {"E": ("t", [1.0])},
@@ -353,10 +372,12 @@ def test_read_sort_reads_hdf5_metadata_and_applies_time_units(tmp_path, monkeypa
     monkeypatch.setattr(opb, "OpenPMDTimeSeries", fake_openpmd_time_series)
     monkeypatch.setattr(opb, "read_fields", fake_read_fields)
 
-    result = opb.read_sort([str(path)], separate_theta_modes=True, fields=["E"])
+    result = opb.read_sort(
+        [str(path)], separate_theta_modes=True, use_metric_prefixes=True, fields=["E"]
+    )
 
     assert seen["openpmd_args"] == (str(path), True)
-    assert seen["read_fields_args"] == (fake_op_obj, ["E"], True, False)
+    assert seen["read_fields_args"] == (fake_op_obj, ["E"], True, False, True)
     assert result.attrs["pic_data_type"] == "grid"
     assert result.attrs["data_origin"] == "openpmd"
     assert result.attrs["openPMD"] == "2.0.0"

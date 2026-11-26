@@ -190,23 +190,18 @@ def get_tex_label(
     return tex_format(out)
 
 
-def compactualize_units(quant, extremum: float) -> tuple[float, str]:
+def _compactualize_units(quant, extremum: float) -> tuple[float, str]:
 
     quant_comp = extremum * quant
     quant_comp = quant_comp.to_compact()
     comp_factor = (1 * quant_comp.units / quant.units).to_base_units().magnitude
-    units_latex_string = f"{quant_comp.units:~L}".replace(" ", "")
 
-    # # Workaround for pint printing µ
-    # units_latex_string = units_latex_string.replace("\xb5", "\\mu ")
-
-    return (comp_factor, units_latex_string)
+    return (comp_factor, quant_comp)
 
 
-def get_tex_units(isq_exp: list[float], extremum: float) -> tuple[float, str]:
-
+# TODO: add result type
+def _isq_exp_to_pint(isq_exp: list[float]):
     quant = _exponents_to_unit(isq_exp)
-
     if tuple(isq_exp) in _si_derived_units:
 
         quant_str = _si_derived_units[tuple(isq_exp)]
@@ -217,34 +212,39 @@ def get_tex_units(isq_exp: list[float], extremum: float) -> tuple[float, str]:
             raise DimensionalityError(
                 "Failed to convert openPMD unit dimensions to SI-derived units"
             )
+    return quant
 
-    comp_factor, units_latex = compactualize_units(quant, extremum)
 
-    return (comp_factor, tex_format(units_latex))
+def _pint_to_tex(quant):
+    return tex_format(f"{quant.units:~L}".replace(" ", ""))
 
 
 def set_sensible_units(
-    da: xr.DataArray, isq_exp: list[float] | None = None, unit_init: str | None = None
+    da: xr.DataArray,
+    isq_exp: list[float] | None = None,
+    unit_init: str | None = None,
+    use_metric_prefixes: bool = True,
 ) -> xr.DataArray:
 
     if (isq_exp is not None) | (unit_init is not None):
 
-        if da.size == 0:
-            data_max_value = 1
-        else:
-            data_max_value = abs(da).max(skipna=True).compute().data
-
         if isq_exp is not None:
-            comp_factor, units_label = get_tex_units(isq_exp, data_max_value)
+            quant = _isq_exp_to_pint(isq_exp)
+
         elif unit_init is not None:
-            quant_init = 1 * u(unit_init)
-            comp_factor, units_str = compactualize_units(quant_init, data_max_value)
-            units_label = tex_format(units_str)
+            quant = 1 * u(unit_init)
 
-        if comp_factor != 1:
-            da = da / comp_factor
+        if use_metric_prefixes:
+            if da.size == 0:
+                data_max_value = 1
+            else:
+                data_max_value = abs(da).max(skipna=True).compute().data
 
-        da.attrs["units"] = units_label
+            comp_factor, quant = _compactualize_units(quant, data_max_value)
+            if comp_factor != 1:
+                da = da / comp_factor
+
+        da.attrs["units"] = _pint_to_tex(quant)
 
         return da
 
@@ -274,6 +274,7 @@ def read_fields(
     fields: list[str],
     separate_theta_modes: bool,
     is_quasistatic: bool,
+    use_metric_prefixes: bool,
 ) -> xr.Dataset:
 
     if "all" in fields:
@@ -436,7 +437,9 @@ def read_fields(
                 da_rec.attrs["long_name"] = rec_label
 
                 da_rec = set_sensible_units(
-                    da_rec, isq_exp=metadata.field_attrs["unitDimension"]
+                    da_rec,
+                    isq_exp=metadata.field_attrs["unitDimension"],
+                    use_metric_prefixes=use_metric_prefixes,
                 )
 
                 for meta_attr in [
@@ -468,7 +471,9 @@ def read_fields(
     space_vars = set(all_ax_vars)
     for ax_var in space_vars:
         ds_fields[ax_var].attrs["long_name"] = tex_format(ax_var)
-        ds_fields[ax_var] = set_sensible_units(ds_fields[ax_var], unit_init="m")
+        ds_fields[ax_var] = set_sensible_units(
+            ds_fields[ax_var], unit_init="m", use_metric_prefixes=use_metric_prefixes
+        )
 
     # Add iteration coordinate
 
@@ -479,7 +484,10 @@ def read_fields(
 
 
 def read_species(
-    op_obj: OpenPMDTimeSeries, species: str, sp_var_attrs: dict
+    op_obj: OpenPMDTimeSeries,
+    species: str,
+    sp_var_attrs: dict,
+    use_metric_prefixes: bool,
 ) -> xr.Dataset:
 
     iters_all = op_obj.iterations
@@ -566,10 +574,14 @@ def read_species(
             if sp_var_attrs["mass"]["value"] != 0:
                 ds[var].attrs["units"] = r"$m_\mathrm{sp} c$"
             else:
-                ds[var] = set_sensible_units(ds[var], unit_init="kg*m/s")
+                ds[var] = set_sensible_units(
+                    ds[var], unit_init="kg*m/s", use_metric_prefixes=use_metric_prefixes
+                )
         else:
             ds[var] = set_sensible_units(
-                ds[var], isq_exp=sp_var_attrs[var]["unitDimension"]
+                ds[var],
+                isq_exp=sp_var_attrs[var]["unitDimension"],
+                use_metric_prefixes=use_metric_prefixes,
             )
 
     # Set general attributes
@@ -587,6 +599,7 @@ def read_species(
 def read_sort(
     files: list[str],
     separate_theta_modes: bool,
+    use_metric_prefixes: bool,
     fields: list[str] | None = None,
     species: str | None = None,
     *args,
@@ -720,12 +733,14 @@ def read_sort(
     op_obj = OpenPMDTimeSeries(os.path.commonpath(files), check_all_files=True)
 
     if fields is not None:
-        ds = read_fields(op_obj, fields, separate_theta_modes, is_quasistatic)
+        ds = read_fields(
+            op_obj, fields, separate_theta_modes, is_quasistatic, use_metric_prefixes
+        )
         ds = ds.assign_attrs(**fld_attrs)
 
     elif species is not None:
 
-        ds = read_species(op_obj, species, sp_var_attrs)
+        ds = read_species(op_obj, species, sp_var_attrs, use_metric_prefixes)
         ds = ds.assign_attrs(**sp_attrs)
 
     # Set general metadata
@@ -741,16 +756,20 @@ def read_sort(
 
     ds["t"].attrs["long_name"] = tex_format("t")
     # CAUTION: assumption here: that time always has units of s
-    ds["t"] = set_sensible_units(ds["t"], unit_init="s")
+    ds["t"] = set_sensible_units(
+        ds["t"], unit_init="s", use_metric_prefixes=use_metric_prefixes
+    )
 
     return ds
 
 
+# TODO: new option to use metric prefixes
 @stopwatch
 def read(
     files: list[str],
     records: str | list[str] | None = None,
     separate_theta_modes: bool = False,
+    use_metric_prefixes: bool = True,
     **kwargs,
 ) -> xr.Dataset:
     """
@@ -772,6 +791,10 @@ def read(
         If `None`, an error is raised listing the available records.
     separate_theta_modes : bool, default: False
         Whether to keep each azimuthal mode separate for each data variable when reading grid-based data in geometries with azimuthal mode decomposition. If `True`, returns each data variable reconstructed from all azimuthal modes.
+    use_metric_prefixes : bool, default: True
+        Whether to scale physical quantities by a metric prefix like kilo, mega, giga, etc. Unit labels for each quantity are updated accordingly.
+
+        As an example, for an electric field $E_z$ with values of the order of 10<sup>6</sup> V/m, the units will be converted from V/m to MV/m when `use_metric_prefixes = True`.
 
     Returns
     -------
@@ -874,7 +897,12 @@ def read(
                 rec = records[0]
                 match rec:
                     case "fields" | "mesh" | "meshes" | "grid":
-                        ds = read_sort(files, separate_theta_modes, fields=["all"])
+                        ds = read_sort(
+                            files,
+                            separate_theta_modes,
+                            use_metric_prefixes,
+                            fields=["all"],
+                        )
                     case "particles" | "part":
 
                         if len(part_species) > 1:
@@ -888,13 +916,26 @@ def read(
                             ds = new_dataset()
                         elif len(part_species) == 1:
                             ds = read_sort(
-                                files, separate_theta_modes, species=part_species[0]
+                                files,
+                                separate_theta_modes,
+                                use_metric_prefixes,
+                                species=part_species[0],
                             )
                     case _:
                         if rec in fld_records:
-                            ds = read_sort(files, separate_theta_modes, fields=[rec])
+                            ds = read_sort(
+                                files,
+                                separate_theta_modes,
+                                use_metric_prefixes,
+                                fields=[rec],
+                            )
                         elif rec in part_species:
-                            ds = read_sort(files, separate_theta_modes, species=rec)
+                            ds = read_sort(
+                                files,
+                                separate_theta_modes,
+                                use_metric_prefixes,
+                                species=rec,
+                            )
                         else:
                             raise ValueError(
                                 f"Can't find record '{rec}' in openPMD file(s)."
@@ -903,7 +944,9 @@ def read(
             else:
 
                 if all(rec in fld_records for rec in records):
-                    ds = read_sort(files, separate_theta_modes, fields=records)
+                    ds = read_sort(
+                        files, separate_theta_modes, use_metric_prefixes, fields=records
+                    )
                 elif all(rec in part_species for rec in records):
                     raise ValueError(
                         f"""Please choose one particle species to read at a time. For example:
